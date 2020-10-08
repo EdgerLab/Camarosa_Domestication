@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Generate and save an TPM table from gene annotation and count matrix
+Generate and save an FPKM table from gene annotation and count matrix
 """
 
 __author__ = "Scott Teresi"
@@ -13,11 +13,12 @@ import pandas as pd
 
 from gene_lengths import import_genes
 from count_matrix import import_count_matrix
+from fpkm import calc_fpkm
 from tpm import calc_tpm
 
 
 def process(gene_annotation, count_matrix, output_dir, file_name):
-    """Run the script, go from annotation and count file to TPM table.
+    """Run the script, go from annotation and count file to FPKM table.
 
     Args:
         gene_annotation (str): string of path to gene annotation file. GFF
@@ -28,12 +29,9 @@ def process(gene_annotation, count_matrix, output_dir, file_name):
 
         output_dir (str): string of path for output directory to store data
 
-        file_name (str): a string to be used as a prefix for the file_name,
-        ought to represent whether the file is single or all haplotype in
-        origin.
-
     Returns:
-        None. Saves a table of TPM values to the output_dir
+        None. Saves a table of FPKM and TPM values to the output_dir as
+        'Blueberry_FPKM.tsv' 'Blue
     """
     # import genes and their gene lengths
     ids_and_exon_lengths = import_genes(gene_annotation)
@@ -46,8 +44,17 @@ def process(gene_annotation, count_matrix, output_dir, file_name):
 
     # Parse out the data in prep for fpkm calculator
     merged_data.set_index("Gene_Name", inplace=True)
+    merged_data.to_csv("merged_with_lengths.tsv", sep="\t")
     lengths = merged_data.Total_Exon_Length
     merged_data.drop(columns=["Total_Exon_Length"], inplace=True)
+
+    # Calculate FPKM and save to disk
+    fpkm_vals = calc_fpkm(merged_data, lengths)
+
+    fpkm_vals = pd.DataFrame(fpkm_vals, columns=merged_data.columns)
+    fpkm_vals.set_index(merged_data.index, inplace=True)
+
+    fpkm_vals.to_csv(os.path.join(output_dir, f"{file_name}_FPKM.tsv"), sep="\t")
 
     # Calcuate TPM
     tpm_vals = calc_tpm(merged_data, lengths)
@@ -55,9 +62,7 @@ def process(gene_annotation, count_matrix, output_dir, file_name):
     tpm_vals.set_index(merged_data.index, inplace=True)
 
     # To disk
-    tpm_vals.to_csv(
-        os.path.join(output_dir, f"Blueberry_TPM_{file_name}.tsv"), sep="\t"
-    )
+    tpm_vals.to_csv(os.path.join(output_dir, f"{file_name}_TPM.tsv"), sep="\t")
 
 
 if __name__ == "__main__":
@@ -65,12 +70,16 @@ if __name__ == "__main__":
     path_main = os.path.abspath(__file__)
     parser.add_argument("genes_input_file", type=str, help="parent path of gene file")
     parser.add_argument("count_matrix", type=str, help="parent path of counts file")
-    parser.add_argument("selection", type=str, help="all or single haplotype")
+    parser.add_argument("genome", type=str, help="str of genome")
     parser.add_argument(
         "--output_dir",
         "-o",
         type=str,
-        default=os.path.join(path_main, "../../../../", "Blueberry_Data/TPM"),
+        default=os.path.join(
+            path_main,
+            "../../../../",
+            "Projects/Strawberry_Data/Strawberry_Annotations/Camarosa/Expression/tables/",
+        ),
         help="parent directory to output results",
     )
 
@@ -79,4 +88,4 @@ if __name__ == "__main__":
     args.count_matrix = os.path.abspath(args.count_matrix)
     args.output_dir = os.path.abspath(args.output_dir)
 
-    process(args.genes_input_file, args.count_matrix, args.output_dir, args.selection)
+    process(args.genes_input_file, args.count_matrix, args.output_dir, args.genome)
