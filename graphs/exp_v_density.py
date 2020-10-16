@@ -64,12 +64,6 @@ if __name__ == "__main__":
     path_main = os.path.abspath(__file__)
 
     parser.add_argument("fpkm_data", type=str, help="parent path of FPKM matrix")
-    # default=os.path.join(
-    # path_main,
-    # "../../",
-    # "Strawberry_Data/Strawberry_Annotations/Camarosa/Expression/tables/Camarosa_FPKM.tsv",
-    # ),
-    # )
     parser.add_argument("tpm_data", type=str, help="parent path of TPM matrix")
     parser.add_argument("test_density_data", type=str, help="old density data")
     parser.add_argument(
@@ -88,54 +82,20 @@ if __name__ == "__main__":
     fpkm_data = import_exp_dataframe(args.fpkm_data)
     tpm_data = import_exp_dataframe(args.tpm_data)
     old_density = import_old_density(args.test_density_data)
-    old_density = old_density / 2
+    old_density = old_density / 2  # this step is done because the old density
+    # data needs to be corrected
 
-    test = old_density.join(tpm_data)
+    merged = old_density.join(tpm_data)  # this step is necessary because we
+    # don't have all the genes yet in the denisty data. It is easy to work with
+    # a dataframe in which all of the expression values and density values are
+    # together.  However I am not sure how this will work with the hdf5 format.
 
-    # tpm_data = tpm_data["ERR855503"]
-
-    # print(tpm_data)
-    # print(tpm_data.shape)
-    # print()
-    # tpm_data = tpm_data[tpm_data.ERR855503 != 0]
-    # print(tpm_data.ERR855503 != 0)
-    # print(tpm_data)
-    # old_density_genes = old_density.index.to_list()
-    # boolean_mask = tpm_data.index.isin(old_density_genes)
-    # updated_tpm_frame = tpm_data[boolean_mask]
-    # print(old_density.shape)
-    # print(updated_tpm_frame.shape)
-
-    test["Exp_Fruit"] = tpm_data[
+    merged["Exp_Fruit"] = tpm_data[
         ["ERR855501", "ERR855502", "ERR855503", "ERR855504", "ERR855505"]
     ].mean(axis=1)
 
-    test = test[test.Exp_Fruit != 0]
-    test["Exp_Fruit"] = np.log2(test["Exp_Fruit"])
-
-    # Sort the dataframes by genes to have in same order
-    # old_density.sort_index(inplace=True)
-    # updated_tpm_frame.sort_index(inplace=True)
-
-    # print(old_density)
-
-    # print(updated_tpm_frame)
-
-    # sns.lmplot(x="LTR_left", y="Exp_Fruit", data=test, logistic=True, y_jitter=0.03)
-    sns.jointplot(x="LTR_left", y="Exp_Fruit", data=test, kind="reg")
+    merged = merged[merged.Exp_Fruit != 0]  # remove exp vals with zero
+    merged["Exp_Fruit"] = np.log2(merged["Exp_Fruit"])
+    sns.jointplot(x="LTR_left", y="Exp_Fruit", data=merged, kind="reg")
 
     plt.show()
-
-    # exp_vs_density(
-    # test, test, "tpm", 1000, "LTR", "left", args.output_dir,
-    # )
-
-    # exp_vs_density(
-    # test.LTR_left.to_list(),
-    # test.Exp_Fruit.to_list(),
-    # "tpm",
-    # 1000,
-    # "LTR",
-    # "left",
-    # args.output_dir,
-    # )
