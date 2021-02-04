@@ -2,6 +2,8 @@
 
 """
 Fix the front matter of protein FASTA files to run BLASTP
+Necessary because the gene names are improperly parsed when using a protein
+fasta directly derived from CoGe.
 """
 
 __author__ = "Scott Teresi"

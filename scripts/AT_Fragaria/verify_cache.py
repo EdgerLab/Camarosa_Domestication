@@ -10,7 +10,16 @@ from import_homologs import *
 def verify_BLAST_cache(
     raw_blast_data_file, genome_name, filtered_blast_data_file, logger
 ):
-    """Determine whether or not previously saved BLAST data exists on disk"""
+    """Determine whether or not previously saved BLAST data exists on disk.
+
+    Args:
+        raw_blast_data_file (str):
+        genome_name (str):
+        filtered_blast_data_file (str):
+        logger:
+
+    Returns: import_homologs(file) as homolog_data (Pandas DataFrame).
+    """
 
     if os.path.exists(filtered_blast_data_file):
         raw_file_creation_time = os.path.getmtime(raw_blast_data_file)

@@ -38,28 +38,6 @@ $AT_COL \
 -a 12 \
 -e 0.05
 
-#-i /mnt/research/edgerpat_lab/Scotty/Arab_Fragaria_BLAST_DB/peptides/fasta_revised_Camarosa.fasta \
-
-# H4
-#blastall -p blastp -d \
-#/mnt/research/edgerpat_lab/Scotty/Arab_Fragaria_BLAST_DB/peptides/At_Col_16746-CDS-prot.fasta \
-#-i /mnt/research/edgerpat_lab/Scotty/Arab_Fragaria_BLAST_DB/57743-CDS-prot.fasta
-#-o /mnt/research/edgerpat_lab/Scotty/Arab_Fragaria_BLAST_DB/At_H4.blast \
-#-m 8 \
-#-a 4 \
-#-e 0.05
-
-# Iinumae
-#blastall -p blastp -d \
-#/mnt/research/edgerpat_lab/Scotty/Arab_Fragaria_BLAST_DB/peptides/At_Col_16746-CDS-prot.fasta \
-#-i /mnt/research/edgerpat_lab/Scotty/Arab_Fragaria_BLAST_DB/54118-CDS-prot.fasta
-#-o /mnt/research/edgerpat_lab/Scotty/Arab_Fragaria_BLAST_DB/At_Iinumae.blast \
-#-m 8 \
-#-a 4 \
-#-e 0.05
-
-
-
 end=`date +%s`
 elapsed=`expr $end - $begin`
 echo Time taken: $elapsed

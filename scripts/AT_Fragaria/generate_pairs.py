@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Master code file. Control filtration of syntelog data and homolog data. Manage
+Executor code file. Control filtration of syntelog data and homolog data. Manage
 merging of the two dataframes and orchestrate all file commands.
 """
 
@@ -27,6 +27,25 @@ from verify_cache import verify_BLAST_cache
 def process_CAM(
     syntelog_input_file, homolog_input_file, genome_name, data_output_path,
 ):
+    """
+    Process SynMap output and BLAST output for Camarosa (Fragaria x. ananassa)
+
+    Args:
+        syntelog_input_file (str): Path to the SynMap output file containing
+            AT-Camarosa synteny results
+
+        homolog_input_file (str): Path to the BLASTP output file containing
+            AT-Camarosa homology results
+
+        genome_name (str): String representing the genome name for the set,
+            here it should always be Camarosa
+
+        data_output_path (str): Directory path to output results
+
+    Returns:
+        instance_Merged_Data (Merged_Data): Instance of Merged_Data containing
+            a dataframe which is the amalgamation of the synteny and blast results
+    """
     # Import the synteny data from raw file
     logger.info("Importing raw syntelogs: %s" % syntelog_input_file)
     syntelogs = import_syntelogs(syntelog_input_file, genome_name)
@@ -80,6 +99,22 @@ def process_CAM(
 
 
 def process_H4(syntelog_input_file, genome_name, data_output_path):
+    """
+    Process SynMap output for H4 (Fragaria vesca).
+
+    Args:
+        syntelog_input_file (str): Path to the SynMap output file containing
+            Camarosa-H4 synteny results
+
+        genome_name (str): String representing the genome name for the set,
+            here it should always be H4
+
+        data_output_path (str): Directory path to output results
+
+    Returns:
+        instance_Syntelog_Data (Syntelog_Data): Instance of Syntelog_Data containing
+            a dataframe which is the cleaned up version of the synteny results
+    """
     # Import the synteny data from raw file
     logger.info("Importing raw syntelogs: %s" % syntelog_input_file)
     syntelogs = import_syntelogs(syntelog_input_file, genome_name)
@@ -96,13 +131,34 @@ def process_H4(syntelog_input_file, genome_name, data_output_path):
     return instance_Syntelog_Data
 
 
-def make_table(camarosa_merged, h4_synteny):
-    # Remove the point of origin column for H4 because it is always Synteny
+def make_table(camarosa_merged, h4_synteny, data_output_path):
+    """
+    Make a table (tsv) of the orthologs between strawberries as well as the
+    Camarosa to Arabidopsis orthologs. Join on common Camarosa gene
+
+    Args:
+        camarosa_merged (Merged_Data): Instance of Merged_Data for the Camarosa
+        data.
+
+        h4_synteny (Syntelog_Data): Instance of Syntelog_Data for the H4 data.
+
+        data_output_path (str): Directory path to output results
+
+    Returns:
+        None. Writes a tsv for the output table to the output directory.
+
+    """
+    # Remove the point of origin column for H4 because it is always 'Synteny'
     h4_synteny.dataframe.drop("Point_of_Origin", inplace=True, axis=1)
     merged_all = camarosa_merged.dataframe.merge(
         h4_synteny.dataframe, on="Camarosa_Gene", how="outer"
     ).fillna("NA")
-    merged_all.to_csv("test_total_merge.tsv", sep="\t", header=True, index=False)
+    merged_all.to_csv(
+        os.path.join(data_output_path, "Strawberry_AT_Ortholog_Table.tsv"),
+        sep="\t",
+        header=True,
+        index=False,
+    )
 
 
 if __name__ == "__main__":
@@ -155,4 +211,4 @@ if __name__ == "__main__":
     )
     # Process H4
     h4_synteny = process_H4(args.HFour_syntelog_input_file, "H4", args.output_directory)
-    make_table(camarosa_merged, h4_synteny)
+    make_table(camarosa_merged, h4_synteny, args.output_directory)
