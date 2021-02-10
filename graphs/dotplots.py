@@ -50,7 +50,9 @@ def plot_intra_density(dd_obj, order_or_super, output_dir, display=False):
         plt.scatter(0, val, label=key)
         plt.legend()
 
-    plt.yticks(np.arange(0, 1.01, 0.1))
+    plt.yticks(np.arange(0, 0.8, 0.05))  # NOTE I want this to be consistent
+    # but it is too high, can't do std dev? Needs to be consistent with the
+    # multiplots
     plt.xticks([0])
     plt.xlabel("Window Position in BP")
     plt.ylabel("Intronic TE Density")
@@ -135,8 +137,9 @@ def plot_density_all(dd_obj, order_or_super, output_dir, display=False):
     ax1.set(
         xlabel="BP Upstream",
         ylabel="TE Density",
-        yticks=np.arange(0, 1.01, 0.1),
+        yticks=np.arange(0, 0.51, 0.025),
         xticks=range(min(dd_obj.window_list), (max(dd_obj.window_list) + 1), 1000),
+        ylim=[0.0, 0.5],
     )
 
     for key, val in data_intra_dict.items():
@@ -154,8 +157,9 @@ def plot_density_all(dd_obj, order_or_super, output_dir, display=False):
     ax3.axis([min(dd_obj.window_list), max(dd_obj.window_list), 0, 1])
     ax3.set(
         xlabel="BP Downstream",
-        yticks=np.arange(0, 1.01, 0.1),
+        yticks=np.arange(0, 0.51, 0.025),
         xticks=range(min(dd_obj.window_list), (max(dd_obj.window_list) + 1), 1000),
+        ylim=[0.0, 0.5],
     )
     ax3.yaxis.tick_right()
 

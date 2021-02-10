@@ -76,6 +76,7 @@ class DensityData:
         order_dict = {}
         for i in range(len(self.order_list)):
             order_dict[self.order_list[i]] = i
+        order_dict.pop("S_Revision")  # MAGIC pop the revision set
         return order_dict
 
     @property
@@ -85,6 +86,7 @@ class DensityData:
         super_dict = {}
         for i in range(len(self.super_list)):
             super_dict[self.super_list[i]] = i
+        super_dict.pop("O_Revision")  # MAGIC pop the revision set
         return super_dict
 
     def _swap_strand_vals(self, gene_names):
