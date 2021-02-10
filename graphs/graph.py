@@ -54,6 +54,22 @@ def _split_wrt_chromosome(filtered_genes):
     return gene_list
 
 
+def plot_all_H4(h5_file_list, gene_pandaframe, logger, output_default):
+    genes_split = _split_wrt_chromosome(gene_pandaframe)
+    genes_split = [
+        GeneData(geneframe, ("H4_" + geneframe.Chromosome.unique()[0]))
+        for geneframe in genes_split
+    ]
+    chromosomes = [chromosome for chromosome in genes_split]  # gene data
+    dd_objects = [
+        DensityData(h5_file, chromosome, logger)
+        for h5_file, chromosome, in zip(h5_file_list, chromosomes)
+    ]
+    for chromosome_of_density_data in dd_objects:
+        plot_density_all(chromosome_of_density_data, "Superfamily", output_default)
+        plot_density_all(chromosome_of_density_data, "Order", output_default)
+
+
 if __name__ == "__main__":
     path_main = os.path.abspath(__file__)
     dir_main = os.path.dirname(path_main)
@@ -81,6 +97,11 @@ if __name__ == "__main__":
     # test_file = "/home/scott/Documents/Uni/Research/Projects/TE_Data/finalized_data/ShortTest_Fvb1-1.h5"
     test_file1 = "/home/scott/Documents/Uni/Research/Projects/TE_Data/finalized_data/H4/5KB_Up/H4_Fvb1.h5"
     test_file2 = "/home/scott/Documents/Uni/Research/Projects/TE_Data/finalized_data/H4/5KB_Up/H4_Fvb2.h5"
+    test_file3 = "/home/scott/Documents/Uni/Research/Projects/TE_Data/finalized_data/H4/5KB_Up/H4_Fvb3.h5"
+    test_file4 = "/home/scott/Documents/Uni/Research/Projects/TE_Data/finalized_data/H4/5KB_Up/H4_Fvb4.h5"
+    test_file5 = "/home/scott/Documents/Uni/Research/Projects/TE_Data/finalized_data/H4/5KB_Up/H4_Fvb5.h5"
+    test_file6 = "/home/scott/Documents/Uni/Research/Projects/TE_Data/finalized_data/H4/5KB_Up/H4_Fvb6.h5"
+    test_file7 = "/home/scott/Documents/Uni/Research/Projects/TE_Data/finalized_data/H4/5KB_Up/H4_Fvb7.h5"
 
     # NOTE I need to split the GeneData up by chromosome, I am pretty sure I
     # already have a function that does that...
@@ -94,19 +115,18 @@ if __name__ == "__main__":
         index_col="Gene_Name",  # this is crucial
     )
 
-    genes_split = _split_wrt_chromosome(all_genes)
-    genes_split = [
-        GeneData(geneframe, ("Cam_" + geneframe.Chromosome.unique()[0]))
-        for geneframe in genes_split
-    ]
-    chrom1 = genes_split[0]  # NB first chromosome
-    chrom2 = genes_split[1]  # NB second chromosome
-    test_d1 = DensityData(test_file1, chrom1, logger)
-    test_d2 = DensityData(test_file2, chrom2, logger)
-
-    # plot_intra_density(test_d, "Superfamily", output_default)
-    # plot_intra_density(density_data, "Order", output_default)
-    plot_density_all(test_d1, "Superfamily", output_default)
-    plot_density_all(test_d1, "Order", output_default)
-    plot_density_all(test_d2, "Superfamily", output_default)
-    plot_density_all(test_d2, "Order", output_default)
+    plot_all_H4(
+        [
+            test_file1,
+            test_file2,
+            test_file3,
+            test_file4,
+            test_file5,
+            test_file6,
+            test_file7,
+        ],
+        all_genes,
+        logger,
+        output_default,
+    )
+    # raise ValueError

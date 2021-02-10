@@ -30,6 +30,7 @@ def plot_intra_density(dd_obj, order_or_super, output_dir, display=False):
         (usually opens another window).
 
     """
+    # NOTE intra code has not been edited for multiple chromosomes yet
     plotting_dict = {}
 
     if order_or_super == "Order":
@@ -121,7 +122,7 @@ def plot_density_all(dd_obj, order_or_super, output_dir, display=False):
         )
 
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey="col")
-    fig.set_size_inches(16, 8.5)
+    fig.set_size_inches(16, 9.5)
     # define colors
     NUM_COLORS = sum(1 for te_type in te_index_dict.items())
     cm = plt.get_cmap("tab20")
@@ -148,7 +149,7 @@ def plot_density_all(dd_obj, order_or_super, output_dir, display=False):
         )
 
     ax2.set(xlabel="Intronic TEs", xticks=[])
-    ax2.legend(loc="upper right")
+    ax2.legend(loc="center")
 
     for key, val in data_right_dict.items():
         ax3.plot(
