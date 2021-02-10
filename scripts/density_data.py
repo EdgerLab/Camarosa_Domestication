@@ -11,9 +11,10 @@ import numpy as np
 
 
 class DensityData:
-    def __init__(self, input_h5, genes_to_swap):
+    def __init__(self, input_h5, gene_data, logger):
         """
         input_h5 (str): Path to h5 file of TE Density output.
+        gene_data (GeneData):
         """
 
         self.data_frame = h5py.File(input_h5, "r+")
@@ -36,15 +37,33 @@ class DensityData:
         self.intra_supers = self.data_frame["RHO_SUPERFAMILIES_INTRA"]
         self.right_supers = self.data_frame["RHO_SUPERFAMILIES_RIGHT"]
 
+        self.genome_id = gene_data.genome_id
+
+        # TODO
+        # This should be refactored into TE Density.
+        gene_data.data_frame.Strand.replace({"+": 1, "-": 0}, inplace=True)
+        strands_as_numpy = gene_data.data_frame.Strand.to_numpy(copy=False)
+        # one_gene_list = np.nonzero(strands_as_numpy)[0]  # gets indices of 1s
+        zero_gene_list = np.where(strands_as_numpy == 0)[0]  # gets indices of 0s
+        # NB the 0s are the antisense
+        genes_to_swap = gene_data.data_frame.iloc[zero_gene_list, :].index.tolist()
         self._swap_strand_vals(genes_to_swap)
 
-    def index_of_gene(self, gene_string):
+    def _index_of_gene(self, gene_string):
         """Return the index of a gene given the name of the gene
         Args:
             gene_string (str): string representing the name of the gene
         Returns:
             Returns an index of the gene in the H5 dataset
         """
+        if gene_string not in self.gene_list:
+            raise IndexError(
+                """The gene '%s' is not in the density data,
+                please verify that the list of genes to swap sense and
+                antisense values does not have any genes that are not present
+                in the density data (h5 file)."""
+                % (gene_string)
+            )
         return np.where(self.gene_list == gene_string)[0][0]  # MAGIC
 
     def nonzero_indices(self):
@@ -77,7 +96,7 @@ class DensityData:
             gene_names(list of str):
         """
         for name in gene_names:
-            index_to_switch = self.index_of_gene(name)
+            index_to_switch = self._index_of_gene(name)
 
             # SUPERFAMILIES
             left_val_super = self.data_frame["RHO_SUPERFAMILIES_LEFT"][

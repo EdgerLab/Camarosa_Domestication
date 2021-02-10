@@ -40,7 +40,9 @@ def plot_intra_density(dd_obj, order_or_super, output_dir, display=False):
         h5_frame = dd_obj.intra_supers
     else:
         raise ValueError("Please provide Order or Superfamily")
-
+    # NOTE
+    # I could add a FOR loop here to go over each dd_obj and get the mean that
+    # way, plotting that would be super easy and would only yield one line.
     for te_type, index_val in te_index_dict.items():
         plotting_dict[te_type] = np.mean(h5_frame[te_index_dict[te_type], :, :])
 
@@ -60,7 +62,11 @@ def plot_intra_density(dd_obj, order_or_super, output_dir, display=False):
     else:
         raise ValueError("Please provide Order or Superfamily")
 
-    plt.savefig(os.path.join(output_dir, str(order_or_super + "_Intra_Plot.png")))
+    plt.savefig(
+        os.path.join(
+            output_dir, str(order_or_super + "_" + dd_obj.genome_id + "_Intra_Plot.png")
+        )
+    )
     if display:
         plt.show()
     plt.close()
@@ -157,7 +163,10 @@ def plot_density_all(dd_obj, order_or_super, output_dir, display=False):
     # plt.scatter(dd_obj.window_list, val, label=key)
     # plt.legend()
     plt.savefig(
-        os.path.join(output_dir, str(order_or_super + "_Combined_Density_Plot.png")),
+        os.path.join(
+            output_dir,
+            str(order_or_super + "_" + dd_obj.genome_id + "_Combined_Density_Plot.png"),
+        ),
         bbox_inches="tight",
     )
     if display:
