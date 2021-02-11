@@ -30,6 +30,7 @@ def plot_intra_density(dd_obj, order_or_super, output_dir, display=False):
         (usually opens another window).
 
     """
+    # NOTE intra code has not been edited for multiple chromosomes yet
     plotting_dict = {}
 
     if order_or_super == "Order":
@@ -40,7 +41,9 @@ def plot_intra_density(dd_obj, order_or_super, output_dir, display=False):
         h5_frame = dd_obj.intra_supers
     else:
         raise ValueError("Please provide Order or Superfamily")
-
+    # NOTE
+    # I could add a FOR loop here to go over each dd_obj and get the mean that
+    # way, plotting that would be super easy and would only yield one line.
     for te_type, index_val in te_index_dict.items():
         plotting_dict[te_type] = np.mean(h5_frame[te_index_dict[te_type], :, :])
 
@@ -48,7 +51,9 @@ def plot_intra_density(dd_obj, order_or_super, output_dir, display=False):
         plt.scatter(0, val, label=key)
         plt.legend()
 
-    plt.yticks(np.arange(0, 1.01, 0.1))
+    plt.yticks(np.arange(0, 0.8, 0.05))  # NOTE I want this to be consistent
+    # but it is too high, can't do std dev? Needs to be consistent with the
+    # multiplots
     plt.xticks([0])
     plt.xlabel("Window Position in BP")
     plt.ylabel("Intronic TE Density")
@@ -60,7 +65,11 @@ def plot_intra_density(dd_obj, order_or_super, output_dir, display=False):
     else:
         raise ValueError("Please provide Order or Superfamily")
 
-    plt.savefig(os.path.join(output_dir, str(order_or_super + "_Intra_Plot.png")))
+    plt.savefig(
+        os.path.join(
+            output_dir, str(order_or_super + "_" + dd_obj.genome_id + "_Intra_Plot.png")
+        )
+    )
     if display:
         plt.show()
     plt.close()
@@ -113,7 +122,7 @@ def plot_density_all(dd_obj, order_or_super, output_dir, display=False):
         )
 
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey="col")
-    fig.set_size_inches(16, 8.5)
+    fig.set_size_inches(16, 9.5)
     # define colors
     NUM_COLORS = sum(1 for te_type in te_index_dict.items())
     cm = plt.get_cmap("tab20")
@@ -129,8 +138,9 @@ def plot_density_all(dd_obj, order_or_super, output_dir, display=False):
     ax1.set(
         xlabel="BP Upstream",
         ylabel="TE Density",
-        yticks=np.arange(0, 1.01, 0.1),
+        yticks=np.arange(0, 0.51, 0.025),
         xticks=range(min(dd_obj.window_list), (max(dd_obj.window_list) + 1), 1000),
+        ylim=[0.0, 0.5],
     )
 
     for key, val in data_intra_dict.items():
@@ -139,7 +149,7 @@ def plot_density_all(dd_obj, order_or_super, output_dir, display=False):
         )
 
     ax2.set(xlabel="Intronic TEs", xticks=[])
-    ax2.legend(loc="upper right")
+    ax2.legend(loc="center")
 
     for key, val in data_right_dict.items():
         ax3.plot(
@@ -148,8 +158,9 @@ def plot_density_all(dd_obj, order_or_super, output_dir, display=False):
     ax3.axis([min(dd_obj.window_list), max(dd_obj.window_list), 0, 1])
     ax3.set(
         xlabel="BP Downstream",
-        yticks=np.arange(0, 1.01, 0.1),
+        yticks=np.arange(0, 0.51, 0.025),
         xticks=range(min(dd_obj.window_list), (max(dd_obj.window_list) + 1), 1000),
+        ylim=[0.0, 0.5],
     )
     ax3.yaxis.tick_right()
 
@@ -157,7 +168,10 @@ def plot_density_all(dd_obj, order_or_super, output_dir, display=False):
     # plt.scatter(dd_obj.window_list, val, label=key)
     # plt.legend()
     plt.savefig(
-        os.path.join(output_dir, str(order_or_super + "_Combined_Density_Plot.png")),
+        os.path.join(
+            output_dir,
+            str(order_or_super + "_" + dd_obj.genome_id + "_Combined_Density_Plot.png"),
+        ),
         bbox_inches="tight",
     )
     if display:
