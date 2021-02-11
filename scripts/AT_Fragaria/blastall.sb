@@ -1,0 +1,43 @@
+#!/bin/bash -login
+
+#SBATCH -J blastall_blueberry
+#SBATCH --time=48:00:00
+#SBATCH --cpus-per-task=12
+#SBATCH --mem-per-cpu=10G
+
+# Load Modules
+module purge
+module load BLAST/2.2.26-Linux_x86_64
+
+# BODY
+begin=`date +%s`
+echo $HOSTNAME
+echo "My Task ID:" $SLURM_ARRAY_TASK_ID
+cd /mnt/research/edgerpat_lab/Scotty/Arab_Fragaria_BLAST_DB/
+
+
+AT_COL=/mnt/research/edgerpat_lab/Scotty/Arab_Fragaria_BLAST_DB/peptides/AT_Col_16746-CDS-prot.fasta
+
+
+# Prepare the protein indices
+formatdb -i $AT_COL -p T
+
+# Run the blast searches
+# options:
+	# -m: output format
+	# -a: number of processors to use
+	# -e: e-value cutoff
+
+# Camarosa
+# This is unmasked
+blastall -p blastp -d \
+$AT_COL \
+-i /mnt/research/edgerpat_lab/Scotty/Arab_Fragaria_BLAST_DB/peptides/Camarosa_Unmasked_Prot_Fasta.fasta \
+-o /mnt/research/edgerpat_lab/Scotty/Arab_Fragaria_BLAST_DB/peptides/AT_Camarosa.blast \
+-m 8 \
+-a 12 \
+-e 0.05
+
+end=`date +%s`
+elapsed=`expr $end - $begin`
+echo Time taken: $elapsed
