@@ -8,6 +8,7 @@ __author__ = "Scott Teresi"
 
 import h5py
 import numpy as np
+import shutil
 
 
 class DensityData:
@@ -16,17 +17,27 @@ class DensityData:
         input_h5 (str): Path to h5 file of TE Density output.
         gene_data (GeneData):
         """
+        new_filename = input_h5.replace(".h5", "_SenseSwapped.HDF5")
+        shutil.copyfile(input_h5, new_filename)  # copy because we need to swap
+        # values
+        self.data_frame = h5py.File(new_filename, "r+")
 
-        self.data_frame = h5py.File(input_h5, "r+")
         self.key_list = list(self.data_frame.keys())
         self.gene_list = self.data_frame["GENE_NAMES"][:]
         self.num_genes = len(self.gene_list)
-        self.chromosomes = self.data_frame["CHROMOSOME_ID"]
+        self.chromosomes = self.data_frame["CHROMOSOME_ID"][:]
+        self.unique_chromosomes = list(set(self.chromosomes))
+        if len(self.unique_chromosomes) != 1:
+            raise ValueError(
+                "There are multiple unique chromosomes in this density data."
+            )
+        self.unique_chromosome_id = self.unique_chromosomes[0]  # MAGIC
+        # self.name = self.chromosomes.unique()
         self.windows = self.data_frame["WINDOWS"]  # not int
         self.window_list = [int(i) for i in self.windows[:]]  # list of ints
 
-        self.order_list = sorted(list(self.data_frame["ORDER_NAMES"][:]))
-        self.super_list = sorted(list(self.data_frame["SUPERFAMILY_NAMES"][:]))
+        self.order_list = list(self.data_frame["ORDER_NAMES"][:])
+        self.super_list = list(self.data_frame["SUPERFAMILY_NAMES"][:])
 
         # NB. Shape for these is (type of TE, window, gene)
         self.left_orders = self.data_frame["RHO_ORDERS_LEFT"]
@@ -76,7 +87,9 @@ class DensityData:
         order_dict = {}
         for i in range(len(self.order_list)):
             order_dict[self.order_list[i]] = i
-        order_dict.pop("S_Revision")  # MAGIC pop the revision set
+        # TODO remove the revision groupings only for the dotplots
+        # Removed temporarily for other coding
+        # order_dict.pop("S_Revision")  # MAGIC pop the revision set
         return order_dict
 
     @property
@@ -86,7 +99,9 @@ class DensityData:
         super_dict = {}
         for i in range(len(self.super_list)):
             super_dict[self.super_list[i]] = i
-        super_dict.pop("O_Revision")  # MAGIC pop the revision set
+        # TODO remove the revision groupings only for the dotplots
+        # Removed temporarily for other coding
+        # super_dict.pop("O_Revision")  # MAGIC pop the revision set
         return super_dict
 
     def _swap_strand_vals(self, gene_names):
