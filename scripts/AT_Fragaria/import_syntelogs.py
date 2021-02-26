@@ -71,10 +71,7 @@ def import_syntelogs(syntelog_input_file, genome_name):
         )
         # This step is important, it could differ if your data input is different.
         gene_data.rename(
-            columns={
-                "OrgA_Gene_Region": "Camarosa_Gene",
-                "OrgB_Gene_Region": genome_name,
-            },
+            columns={"OrgA_Gene_Region": "Camarosa", "OrgB_Gene_Region": genome_name,},
             inplace=True,
         )
     elif genome_name == "Camarosa":
@@ -89,6 +86,21 @@ def import_syntelogs(syntelog_input_file, genome_name):
             },
             inplace=True,
         )
+    elif genome_name == "Del_Norte":
+        # Fix Cam genes
+        gene_data["OrgA_Gene_Region"] = (
+            gene_data["OrgA_Gene_Region"].str.split("-mRNA-1").str[0]
+        )
+        # Fix Del Norte genes
+        gene_data["OrgB_Gene_Region"] = (
+            gene_data["OrgB_Gene_Region"].str.split("-mRNA-1").str[0]
+        )
+        # This step is important, it could differ if your data input is different.
+        gene_data.rename(
+            columns={"OrgA_Gene_Region": "Camarosa", "OrgB_Gene_Region": genome_name,},
+            inplace=True,
+        )
+
     elif genome_name == "Iinumae":
         pass  # no renaming needs to be done for Iinumae
     else:

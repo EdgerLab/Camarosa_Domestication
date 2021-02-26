@@ -27,13 +27,10 @@ def merge_homo_synt(wrapped_syntelogs, wrapped_homologs, genome_name):
     merged_all = pd.concat(
         [wrapped_syntelogs.dataframe, missing_links], axis=0, join="outer"
     )
-    merged_all.rename(
-        columns={
-            "Arabidopsis": "Arabidopsis_Gene",
-            genome_name: str(genome_name + "_Gene"),
-        },
-        inplace=True,
-    )
+    # merged_all.rename(
+    # columns={"Arabidopsis": "Arabidopsis_Gene", genome_name: genome_name,},
+    # inplace=True,
+    # )
     return merged_all
 
 
