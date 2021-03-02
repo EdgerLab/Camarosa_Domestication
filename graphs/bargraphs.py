@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 import os
 import numpy as np
 
@@ -15,6 +16,8 @@ def graph_barplot_density_differences(
     plt.ylabel("Number of Genes")
     plt.xlabel("Difference in TE Density Values")
     plt.title(("TE: " + te_type + ", " + "H4 vs Camarosa"))
+    N = mpatches.Patch(label="Total Genes: %s" % len(values))
+    plt.legend(handles=[N])
     plt.savefig(os.path.join(output_dir, (te_type + "_DensityDifferences.png")))
     if display:
         plt.show()

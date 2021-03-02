@@ -12,7 +12,7 @@ import shutil
 
 
 class DensityData:
-    def __init__(self, input_h5, gene_data, logger):
+    def __init__(self, input_h5, gene_data, logger, sense_swap=True):
         """
         input_h5 (str): Path to h5 file of TE Density output.
         gene_data (GeneData):
@@ -58,7 +58,9 @@ class DensityData:
         zero_gene_list = np.where(strands_as_numpy == 0)[0]  # gets indices of 0s
         # NB the 0s are the antisense
         genes_to_swap = gene_data.data_frame.iloc[zero_gene_list, :].index.tolist()
-        self._swap_strand_vals(genes_to_swap)
+
+        if sense_swap:
+            self._swap_strand_vals(genes_to_swap)
 
     def _index_of_gene(self, gene_string):
         """Return the index of a gene given the name of the gene

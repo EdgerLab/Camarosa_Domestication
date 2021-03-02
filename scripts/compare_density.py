@@ -25,8 +25,52 @@ from graphs.bargraphs import graph_barplot_density_differences
 
 
 def read_ortholog_table(strawberry_at_ortholog_table):
-    dataframe = pd.read_csv(strawberry_at_ortholog_table, sep="\t", header="infer")
+    dataframe = pd.read_csv(
+        strawberry_at_ortholog_table,
+        sep="\t",
+        header="infer",
+        dtype={
+            "Arabidopsis": "object",
+            "Camarosa": "object",
+            "Point_of_Origin": "object",
+            "H4": "object",
+            "Del_Norte": "object",
+        },
+        na_values=["NA"],
+    )
     return dataframe
+
+
+def verify_h5_cache(h5_file_list, gene_pandaframe, genome_name):
+    """
+    Verify that previously value swapped H5 values are saved to disk and import
+    those instead of swapping the values once more
+    """
+    # TODO check the time of the file too!!! If a file is old, make it rewrite
+    # thte sense swapped data
+    # And use string formatting to tell which file is being read
+    genes_split = _split_wrt_chromosome(gene_pandaframe)
+
+    genes_split = [
+        GeneData(geneframe, (genome_name + "_" + geneframe.Chromosome.unique()[0]))
+        for geneframe in genes_split
+    ]
+    chromosomes = [chromosome for chromosome in genes_split]  # gene data
+    processed_density_data = []
+    i = 0
+    for my_h5_file in h5_file_list:
+        if os.path.exists(my_h5_file.replace(".h5", "_SenseSwapped.HDF5")):
+            logger.info("Previous sense swapped data exists, reading...")
+            processed_density_data.append(
+                DensityData(my_h5_file, chromosomes[i], logger, sense_swap=False)
+            )
+        else:
+            logger.info("Writing new sense swapped DensityData...")
+            processed_density_data.append(
+                DensityData(my_h5_file, chromosomes[i], logger)
+            )
+        i += 1
+    return processed_density_data
 
 
 def save_ortholog_table(strawberry_at_ortholog_table, filename, output_dir):
@@ -43,10 +87,21 @@ def identify_indices_of_syntelogs(
     ortholog table.
 
     """
-    cam_orth_genes = orthologs["Camarosa_Gene"].tolist()
+    cam_orth_genes = orthologs["Camarosa"].tolist()
     h4_orth_genes = orthologs["H4"].tolist()
     dn_orth_genes = orthologs["Del_Norte"].tolist()
     Index_and_Source = namedtuple("Index_and_Source", "Index Source")
+
+    super_dict = {}
+    for cam_density_data in camarosa_dd_obj_list:
+        cam_indices_and_genes = {
+            dd_gene: Index_and_Source(dd_index, cam_density_data.unique_chromosome_id)
+            for dd_index, dd_gene in enumerate(cam_density_data.gene_list)
+        }  # TODO could be refactored into class
+        super_dict.update(cam_indices_and_genes)
+    orthologs["Camarosa_Indices"] = [
+        super_dict.get(gene_name, None) for gene_name in cam_orth_genes
+    ]
 
     super_dict = {}
     for h4_density_data in h4_dd_obj_list:
@@ -59,16 +114,9 @@ def identify_indices_of_syntelogs(
         super_dict.get(gene_name, None) for gene_name in h4_orth_genes
     ]
 
-    super_dict = {}
-    for cam_density_data in camarosa_dd_obj_list:
-        cam_indices_and_genes = {
-            dd_gene: Index_and_Source(dd_index, cam_density_data.unique_chromosome_id)
-            for dd_index, dd_gene in enumerate(cam_density_data.gene_list)
-        }  # TODO could be refactored into class
-        super_dict.update(cam_indices_and_genes)
-    orthologs["Camarosa_Indices"] = [
-        super_dict.get(gene_name, None) for gene_name in cam_orth_genes
-    ]
+    non_null_cam_indices = orthologs.loc[orthologs["Camarosa_Indices"].notnull()]
+    save_ortholog_table(non_null_cam_indices, "test_non_null_cam_genes.tsv", output_dir)
+
     # TODO can this handle multiple instances? Will declaring the H4 Indices
     # column get rewritten each time? It will... While it is looping over
     # h4_orth_genes and producing the correct length list to declare as the
@@ -82,19 +130,22 @@ def identify_indices_of_syntelogs(
     # and have the second value be the chromosome or DD object ID? I could add
     # an attribute to the DD object as a name and make that the tuple value
     # print(orthologs.H4_Indices)
-    # save_ortholog_table(orthologs, "Test_Dictionary_Creation.tsv", output_dir)
 
     # NOTE now I have a column for each genome which has an index and the
     # chromosome for which the index applies to. I just have to loop over that
     # column, only selecting the indices that match the value of the 1st index
     # in the tuple, the chromosome, and plot those
+    save_ortholog_table(orthologs, "test_prior_subsetting.tsv", output_dir)
+
     h4_to_cam_matches = orthologs[
         orthologs[["Camarosa_Indices", "H4_Indices"]].notnull().all(1)
     ]  # the all command wants them both to be true
     h4_indices = h4_to_cam_matches["H4_Indices"].tolist()
     cam_indices = h4_to_cam_matches["Camarosa_Indices"].tolist()
-    # print(len(h4_indices))
-    # print(len(cam_indices))
+    save_ortholog_table(h4_to_cam_matches, "test_null_subsetting.tsv", output_dir)
+    print("Lengths:")
+    print(len(h4_indices))
+    print(len(cam_indices))
 
     # NOTE ok so now I have a list of indeices and can use that to compare
     # values
@@ -139,6 +190,9 @@ def identify_indices_of_syntelogs(
             )  # remember shape is type, window, gene
             dna.append(diff_val)
 
+    print(max(differences))
+    print(min(differences))
+
     graph_barplot_density_differences(
         differences, "LTR", os.path.join(output_dir, "Graphs")
     )
@@ -151,7 +205,7 @@ def compare_two_chrom_test(orthologs, dd_obj1, dd_obj2, output_dir):
     Compare the density values of syntelogs for two chromosomes
 
     """
-    cam_orth_genes = orthologs["Camarosa_Gene"].tolist()
+    cam_orth_genes = orthologs["Camarosa"].tolist()
     h4_orth_genes = orthologs["H4"].tolist()
 
     dd1_h4_indices_and_genes = {
@@ -169,9 +223,11 @@ def compare_two_chrom_test(orthologs, dd_obj1, dd_obj2, output_dir):
         dd2_cam_indices_and_genes.get(gene_name, None) for gene_name in cam_orth_genes
     ]
     # SAVE
-    # orthologs.to_csv(
-    # os.path.join(output_dir, "Test_Indices.tsv"), header=True, index=False, sep="\t"
-    # )
+    orthologs.to_csv(
+        os.path.join(output_dir, "Test_Indices.tsv"), header=True, index=False, sep="\t"
+    )
+
+    # print(orthologs.head())
 
     # Now we want to compare values
     # So now just get the union for the two index columns that both have data
@@ -218,7 +274,7 @@ def compare_two_chrom(orthologs, dd_obj1, dd_obj2, output_dir):
     orthologs_new = orthologs.drop(columns=["Del_Norte", "Arabidopsis_Gene"])
     h4_to_cam_matches = orthologs_new.loc[orthologs_new["H4"].notnull()]
     h4_cam_no_dupes = h4_to_cam_matches.drop_duplicates()
-    camarosa_genes = h4_to_cam_matches["Camarosa_Gene"].tolist()
+    camarosa_genes = h4_to_cam_matches["Camarosa"].tolist()
     # Genes repeat in the camarosa list, but they won't repeat in DD object
 
     # y = []
@@ -241,7 +297,7 @@ def compare_two_chrom(orthologs, dd_obj1, dd_obj2, output_dir):
             y.append(None)
     print(len(y))
     print(y)
-    print(len(h4_cam_no_dupes["Camarosa_Gene"].tolist()))
+    print(len(h4_cam_no_dupes["Camarosa"].tolist()))
 
     # h4_cam_no_dupes["Camarosa_Gene_DD_Idx"] = y
     # print(h4_cam_no_dupes.head())
@@ -439,35 +495,18 @@ if __name__ == "__main__":
         dtype={"Start": "float32", "Stop": "float32", "Length": "float32"},
         index_col="Gene_Name",  # this is crucial
     )
-    h5_file_list_h4 = [test_file_h4, test_file_h4_2]
-    h5_file_list_cam = [test_file_cam, test_file_cam_2]
 
-    genes_split = _split_wrt_chromosome(all_genes_h4)
-    genes_split = [
-        GeneData(geneframe, ("H4_" + geneframe.Chromosome.unique()[0]))
-        for geneframe in genes_split
-    ]
-    chromosomes = [chromosome for chromosome in genes_split]  # gene data
-    logger.info("Preparing H4")
-    dd_objects_h4 = DensityData(h5_file_list_h4[0], chromosomes[0], logger)  # MAGIC
-    dd_objects_h4_2 = DensityData(h5_file_list_h4[1], chromosomes[1], logger)  # MAGIC
-    logger.info("H4 done!")
+    # These are global and don't need to be, caused confusion earlier.
+    # h5_file_list_h4 = [test_file_h4, test_file_h4_2]
+    # h5_file_list_cam = [test_file_cam, test_file_cam_2]
 
-    # Load Camarosa
-    genes_split = _split_wrt_chromosome(all_genes_cam)
-    genes_split = [
-        GeneData(geneframe, ("Cam_" + geneframe.Chromosome.unique()[0]))
-        for geneframe in genes_split
-    ]
-    chromosomes = [chromosome for chromosome in genes_split]  # gene data
+    h5_file_list_h4 = [test_file_h4_2]
+    h5_file_list_cam = [test_file_cam_2]
 
-    # NOTE OLD method
-    # dd_objects_cam = [
-    # DensityData(h5_file, chromosome, logger)
-    # for h5_file, chromosome, in zip(h5_file_list_cam, chromosomes)
-    # ]
-    dd_objects_cam = DensityData(h5_file_list_cam[0], chromosomes[3], logger)  # MAGIC
-    dd_objects_cam_2 = DensityData(h5_file_list_cam[1], chromosomes[5], logger)  # MAGIC
+    processed_H4_density_data = verify_h5_cache(h5_file_list_h4, all_genes_h4, "H4")
+    processed_CAM_density_data = verify_h5_cache(
+        h5_file_list_cam, all_genes_cam, "Camarosa"
+    )
 
     # Execute
     logger.info("Reading ortholog input file: %s" % (args.ortholog_input_file))
@@ -475,8 +514,7 @@ if __name__ == "__main__":
 
     identify_indices_of_syntelogs(
         orthologs,
-        [dd_objects_cam, dd_objects_cam_2],
-        [dd_objects_h4, dd_objects_h4_2],
+        processed_CAM_density_data,
+        processed_H4_density_data,
         args.output_dir,
     )
-    # compare_two_chrom_test(orthologs, dd_objects_h4, dd_objects_cam, args.output_dir)

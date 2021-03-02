@@ -161,12 +161,12 @@ def make_table(camarosa_merged, cam_genes_df, h4_synteny, dn_synteny, data_outpu
         cam_genes_df, on="Camarosa", how="outer"
     )  # .fillna("NA")
 
-    camarosa_merged.dataframe.to_csv(
-        os.path.join(data_output_path, "Test_AT_Ortholog_Table.tsv"),
-        sep="\t",
-        header=True,
-        index=False,
-    )
+    # camarosa_merged.dataframe.to_csv(
+    # os.path.join(data_output_path, "Test_AT_Ortholog_Table.tsv"),
+    # sep="\t",
+    # header=True,
+    # index=False,
+    # )
 
     merged_all = camarosa_merged.dataframe.merge(
         h4_synteny.dataframe, on="Camarosa", how="outer"
