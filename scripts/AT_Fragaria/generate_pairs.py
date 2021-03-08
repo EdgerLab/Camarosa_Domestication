@@ -152,9 +152,28 @@ def make_table(camarosa_merged, cam_genes_df, h4_synteny, dn_synteny, data_outpu
 
     """
     # Remove the point of origin column for H4 because it is always 'Synteny'
-    camarosa_merged.dataframe.drop(["E_Value"], inplace=True, axis=1)
-    h4_synteny.dataframe.drop(["Point_of_Origin", "E_Value"], inplace=True, axis=1)
-    dn_synteny.dataframe.drop(["Point_of_Origin", "E_Value"], inplace=True, axis=1)
+    camarosa_merged.dataframe.rename(
+        columns={
+            "E_Value": "Camarosa_to_AT_E_Val",
+            "Point_of_Origin": "Camarosa_to_AT_Point_of_Origin",
+        },
+        inplace=True,
+    )
+    h4_synteny.dataframe.rename(
+        columns={"E_Value": "Camarosa_to_H4_E_Val"}, inplace=True
+    )
+    dn_synteny.dataframe.rename(
+        columns={"E_Value": "Camarosa_to_DN_E_Val"}, inplace=True
+    )
+    h4_synteny.dataframe.drop(["Point_of_Origin"], inplace=True, axis=1)
+    dn_synteny.dataframe.drop(["Point_of_Origin"], inplace=True, axis=1)
+
+    # -------------------------------
+    # OLD
+    # camarosa_merged.dataframe.drop(["E_Value"], inplace=True, axis=1)
+    # h4_synteny.dataframe.drop(["Point_of_Origin", "E_Value"], inplace=True, axis=1)
+    # dn_synteny.dataframe.drop(["Point_of_Origin", "E_Value"], inplace=True, axis=1)
+    # -------------------------------
 
     # Add in missing CamGene rows
     camarosa_merged.dataframe = camarosa_merged.dataframe.merge(
@@ -214,7 +233,9 @@ if __name__ == "__main__":
         "--output_directory",
         type=str,
         help="parent path of output directory",
-        default=os.path.join(path_main, "../../../../Domestication_Data"),
+        default=os.path.join(
+            path_main, "../../../../Domestication_Data/Synteny_Homology"
+        ),
     )
 
     parser.add_argument(

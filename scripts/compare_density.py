@@ -92,6 +92,22 @@ def identify_indices_of_syntelogs(
     dn_orth_genes = orthologs["Del_Norte"].tolist()
     Index_and_Source = namedtuple("Index_and_Source", "Index Source")
 
+    for chromosome in camarosa_dd_obj_list:
+        print(f"Total Camarosa Fvb1-4 genes: {len(chromosome.gene_list)}")
+
+        my_mask = orthologs.Camarosa.isin(chromosome.gene_list)
+        x = orthologs[my_mask]
+        print(x)
+        print(len(set(x["Camarosa"].to_list())))
+        save_ortholog_table(x, "test_cam_fvb1-4_representation.tsv", output_dir)
+        y = x[
+            x[["Camarosa", "H4"]].notnull().all(1)
+        ]  # the all command wants them both to be true
+        print(y)
+        print(len(set(y["Camarosa"].to_list())))
+
+    # raise ValueError
+
     super_dict = {}
     for cam_density_data in camarosa_dd_obj_list:
         cam_indices_and_genes = {
@@ -114,8 +130,8 @@ def identify_indices_of_syntelogs(
         super_dict.get(gene_name, None) for gene_name in h4_orth_genes
     ]
 
-    non_null_cam_indices = orthologs.loc[orthologs["Camarosa_Indices"].notnull()]
-    save_ortholog_table(non_null_cam_indices, "test_non_null_cam_genes.tsv", output_dir)
+    # non_null_cam_indices = orthologs.loc[orthologs["Camarosa_Indices"].notnull()]
+    # save_ortholog_table(non_null_cam_indices, "test_non_null_cam_genes.tsv", output_dir)
 
     # TODO can this handle multiple instances? Will declaring the H4 Indices
     # column get rewritten each time? It will... While it is looping over
@@ -146,6 +162,7 @@ def identify_indices_of_syntelogs(
     print("Lengths:")
     print(len(h4_indices))
     print(len(cam_indices))
+    raise ValueError
 
     # NOTE ok so now I have a list of indeices and can use that to compare
     # values
@@ -500,8 +517,8 @@ if __name__ == "__main__":
     # h5_file_list_h4 = [test_file_h4, test_file_h4_2]
     # h5_file_list_cam = [test_file_cam, test_file_cam_2]
 
-    h5_file_list_h4 = [test_file_h4_2]
-    h5_file_list_cam = [test_file_cam_2]
+    h5_file_list_h4 = [test_file_h4]
+    h5_file_list_cam = [test_file_cam]
 
     processed_H4_density_data = verify_h5_cache(h5_file_list_h4, all_genes_h4, "H4")
     processed_CAM_density_data = verify_h5_cache(
@@ -511,6 +528,10 @@ if __name__ == "__main__":
     # Execute
     logger.info("Reading ortholog input file: %s" % (args.ortholog_input_file))
     orthologs = read_ortholog_table(args.ortholog_input_file)
+
+    ####
+    print(len(set(orthologs.Camarosa.to_list())))
+    raise ValueError
 
     identify_indices_of_syntelogs(
         orthologs,
