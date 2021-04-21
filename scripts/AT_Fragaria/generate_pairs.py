@@ -22,6 +22,7 @@ from import_homologs import Homolog_Data
 from merge_homo_synt import merge_homo_synt
 from merge_homo_synt import Merged_Data
 from verify_cache import verify_BLAST_cache
+from transposon.gene_data import GeneData
 
 
 def process_CAM(
@@ -98,9 +99,9 @@ def process_CAM(
     return instance_Merged_Data
 
 
-def process_H4(syntelog_input_file, genome_name, data_output_path):
+def process_synteny(syntelog_input_file, genome_name, data_output_path):
     """
-    Process SynMap output for H4 (Fragaria vesca).
+    Process SynMap output for H4 (Fragaria vesca). And Del Norte
 
     Args:
         syntelog_input_file (str): Path to the SynMap output file containing
@@ -131,7 +132,7 @@ def process_H4(syntelog_input_file, genome_name, data_output_path):
     return instance_Syntelog_Data
 
 
-def make_table(camarosa_merged, h4_synteny, data_output_path):
+def make_table(camarosa_merged, cam_genes_df, h4_synteny, dn_synteny, data_output_path):
     """
     Make a table (tsv) of the orthologs between strawberries as well as the
     Camarosa to Arabidopsis orthologs. Join on common Camarosa gene
@@ -142,6 +143,8 @@ def make_table(camarosa_merged, h4_synteny, data_output_path):
 
         h4_synteny (Syntelog_Data): Instance of Syntelog_Data for the H4 data.
 
+        dn_synteny (Syntelog_Data): Instance of Syntelog_Data for the DN data.
+
         data_output_path (str): Directory path to output results
 
     Returns:
@@ -149,10 +152,49 @@ def make_table(camarosa_merged, h4_synteny, data_output_path):
 
     """
     # Remove the point of origin column for H4 because it is always 'Synteny'
-    h4_synteny.dataframe.drop("Point_of_Origin", inplace=True, axis=1)
+    camarosa_merged.dataframe.rename(
+        columns={
+            "E_Value": "Camarosa_to_AT_E_Val",
+            "Point_of_Origin": "Camarosa_to_AT_Point_of_Origin",
+        },
+        inplace=True,
+    )
+    h4_synteny.dataframe.rename(
+        columns={"E_Value": "Camarosa_to_H4_E_Val"}, inplace=True
+    )
+    dn_synteny.dataframe.rename(
+        columns={"E_Value": "Camarosa_to_DN_E_Val"}, inplace=True
+    )
+    h4_synteny.dataframe.drop(["Point_of_Origin"], inplace=True, axis=1)
+    dn_synteny.dataframe.drop(["Point_of_Origin"], inplace=True, axis=1)
+
+    # -------------------------------
+    # OLD
+    # camarosa_merged.dataframe.drop(["E_Value"], inplace=True, axis=1)
+    # h4_synteny.dataframe.drop(["Point_of_Origin", "E_Value"], inplace=True, axis=1)
+    # dn_synteny.dataframe.drop(["Point_of_Origin", "E_Value"], inplace=True, axis=1)
+    # -------------------------------
+
+    # Add in missing CamGene rows
+    camarosa_merged.dataframe = camarosa_merged.dataframe.merge(
+        cam_genes_df, on="Camarosa", how="outer"
+    )  # .fillna("NA")
+
+    # camarosa_merged.dataframe.to_csv(
+    # os.path.join(data_output_path, "Test_AT_Ortholog_Table.tsv"),
+    # sep="\t",
+    # header=True,
+    # index=False,
+    # )
+
     merged_all = camarosa_merged.dataframe.merge(
-        h4_synteny.dataframe, on="Camarosa_Gene", how="outer"
+        h4_synteny.dataframe, on="Camarosa", how="outer"
+    )  # .fillna("NA")
+
+    merged_all = merged_all.merge(
+        dn_synteny.dataframe, on="Camarosa", how="outer"
     ).fillna("NA")
+
     merged_all.to_csv(
         os.path.join(data_output_path, "Strawberry_AT_Ortholog_Table.tsv"),
         sep="\t",
@@ -182,10 +224,18 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
+        "Del_Norte_syntelog_input_file",
+        type=str,
+        help="parent path of Del Norte (chiloensis) syntelog file",
+    )
+
+    parser.add_argument(
         "--output_directory",
         type=str,
         help="parent path of output directory",
-        default=os.path.join(path_main, "../../../../Domestication_Data"),
+        default=os.path.join(
+            path_main, "../../../../Domestication_Data/Synteny_Homology"
+        ),
     )
 
     parser.add_argument(
@@ -196,6 +246,7 @@ if __name__ == "__main__":
     args.cam_syntelog_input_file = os.path.abspath(args.cam_syntelog_input_file)
     args.cam_homolog_input_file = os.path.abspath(args.cam_homolog_input_file)
     args.HFour_syntelog_input_file = os.path.abspath(args.HFour_syntelog_input_file)
+    args.DN_syntelog_input_file = os.path.abspath(args.Del_Norte_syntelog_input_file)
     args.output_directory = os.path.abspath(args.output_directory)
     log_level = logging.DEBUG if args.verbose else logging.INFO
     logger = logging.getLogger(__name__)
@@ -209,6 +260,28 @@ if __name__ == "__main__":
         "Camarosa",
         args.output_directory,
     )
+
+    # N.B
+    # Modify Camarosa to have all Camarosa genes not just the ones that match
+    # to Arabidopsis
+    all_genes_cam = pd.read_csv(
+        "/home/scott/Documents/Uni/Research/Projects/TE_Data/filtered_input_data/Cleaned_Camarosa_Genes.tsv",
+        sep="\t",
+        header="infer",
+        dtype={"Start": "float32", "Stop": "float32", "Length": "float32"},
+    )
+    cam_genes_df = pd.DataFrame(all_genes_cam.Gene_Name.to_list(), columns=["Camarosa"])
+
     # Process H4
-    h4_synteny = process_H4(args.HFour_syntelog_input_file, "H4", args.output_directory)
-    make_table(camarosa_merged, h4_synteny, args.output_directory)
+    h4_synteny = process_synteny(
+        args.HFour_syntelog_input_file, "H4", args.output_directory
+    )
+
+    # Process Del Norte
+    dn_synteny = process_synteny(
+        args.DN_syntelog_input_file, "Del_Norte", args.output_directory
+    )
+
+    make_table(
+        camarosa_merged, cam_genes_df, h4_synteny, dn_synteny, args.output_directory
+    )
