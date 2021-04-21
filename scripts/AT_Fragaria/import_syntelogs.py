@@ -53,9 +53,11 @@ def import_syntelogs(syntelog_input_file, genome_name):
     gene_data.Diagonal_Score = gene_data.Diagonal_Score.astype("int32")
 
     # Get the correct name for the genes
+    # MAGIC
     gene_data["OrgA_Gene_Region"] = (
         gene_data["OrgA_Gene_Region"].str.split("\|\|").str[3]
     )
+    # MAGIC
     gene_data["OrgB_Gene_Region"] = (
         gene_data["OrgB_Gene_Region"].str.split("\|\|").str[3]
     )
@@ -66,6 +68,7 @@ def import_syntelogs(syntelog_input_file, genome_name):
             gene_data["OrgA_Gene_Region"].str.split("-mRNA-1").str[0]
         )
         # Fix H4 genes
+        # MAGIC
         gene_data["OrgB_Gene_Region"] = (
             gene_data["OrgB_Gene_Region"].str.split("\.1").str[0]
         )
@@ -111,6 +114,8 @@ def import_syntelogs(syntelog_input_file, genome_name):
     # gene_data["OrgB_Chromosome"] = gene_data["OrgB_Chromosome"].str.split("_").str[1]
 
     # Trim E-values less than 0.05
+    # MAGIC
+    # NOTE could make input argument
     gene_data = gene_data.loc[gene_data["E_Value"] < 0.05]
 
     gene_data.drop(

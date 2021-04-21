@@ -8,6 +8,7 @@ __author__ = "Scott Teresi"
 
 import h5py
 import numpy as np
+import os
 import shutil
 
 
@@ -18,8 +19,9 @@ class DensityData:
         gene_data (GeneData):
         """
         new_filename = input_h5.replace(".h5", "_SenseSwapped.HDF5")
-        shutil.copyfile(input_h5, new_filename)  # copy because we need to swap
-        # values
+        if not os.path.isfile(new_filename):
+            shutil.copyfile(input_h5, new_filename)  # copy because we
+            # need to swap values
         self.data_frame = h5py.File(new_filename, "r+")
 
         self.key_list = list(self.data_frame.keys())
