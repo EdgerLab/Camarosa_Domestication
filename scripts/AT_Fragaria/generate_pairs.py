@@ -187,6 +187,7 @@ def make_table(camarosa_merged, cam_genes_df, h4_synteny, dn_synteny, data_outpu
     # index=False,
     # )
 
+    # TODO check the merging functions to ensure genes are not being dropped
     merged_all = camarosa_merged.dataframe.merge(
         h4_synteny.dataframe, on="Camarosa", how="outer"
     )  # .fillna("NA")

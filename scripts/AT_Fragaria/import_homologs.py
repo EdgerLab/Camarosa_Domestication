@@ -47,16 +47,25 @@ def import_homologs(homolog_input_file, genome_name):
     homolog_dataframe.E_Value = homolog_dataframe.E_Value.astype("float64")
 
     # Get the correct name for the arabidopsis genes
+    # MAGIC
     homolog_dataframe["Subject"] = homolog_dataframe["Subject"].str.split("\|\|").str[3]
 
     # Get the correct name for the strawberry genes
+    # MAGIC
     homolog_dataframe["Query"] = homolog_dataframe["Query"].str.split("-mRNA-1").str[0]
 
+    # NOTE
     # Trim E-values less than 0.05
+    # MAGIC, TODO perhaps convert to an input arg?
     homolog_dataframe = homolog_dataframe.loc[homolog_dataframe["E_Value"] < 0.05]
 
     # Need to take first occurrence of the gene, the one with the smallest
     # E-Value
+
+    # TODO
+    # This likely needs to be fixed to ensure not throwing away valid answers,
+    # but this is only for the Arabidopsis-Camarosa set so maybe it isn't as
+    # bad as the strawberry syntelog problem
     homolog_dataframe = homolog_dataframe.loc[
         homolog_dataframe.groupby("Query")["E_Value"].idxmin()
     ]
