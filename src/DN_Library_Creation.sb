@@ -1,0 +1,62 @@
+#!/bin/bash -login
+#SBATCH -J DelNorte_Library_Gen
+#SBATCH --time=96:00:00
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=20
+#SBATCH --mem-per-cpu=8G
+#SBATCH --mail-user=teresisc@msu.edu
+#SBATCH --mail-type=FAIL,END
+#SBATCH --output=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/logs/DN.out
+#--------------------------------------------------------
+# Supplementary Info
+begin=`date +%s`
+echo $HOSTNAME
+echo "My Task ID:" $SLURM_ARRAY_TASK_ID
+# Define base paths
+EDTA_DIR=/mnt/research/edgerpat_lab/EDTA
+OUT_DATA_DIR=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/Del_Norte
+GENOME_NAME="Del_Norte"
+GFF_FILE=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Del_Norte/Del_Norte_Gene_Annotation.gff
+FASTA_FILE=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Del_Norte/Del_Norte.fasta
+CDS_FASTA_FILE=$OUT_DATA_DIR/Del_Norte_CDS.fa
+NEW_CDS_FASTA_FILE=$OUT_DATA_DIR/Del_Norte_CDS_NewNames.fa
+NEW_FASTA_FILE=$OUT_DATA_DIR/Del_Norte_NewNames.fa
+
+#--------------------------------------------------------
+# Load modules for Python work
+module load make/4.2.1 && module load GCCcore/10.2.0 Python/3.8.10 && source /mnt/research/edgerpat_lab/Scotty/venvs/S_Domestication/bin/activate
+
+#--------------------------------------------------------
+# Preparing CDS FASTA
+/mnt/research/edgerpat_lab/Scotty/gffread/gffread -x $CDS_FASTA_FILE -g $FASTA_FILE $GFF_FILE
+python /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/src/fix_cds_names.py $CDS_FASTA_FILE $GENOME_NAME $OUT_DATA_DIR $NEW_CDS_FASTA_FILE
+gzip -f $CDS_FASTA_FILE
+
+#--------------------------------------------------------
+# Preparing Regular FASTA
+# This must be done because the Del Norte pseudomolecule names are too long for EDTA
+python /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/src/fix_fasta_names.py $FASTA_FILE $GENOME_NAME $OUT_DATA_DIR $NEW_FASTA_FILE
+
+#--------------------------------------------------------
+# Load Modules for EDTA
+module purge
+module load Conda/3
+conda activate EDTA  # activate the conda environment of packages
+#--------------------------------------------------------
+# Run EDTA
+echo "Declaring output paths and running EDTA"
+GENOME_OUT_DIR=$OUT_DATA_DIR/Annotation
+mkdir -p $GENOME_OUT_DIR
+cd $GENOME_OUT_DIR
+rm -rf *
+perl $EDTA_DIR/EDTA.pl --genome $NEW_FASTA_FILE --cds $NEW_CDS_FASTA_FILE --sensitive 1 --threads 20 --overwrite 1
+#--------------------------------------------------------
+echo "Copying the library file and tar gz-ing the annotation folder"
+cp ${GENOME_OUT_DIR}/${GENOME_NAME}_NewNames.fasta.mod.EDTA.TElib.fa ${GENOME_OUT_DIR}/../${GENOME_NAME}_NewNames.fasta.mod.EDTA.TElib.fa
+cd ${GENOME_OUT_DIR}/../
+tar -zcf ${GENOME_OUT_DIR}.tar.gz $GENOME_OUT_DIR && rm -rf $GENOME_OUT_DIR
+#--------------------------------------------------------
+# Final Supplementary Info
+end=`date +%s`
+elapsed=`expr $end - $begin`
+echo Time taken: $elapsed
