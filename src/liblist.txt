@@ -1,0 +1,3 @@
+/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/Del_Norte/Del_Norte_NewNames.fasta.mod.EDTA.TElib.fa
+/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/H4/H4.fasta.mod.EDTA.TElib.fa
+/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/Royal_Royce/Royal_Royce.fasta.mod.EDTA.TElib.fa

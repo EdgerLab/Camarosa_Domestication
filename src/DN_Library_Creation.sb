@@ -52,7 +52,7 @@ rm -rf *
 perl $EDTA_DIR/EDTA.pl --genome $NEW_FASTA_FILE --cds $NEW_CDS_FASTA_FILE --sensitive 1 --threads 20 --overwrite 1
 #--------------------------------------------------------
 echo "Copying the library file and tar gz-ing the annotation folder"
-cp ${GENOME_OUT_DIR}/${GENOME_NAME}_NewNames.fasta.mod.EDTA.TElib.fa ${GENOME_OUT_DIR}/../${GENOME_NAME}_NewNames.fasta.mod.EDTA.TElib.fa
+cp ${GENOME_OUT_DIR}/${GENOME_NAME}_NewNames.fa.mod.EDTA.TElib.fa ${GENOME_OUT_DIR}/../${GENOME_NAME}_NewNames.fasta.mod.EDTA.TElib.fa
 cd ${GENOME_OUT_DIR}/../
 tar -zcf ${GENOME_OUT_DIR}.tar.gz $GENOME_OUT_DIR && rm -rf $GENOME_OUT_DIR
 #--------------------------------------------------------
