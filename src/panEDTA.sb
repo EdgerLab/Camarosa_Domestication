@@ -1,0 +1,39 @@
+#!/bin/bash -login
+#SBATCH -J PanEDTA
+#SBATCH --time=120:00:00
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=100
+#SBATCH --mem-per-cpu=8G
+#SBATCH --output=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/logs/PanEDTA.out
+#--------------------------------------------------------
+# Define base paths
+EDTA_DIR=/mnt/research/edgerpat_lab/EDTA
+
+#--------------------------------------------------------
+# Load Modules for EDTA
+module purge
+module load Conda/3
+conda activate EDTA  # activate the conda environment of packages
+
+#--------------------------------------------------------
+# Run PanEDTA
+cd /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/Annotation
+
+
+# NOTE, ATTENTION, the paths in $GENOME_LIST are hard-coded.
+# NOTE, ATTENTION, RR NEW CDS is the 'fill in' CDS for the genomes where I don't
+# have that information
+# They MUST be made prior to executing this script.
+# They also contain the outputs of the FASTA renaming
+
+
+RR_NEW_CDS_FASTA=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/Annotation/Royal_Royce_CDS_NewNames.fasta
+GENOME_LIST=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/Annotation/pangenome_path_list.txt
+
+# NOTE, the `-a 0` argument can be used if you just want to generate the individual annotations and the pangenome lib fasta file
+# Running panEDTA.sh from start to finish requires you to run it with the `-a 1` setting.
+sh $EDTA_DIR/panEDTA.sh -g $GENOME_LIST -c $RR_NEW_CDS_FASTA -t 100 -a 1
+
+# FUTURE, might be a good idea to run it with `-a 0` to see if things work (and get the individual annotation values)
+# Then save those results to another directory, run panEDTA.sh once more but with `-a 1`, and then you can compare the annotations
+# almost like "before and after" pangenome annotation.

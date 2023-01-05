@@ -1,0 +1,93 @@
+#!/bin/bash -login
+#SBATCH -J FastaFixer
+#SBATCH --time=01:00:00
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem-per-cpu=8G
+#SBATCH --output=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/logs/FastaFixer.out
+#--------------------------------------------------------
+# Define base paths
+OUT_DATA_DIR=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/Fixed_Fastas
+
+#--------------------------------------------------------
+# Make directories for fixed FASTA files
+DN_OUT_DIR=$OUT_DATA_DIR/Del_Norte
+RR_OUT_DIR=$OUT_DATA_DIR/Royal_Royce
+H4_OUT_DIR=$OUT_DATA_DIR/Fvesca_H4
+FNI_OUT_DIR=$OUT_DATA_DIR/F_nipponica
+FVI_OUT_DIR=$OUT_DATA_DIR/F_viridis
+FII_OUT_DIR=$OUT_DATA_DIR/F_iinumae
+mkdir -p $DN_OUT_DIR $RR_OUT_DIR $H4_OUT_DIR $FNI_OUT_DIR $FVI_OUT_DIR $FII_OUT_DIR
+
+#--------------------------------------------------------
+# PREPARE THE FASTA files
+
+# NOTE, Del Norte needs BOTH a reformatted regular FASTA and CDS
+DN="Del_Norte"
+DN_GFF=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Del_Norte/Del_Norte_Gene_Annotation.gff
+DN_REG_FASTA=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Del_Norte/Del_Norte.fasta
+DN_CDS_FASTA=$DN_OUT_DIR/Del_Norte_CDS.fasta # DNE, made during script
+DN_NEW_CDS_FASTA=$DN_OUT_DIR/Del_Norte_CDS_NewNames.fasta
+DN_NEW_REG_FASTA=$DN_OUT_DIR/Del_Norte_NewNames.fasta
+
+# NOTE, Royal Royce only needs a reformatted CDS, not a reformatted regular FASTA
+RR="Royal_Royce"
+RR_GFF=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Royal_Royce/Royal_Royce_Gene_Annotation.gff
+RR_REG_FASTA=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Royal_Royce/Royal_Royce.fasta
+RR_CDS_FASTA=$RR_OUT_DIR/Royal_Royce_CDS.fasta
+RR_NEW_CDS_FASTA=$RR_OUT_DIR/Royal_Royce_CDS_NewNames.fasta
+
+# NOTE, H4 only needs a reformatted CDS, not a reformatted regular FASTA
+H4="Fvesca_H4"
+H4_GFF=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Fvesca_H4/Fvesca_H4_Gene_Annotation.gff
+H4_REG_FASTA=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Fvesca_H4/Fvesca_H4.fasta
+H4_CDS_FASTA=$H4_OUT_DIR/Fvesca_H4_CDS.fasta
+H4_NEW_CDS_FASTA=$H4_OUT_DIR/Fvesca_H4_CDS_NewNames.fasta
+
+# NOTE, Viridis does not have a CDS. I am incapable of making one because we do not have gene annotations.
+# Per pan EDTA guidelines, I will be using a closely related species CDS as a stand-in during the initial library creation step,
+# I will use Royal Royce because it is the highest quality.
+# Viridis only needs a reformatted regular FASTA
+FVI="FVI"
+FVI_REG_FASTA=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/F_viridis/FVI.fasta
+FVI_NEW_REG_FASTA=$FVI_OUT_DIR/FVI_NewNames.fasta
+
+# NOTE, Nipponica does not have a CDS. I am incapable of making one because we do not have gene annotations.
+# Per pan EDTA guidelines, I will be using a closely related species CDS as a stand-in during the initial library creation step,
+# I will use Royal Royce because it is the highest quality.
+# Nipponica only needs a reformatted regular FASTA
+FNI="FNI"
+FNI_REG_FASTA=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/F_nipponica/FNI.fasta
+FNI_NEW_REG_FASTA=$FNI_OUT_DIR/FNI_NewNames.fasta
+
+# NOTE, FII has a FASTA that is properly formatted, need to reformat the CDS but not MAKE a new one from GFFread
+FII='FII'
+FII_CDS_FASTA=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/F_iinumae/FII.cds
+FII_NEW_CDS_FASTA=$FII_OUT_DIR/FII_CDS_NewNames.fasta
+
+#--------------------------------------------------------
+# Load modules for Python work (FASTA renaming)
+module load GCCcore/10.2.0 Python/3.8.10 && source /mnt/research/edgerpat_lab/Scotty/venvs/S_Domestication/bin/activate
+
+#--------------------------------------------------------
+# Preparing the CDS FASTAs
+# Note, there are paths in these commands that need to be modifified if adding a new genome
+/mnt/research/edgerpat_lab/Scotty/gffread/gffread -x $DN_CDS_FASTA -g $DN_REG_FASTA $DN_GFF
+python /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/src/fix_cds_names.py $DN_CDS_FASTA $DN $DN_OUT_DIR $DN_NEW_CDS_FASTA
+gzip -f $DN_CDS_FASTA
+
+/mnt/research/edgerpat_lab/Scotty/gffread/gffread -x $RR_CDS_FASTA -g $RR_REG_FASTA $RR_GFF
+python /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/src/fix_cds_names.py $RR_CDS_FASTA $RR $RR_OUT_DIR $RR_NEW_CDS_FASTA
+gzip -f $RR_CDS_FASTA
+
+/mnt/research/edgerpat_lab/Scotty/gffread/gffread -x $H4_CDS_FASTA -g $H4_REG_FASTA $H4_GFF
+python /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/src/fix_cds_names.py $H4_CDS_FASTA $H4 $H4_OUT_DIR $H4_NEW_CDS_FASTA
+gzip -f $H4_CDS_FASTA
+
+python /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/src/fix_cds_names.py $FII_CDS_FASTA $FII $FII_OUT_DIR $FII_NEW_CDS_FASTA
+
+# Preparing Regular FASTAs
+# This must be done because the names are too long
+python /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/src/fix_fasta_names.py $DN_REG_FASTA $DN $DN_OUT_DIR $DN_NEW_REG_FASTA
+python /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/src/fix_fasta_names.py $FVI_REG_FASTA $FVI $FVI_OUT_DIR $FVI_NEW_REG_FASTA
+python /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/src/fix_fasta_names.py $FNI_REG_FASTA $FNI $FNI_OUT_DIR $FNI_NEW_REG_FASTA

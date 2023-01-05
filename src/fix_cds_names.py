@@ -14,7 +14,7 @@ import coloredlogs
 from Bio import SeqIO
 
 
-def reformat_seq_iq(input_fasta, genome_name, output_dir, new_fasta, logger):
+def reformat_cds_seq_iq(input_fasta, genome_name, output_dir, new_fasta, logger):
     """
     Reformat a CDS FASTA file to have shorter sequence ID names for EDTA
 
@@ -36,13 +36,9 @@ def reformat_seq_iq(input_fasta, genome_name, output_dir, new_fasta, logger):
 
     # MAGIC file suffixes
     name_key = os.path.join(output_dir, (genome_name + "_CDS_Seq_ID_Conversion.txt"))
-
-    if os.path.exists(new_fasta):
-        os.remove(new_fasta)  # remove the file because we are in append mode
-    if os.path.exists(name_key):
-        os.remove(name_key)
     pair_dict = {}  # NB this is used to write the conversion key later for
     # clarity
+
     count = 0
     with open(input_fasta, "r") as input_fasta:
         with open(new_fasta, "w") as new_fasta_output:
@@ -112,5 +108,5 @@ if __name__ == "__main__":
     logger = logging.getLogger(__name__)
     coloredlogs.install(level=log_level)
 
-    reformat_seq_iq(args.fasta_input_file, args.genome_id, args.output_dir,
+    reformat_cds_seq_iq(args.fasta_input_file, args.genome_id, args.output_dir,
                     args.new_cds_file, logger)
