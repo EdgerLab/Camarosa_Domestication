@@ -185,21 +185,16 @@ def diagnostic_cleaner_helper(TE_Data):
 
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser(description="Reformat TE annotation file")
-    path_main = os.path.abspath(__file__)
-    dir_main = os.path.dirname(path_main)
 
     parser.add_argument(
         "TE_input_file", type=str, help="Parent path of TE annotation file"
     )
-
     parser.add_argument(
         "output_dir",
         type=str,
         help="Parent directory to output results",
     )
-
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="set debugging level to DEBUG"
     )
