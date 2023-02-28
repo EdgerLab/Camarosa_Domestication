@@ -37,7 +37,7 @@ def write_cleaned_transposons(te_pandaframe, output_dir, old_filename, logger):
     te_pandaframe.to_csv(file_name, sep="\t", header=True, index=False)
 
 
-def import_transposons(tes_input_path, logger):
+def import_transposons(tes_input_path, genome_name, logger):
     """Import TE file and read as a dataframe in Pandas
 
     Args:
@@ -79,6 +79,18 @@ def import_transposons(tes_input_path, logger):
     te_data.Order = te_data.Order.astype(str)
     te_data.SuperFamily = te_data.SuperFamily.astype(str)
     te_data.Strand = te_data.Strand.astype(str)
+
+    # Remove 'chromosomes' where I don't have that chromosome in both the gene
+    # and TE annotation
+    # Remove 'contigs'
+    te_data = te_data.loc[~te_data["Chromosome"].str.contains("contig")]
+    te_data = te_data.loc[~te_data["Chromosome"].str.contains("ptg")]
+
+    if genome_name == "FII":
+        te_data = te_data[te_data["Chromosome"] != "Chr0"]
+        te_data["Chromosome"] = te_data["Chromosome"].str.lower()
+
+    # print(te_data["Chromosome"].unique())
 
     # Call renamer
     te_data = te_annot_renamer(te_data)
@@ -195,6 +207,7 @@ if __name__ == "__main__":
         type=str,
         help="Parent directory to output results",
     )
+    parser.add_argument("genome_name", type=str)
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="set debugging level to DEBUG"
     )
@@ -208,8 +221,13 @@ if __name__ == "__main__":
     coloredlogs.install(level=log_level)
 
     # Execute
-    cleaned_transposons = import_transposons(args.TE_input_file, logger)
-    diagnostic_cleaner_helper(cleaned_transposons)
+    cleaned_transposons = import_transposons(
+        args.TE_input_file, args.genome_name, logger
+    )
+    # diagnostic_cleaner_helper(cleaned_transposons)
     write_cleaned_transposons(
-        cleaned_transposons, args.output_dir, args.TE_input_file, logger
+        cleaned_transposons,
+        args.output_dir,
+        args.TE_input_file,
+        logger,
     )

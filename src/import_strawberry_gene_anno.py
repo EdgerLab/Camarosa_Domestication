@@ -21,7 +21,7 @@ def write_cleaned_genes(gene_pandaframe, output_dir, old_filename, logger):
     gene_pandaframe.to_csv(file_name, sep="\t", header=True, index=True)
 
 
-def import_genes(genes_input_path, logger):
+def import_genes(genes_input_path, genome_name, logger):
     """Import gene annotation."""
 
     col_names = [
@@ -65,6 +65,41 @@ def import_genes(genes_input_path, logger):
     gene_pandaframe["Gene_Name"] = gene_pandaframe["FullName"].str.extract(r"ID=(.*?);")
     gene_pandaframe.set_index("Gene_Name", inplace=True)
 
+    # NOTE, this works for H4, DN, and RR, still need to check FNI, FII, and
+    # FVI
+    gene_pandaframe = gene_pandaframe.loc[
+        ~gene_pandaframe["Chromosome"].str.contains("contig")
+    ]
+    gene_pandaframe = gene_pandaframe.loc[
+        ~gene_pandaframe["Chromosome"].str.contains("ptg")
+    ]
+    gene_pandaframe = gene_pandaframe.loc[
+        ~gene_pandaframe["Chromosome"].str.contains("scaf")
+    ]
+
+    # Fix the chromosome names of the Del_Norte annotation so that they
+    # correspond to the chromosomes of the TE annotation
+    if genome_name == "DN":
+        # Fix the '_RagTag' suffix and replace the hyphen between the
+        # 'subchromosomes'
+        gene_pandaframe["Chromosome"] = gene_pandaframe["Chromosome"].str.replace(
+            "_RagTag", ""
+        )
+        gene_pandaframe["Chromosome"] = gene_pandaframe["Chromosome"].str.replace(
+            "-", "_"
+        )
+
+    # Fix the chromosome names of the FVI/FNI annotation so that they
+    # correspond to the chromosomes of the TE annotation
+    if genome_name == "FVI" or genome_name == "FNI":
+        # Fix the '_RagTag' suffix and replace the hyphen between the
+        # 'subchromosomes'
+        gene_pandaframe["Chromosome"] = gene_pandaframe["Chromosome"].str.replace(
+            "_RagTag", ""
+        )
+
+    # print(gene_pandaframe["Chromosome"].unique())
+
     # Drop extraneous columns
     gene_pandaframe = gene_pandaframe.drop(columns=["FullName", "Software"])
 
@@ -87,6 +122,7 @@ if __name__ == "__main__":
         type=str,
         help="Parent directory to output results",
     )
+    parser.add_argument("genome_name", type=str)
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="set debugging level to DEBUG"
     )
@@ -100,5 +136,5 @@ if __name__ == "__main__":
     coloredlogs.install(level=log_level)
 
     # Execute
-    cleaned_genes = import_genes(args.gene_input_file, logger)
+    cleaned_genes = import_genes(args.gene_input_file, args.genome_name, logger)
     write_cleaned_genes(cleaned_genes, args.output_dir, args.gene_input_file, logger)
