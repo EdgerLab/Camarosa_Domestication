@@ -1,0 +1,21 @@
+#!/bin/bash -login
+#SBATCH -J EDTA_RR
+#SBATCH --time=72:00:00
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=12
+#SBATCH --mem-per-cpu=8G
+#SBATCH -o /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/logs/single_EDTA_RR.out
+#--------------------------------------------------------
+
+# This file is to test if we get any LINES in the RR genome WITHOUT usage of the CDS fasta
+EDTA_DIR=/mnt/research/edgerpat_lab/EDTA
+
+module purge
+module load Conda/3
+conda activate EDTA  # activate the conda environment of packages
+OUT_DIR=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/Solo_EDTA/test_single_RR
+mkdir -p $OUT_DIR
+cd $OUT_DIR
+
+# Run EDTA
+perl $EDTA_DIR/EDTA.pl --genome /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Fixed_Fastas/Royal_Royce/RR_NewNames.fa --sensitive 1 --anno 1 --overwrite 1 --threads 12

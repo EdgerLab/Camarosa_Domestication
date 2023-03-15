@@ -1,3 +1,5 @@
 **/*.pyc
 results/*
 data/*
+*_RESULTS.txt
+*.fa*

@@ -1,0 +1,8 @@
+formatdb.log
+error.log
+*.out
+*.nhr
+*.nin
+*.nsd
+*.nsi
+*.nsq

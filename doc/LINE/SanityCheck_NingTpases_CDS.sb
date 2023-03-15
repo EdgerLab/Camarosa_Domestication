@@ -1,0 +1,40 @@
+#!/bin/bash -login
+#SBATCH --array=1-6
+#SBATCH -J CDS_NingTpases
+#SBATCH --time=1:00:00
+#SBATCH --cpus-per-task=8
+#SBATCH --mem-per-cpu=5G
+#SBATCH -o /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/doc/LINE/SanityCheck_NingTpases_CDS%A_%a.out
+
+# Load Modules
+module purge
+module load BLAST/2.2.26-Linux_x86_64
+
+# Specify the path to th config file
+config=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/doc/LINE/cds_blast_array.config
+
+# Extract the genome name for the current $SLURM_ARRAY_TASK_ID
+genome_name=$(awk -v ArrayTaskID=$SLURM_ARRAY_TASK_ID '$1==ArrayTaskID {print $2}' $config)
+
+# Extract the genome path for the current $SLURM_ARRAY_TASK_ID
+genome_cds=$(awk -v ArrayTaskID=$SLURM_ARRAY_TASK_ID '$1==ArrayTaskID {print $3}' $config)
+
+# Print to a file a message that includes the current $SLURM_ARRAY_TASK_ID, the genome name, and the genome path
+echo "This is array task ${SLURM_ARRAY_TASK_ID}, the genome name is ${genome_name} and the path is ${genome_cds}."
+
+# BODY
+cd /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/doc/LINE/
+
+query=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/doc/LINE/Tpases020812.fa
+
+# Prepare the indices
+database="DB_"
+database+=$genome_name
+formatdb -n $database -i $genome_cds -p F -o t
+
+
+echo "The DB name is ${database}."
+
+mkdir -p /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/doc/LINE/results
+# Run the blast search
+blastall -p tblastn -d /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/doc/LINE/$database -i $query -m 8 -a 8 -e 1e-5 -o /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/doc/LINE/results/${genome_name}_NingTpases_RESULTS.txt 

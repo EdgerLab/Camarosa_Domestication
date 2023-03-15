@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Reformat Fasta files for EDTA usage
+Reformat regular fasta files for EDTA usage
 """
 
 __author__ = "Scott Teresi"
@@ -44,35 +44,25 @@ def reformat_fasta_seq_iq(input_fasta, genome_name, output_dir, new_fasta, logge
         with open(new_fasta, "w") as new_fasta_output:
             for s_record in SeqIO.parse(input_fasta, "fasta"):
 
-                if genome_name == 'Del_Norte':
-                    s_record.id = s_record.id.split('_')[0]
-                    s_record.description = ""  # NB edit the description so that when
-                        # we rewrite we don't have the extraneous info
-                if genome_name == "FNI" or genome_name == "FVI":
-                    if '_' in s_record.id:
-                        s_record.id = s_record.id.split('_')[0]
-                    elif s_record.id.startswith('ptg'):
-                        #s_record.id = s_record.id.split(':')[0]
+                if genome_name == "DN":
+                    s_record.id = s_record.id.split("_")[0]
+                if genome_name in ["FNI", "FVI"]:
+                    if "_" in s_record.id:
+                        s_record.id = s_record.id.split("_")[0]
+                    elif s_record.id.startswith("ptg"):
+                        # s_record.id = s_record.id.split(':')[0]
                         # If there is no :, it just returns the input
 
-                        pair_dict[s_record.id] = 'ptg_' + str(ptg_counter)
-                        s_record.id = 'ptg_' + str(ptg_counter)
+                        pair_dict[s_record.id] = "ptg_" + str(ptg_counter)
+                        s_record.id = "ptg_" + str(ptg_counter)
                         ptg_counter += 1
-                    s_record.description = ""  # NB edit the description so that when
-                        # we rewrite we don't have the extraneous info
-
-                #elif genome_name == 'Fvesca_502' or genome_name == 'Fvesca_562' or genome_name == 'Fvesca_2339':
-                    #s_record.id = s_record.id.replace('502_scaffold_', 'scf_')
-                    #s_record.id = s_record.id.replace('562_scaffold_', 'scf_')
-                    #s_record.id = s_record.id.replace('2339_scaffold_', 'scf_')
-                    #s_record.description = ""  # NB edit the description so that when
-                        # we rewrite we don't have the extraneous info
-                
+                s_record.description = ""  # NB edit the description so that when
 
                 if len(s_record.id) > 13:  # NB sanity check for EDTA
                     # compliance
-                    print(s_record.id)
-                    raise ValueError(
+                    print(f"Current genome ID: {genome_name}")
+                    print(f"Offending sequence ID: {s_record.id}")
+                    logger.critical(
                         """Sequence ID greater than 13, EDTA will
                                      not like this."""
                     )
@@ -124,4 +114,10 @@ if __name__ == "__main__":
     logger = logging.getLogger(__name__)
     coloredlogs.install(level=log_level)
 
-    reformat_fasta_seq_iq(args.fasta_input_file, args.genome_id, args.output_dir, args.new_fasta_file, logger)
+    reformat_fasta_seq_iq(
+        args.fasta_input_file,
+        args.genome_id,
+        args.output_dir,
+        args.new_fasta_file,
+        logger,
+    )
