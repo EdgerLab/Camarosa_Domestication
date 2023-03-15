@@ -27,11 +27,11 @@ cd /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/Pan_Annota
 # They MUST be made prior to executing this script.
 # They also contain the outputs of the FASTA renaming
 
-GENOME_LIST=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/Pan_Annotation/pangenome_path_list.txt
+GENOME_LIST=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/Pan_Annotation/pangenome_only_fastas.txt
 
 # NOTE, the `-a 0` argument can be used if you just want to generate the individual annotations and the pangenome lib fasta file
 # Running panEDTA.sh from start to finish requires you to run it with the `-a 1` setting.
-sh $EDTA_DIR/panEDTA.sh -g $GENOME_LIST -t 100 -a 1
+sh $EDTA_DIR/panEDTA.sh -g $GENOME_LIST -t 100 -a 1 -c /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Fixed_Fastas/Royal_Royce/RR_CDS_NewNames.fa
 
 # FUTURE, might be a good idea to run it with `-a 0` to see if things work (and get the individual annotation values)
 # Then save those results to another directory, run panEDTA.sh once more but with `-a 1`, and then you can compare the annotations

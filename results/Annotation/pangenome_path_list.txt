@@ -1,6 +1,0 @@
-/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/Annotation/Fvesca_H4.fasta /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/Annotation/Fvesca_H4_CDS_NewNames.fasta
-/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/Annotation/FVI_NewNames.fasta
-/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/Annotation/FNI_NewNames.fasta
-/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/Annotation/FII.fasta /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/Annotation/FII_CDS_NewNames.fasta
-/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/Annotation/Royal_Royce.fasta /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/Annotation/Royal_Royce_CDS_NewNames.fasta
-/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/Annotation/Del_Norte_NewNames.fasta /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/Annotation/Del_Norte_CDS_NewNames.fasta

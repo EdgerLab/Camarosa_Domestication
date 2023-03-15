@@ -101,3 +101,13 @@ translate_CDS_to_protein:
 .PHONY: format_protein_database
 format_protein_database:
 	# TODO this is an sbatch script
+
+# NOTE DEPRECATED
+# TODO clean up the paths
+.PHONY: clean_RR_tpases
+clean_RR_tpases:
+	python $(ROOT_DIR)/doc/LINE/clean_CDS.py \
+		/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Royal_Royce/Royal_Royce_CDS.fasta \
+		/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/doc/LINE/NingTpases_CDS_results.txt \
+		/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Royal_Royce/Royal_Royce_CDS_NewNames.fasta \
+		/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/Fixed_Fastas/ \
