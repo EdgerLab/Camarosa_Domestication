@@ -4,6 +4,8 @@
 Compare TE Density values between strawberry syntelogs
 """
 
+# NOTE DEPRECATED, TO BE REMOVED
+
 __author__ = "Scott Teresi"
 
 import argparse

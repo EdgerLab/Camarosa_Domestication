@@ -1,0 +1,2 @@
+data/GO/ATH_GOSLIM.txt.gz filter=lfs diff=lfs merge=lfs -text
+data/GO/ATH_GOSLIM_README.txt.gz filter=lfs diff=lfs merge=lfs -text

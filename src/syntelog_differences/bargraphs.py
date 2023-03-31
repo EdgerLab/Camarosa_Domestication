@@ -10,7 +10,7 @@ import matplotlib.patches as mpatches
 import os
 
 """
-TODO 
+Generate barplots of syntelog TE density differences
 """
 
 
@@ -108,8 +108,11 @@ def graph_barplot_density_differences(
 
 def decode_te_window_direction_str(filename):
     """
-    Decode the TE type, window, and direction from a string
+    Decode the TE type, window, and direction from a string, the filename of a
+    preprocessed density table
     """
+    # NOTE a lot of MAGIC here, the filename is expected to be in a certain
+    # pattern
     if len(filename.split("_")) < 7:
         te_type, window = filename.split("_")[3:5]
         direction = filename.split("_")[5].split(".")[0]
@@ -118,7 +121,6 @@ def decode_te_window_direction_str(filename):
         te_type = "_".join(te_type)
         window = filename.split("_")[6]
         direction = filename.split("_")[7].split(".")[0]
-    print()
     return te_type, window, direction
 
 
