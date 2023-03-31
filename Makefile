@@ -11,12 +11,9 @@ RESULTS_DIR := $(ROOT_DIR)/results
 DEV_H4_UNCLEAN_TEs := $(RESULTS_DIR)/Pan_Annotation/H4_NewNames.fa.mod.EDTA.TEanno.gff3
 DEV_DN_UNCLEAN_TEs := $(RESULTS_DIR)/Pan_Annotation/DN_NewNames.fa.mod.EDTA.TEanno.gff3
 DEV_RR_UNCLEAN_TEs := $(RESULTS_DIR)/Pan_Annotation/RR_NewNames.fa.mod.EDTA.TEanno.gff3
-
 DEV_FVI_UNCLEAN_TEs := $(RESULTS_DIR)/Pan_Annotation/FVI_NewNames.fa.mod.EDTA.TEanno.gff3
 DEV_FNI_UNCLEAN_TEs := $(RESULTS_DIR)/Pan_Annotation/FNI_NewNames.fa.mod.EDTA.TEanno.gff3
 DEV_FII_UNCLEAN_TEs := $(RESULTS_DIR)/Pan_Annotation/FII_NewNames.fa.mod.EDTA.TEanno.gff3
-
-
 
 setup:
 	mkdir -p requirements doc results src data
@@ -42,7 +39,8 @@ filter_TEs:
 	python $(ROOT_DIR)/src/import_strawberry_EDTA.py $(DEV_FII_UNCLEAN_TEs) $(RESULTS_DIR)/cleaned_annotations/ FII
 
 #-------------------------------------------------------------------#
-# Filter the genes for TE Density
+# Prepare the gene annotation inputs for TE Density
+
 # Define the file paths for the uncleaned gene annotations
 H4_UNCLEAN_GENES := $(DATA_DIR)/Genomes/H4/H4_GeneAnnotation.gff
 DN_UNCLEAN_GENES := $(DATA_DIR)/Genomes/Del_Norte/DN_GeneAnnotation.gff
@@ -97,6 +95,65 @@ filter_all_genes: $(H4_CLEAN_GENES) $(DN_CLEAN_GENES) $(RR_CLEAN_GENES) $(FII_CL
 filter_H4_genes: $(H4_CLEAN_GENES)
 
 #-------------------------------------------------------------------#
+# Locate super TE-dense genes
+# GO Analysis: Run TopGO on the TE-dense genes
+# GO Analysis: Filter the Arabidopsis GO SLIM file
+
+# NOTE outputs two files, hardcoded in Python script:
+UNCLEAN_GO_FILE := $(DATA_DIR)/GO/ATH_GOSLIM.txt
+CLEANED_GO_FILE := $(RESULTS_DIR)/go_analysis/GO_ID_w_Term.tsv
+TOP_GO_REFERENCE_FILE := $(RESULTS_DIR)/go_analysis/ArabidopsisGene_w_GO.tsv
+GO_OUT_DIR := $(RESULTS_DIR)/go_analysis
+
+# TODO think about changing this path to a GO folder
+CUTOFF_TABLES_DIR := $(RESULTS_DIR)/density_analysis/cutoff_tables
+GO_ENRICHMENT_DIR := $(GO_OUT_DIR)/enrichment
+
+# Define a target to create the directory if it doesn't exist
+$(GO_OUT_DIR):
+	mkdir -p $@
+
+$(CUTOFF_TABLES_DIR):
+	mkdir -p $@
+
+$(GO_ENRICHMENT_DIR):
+	mkdir -p $@
+
+# Define a target to create tables of the top X% of TE-dense genes
+# TODO Later parallelize this once the naming scheme has been sorted and I also look 
+# at the 'Difference' column in the density data
+# MAGIC 1 for the top 1% of genes
+.PHONY: find_super_dense_genes
+find_super_dense_genes: | $(CUTOFF_TABLES_DIR)
+	ls $(RESULTS_DIR)/density_analysis/*.tsv | parallel python $(ROOT_DIR)/src/go_analysis/find_abnormal_genes.py {} 99 1 $(CUTOFF_TABLES_DIR)
+
+.PHONY: test_cutoff
+test_cutoff:
+	python $(ROOT_DIR)/src/go_analysis/find_abnormal_genes.py $(RESULTS_DIR)/density_analysis/DN_minus_RR_Copia_1000_Downstream.tsv 99 1 $(CUTOFF_TABLES_DIR)
+
+# Define a target to clean the GO file
+$(CLEANED_GO_FILE) $(TOP_GO_REFERENCE_FILE): $(UNCLEAN_GO_FILE) | $(GO_OUT_DIR)
+	python $(ROOT_DIR)/src/go_analysis/generate_gene_w_GO_term.py $< $(GO_OUT_DIR)
+
+.PHONY: filter_go_slim
+filter_go_slim: $(CLEANED_GO_FILE) $(TOP_GO_REFERENCE_FILE)
+
+# Define a target to run TopGO on one of the super dense gene output files
+.PHONY: run_topgo
+run_topgo: $(TOP_GO_REFERENCE_FILE) | $(GO_ENRICHMENT_DIR)
+	ls $(CUTOFF_TABLES_DIR)/*.tsv | parallel Rscript $(ROOT_DIR)/src/go_analysis/TopGO.R {} $(TOP_GO_REFERENCE_FILE) $(GO_ENRICHMENT_DIR)
+
+# to look at output 
+# grep -nr "stress" . --exclude="*Tc1*" | cut -f1,20-24
+
+
+.PHONY: clear_go_output
+clear_go_output:
+	rm -f $(CLEANED_GO_FILE)
+	rm -f $(TOP_GO_REFERENCE_FILE)
+
+
+#-------------------------------------------------------------------#
 # Orthology Analysis
 
 # Define the file paths for the cleaned syntelogs files
@@ -135,10 +192,12 @@ $(RR_H4_BLAST_RENAMED): $(DATA_DIR)/orthologs/RR_H4.blast | $(DATA_DIR)/ortholog
 	@echo "Reformatting the Royal Royce and H4 BLAST results..."
 	python $(ROOT_DIR)/src/orthologs/reformat_RR_H4_BLAST_results.py $< $@
 
+
+# DEFINE A better target for the H4-At_Orthologs_March2022.tsv file
 # Define the target for creating the master strawberry-arabidopsis ortholog table
-$(STRAWBERRY_ORTHOLOG_TABLE): $(CLEANED_RR_H4_SYNTELOGS) $(RR_H4_BLAST_RENAMED) $(CLEANED_RR_DN_SYNTELOGS) $(RR_DN_BLAST_RENAMED) $(DATA_DIR)/orthologs/H4-At_Orthologs_March2022.tsv | $(RESULTS_DIR)/orthologs
+$(STRAWBERRY_ORTHOLOG_TABLE): $(CLEANED_RR_H4_SYNTELOGS) $(RR_H4_BLAST_RENAMED) $(CLEANED_RR_DN_SYNTELOGS) $(RR_DN_BLAST_RENAMED) $(DATA_DIR)/orthologs/H4-At_Orthologs_March2022.tsv $(CLEANED_GO_FILE) $(RESULTS_DIR)/orthologs
 	@echo "Creating the master strawberry-arabidopsis ortholog table..."
-	python $(ROOT_DIR)/src/orthologs/pan_orthology_table.py $^ $(RESULTS_DIR)/orthologs/ $@
+	python $(ROOT_DIR)/src/orthologs/pan_orthology_table.py $^ $@
 
 # Define a phony target to run the orthology analysis for convenience
 .PHONY: orthology_analysis
@@ -167,14 +226,15 @@ $(RESULTS_DIR)/density_analysis:
 # TODO add the paths for the other genomes
 # TODO think about putting GNU parallel on this?
 # NOTE this script contains the args for subsetting the data
+# NOTE this script takes a while....
 $(SYNTELOG_W_DENSITY_TABLE): $(STRAWBERRY_ORTHOLOG_TABLE) $(DN_CLEAN_GENES) $(RR_CLEAN_GENES) $(DN_DENSITY_DIR) $(RR_DENSITY_DIR) $(RESULTS_DIR)/density_analysis | $(RESULTS_DIR)/density_analysis
-	echo TODO
 	python $(ROOT_DIR)/src/syntelog_differences/parse_density_data.py $^
 
 # Define a phony target to create the syntelog density table for convenience
 .PHONY: create_sytelog_density_table
 create_sytelog_density_table: $(SYNTELOG_W_DENSITY_TABLE)
 
+# TODO add the mkdir as a dependency not in the command
 .PHONY: graph_syntelog_plots
 graph_syntelog_plots:
 	mkdir -p $(RESULTS_DIR)/density_analysis/figures
@@ -210,3 +270,5 @@ clean_RR_tpases:
 		/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/doc/LINE/NingTpases_CDS_results.txt \
 		/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Royal_Royce/Royal_Royce_CDS_NewNames.fasta \
 		/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/Fixed_Fastas/ \
+
+

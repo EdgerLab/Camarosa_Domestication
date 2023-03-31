@@ -133,6 +133,7 @@ if __name__ == "__main__":
     parser.add_argument("DN_RR_cleaned_syntelog_input_file", type=str, help="TODO")
     parser.add_argument("DN_RR_cleaned_homolog_input_file", type=str, help="TODO")
     parser.add_argument("H4_AT_ortholog_input_file", type=str, help="TODO")
+    parser.add_argument("go_id_with_term_file", type=str, help="TODO")
     parser.add_argument(
         "output_dir",
         type=str,
@@ -167,6 +168,7 @@ if __name__ == "__main__":
 
     # Arabidopsis orthologs
     args.H4_AT_ortholog_input_file = os.path.abspath(args.H4_AT_ortholog_input_file)
+    args.go_id_with_term_file = os.path.abspath(args.go_id_with_term_file)
 
     args.output_dir = os.path.abspath(args.output_dir)
     args.final_merged_output = os.path.abspath(args.final_merged_output)
@@ -175,6 +177,7 @@ if __name__ == "__main__":
     logger = logging.getLogger(__name__)
     coloredlogs.install(level=log_level)
     # ------------------------------------------
+
     # Begin work, read in the data
     H4_RR_syntelogs = read_cleaned_syntelogs(args.H4_RR_cleaned_syntelog_input_file)
     H4_RR_homologs = read_cleaned_homologs(args.H4_RR_cleaned_homolog_input_file)
@@ -241,7 +244,19 @@ if __name__ == "__main__":
         ]
     ]
 
-    # Note this still needs the Arabidopsis genes
+    # Merge in H4 to Arabidopsis orthologs
     master = merge_arabidopsis_orthologs(master, args.H4_AT_ortholog_input_file)
+
+    # Merge the GO terms
+    go_terms = pd.read_csv(args.go_id_with_term_file, sep="\t", header="infer")
+    # Transform the GO terms, I don't want repeating gene names due to multiple
+    # go terms and descriptions
+    go_terms = (
+        go_terms.groupby("Arabidopsis_Gene")
+        .agg({"GO_ID": lambda x: list(x), "GO_Term_Description": lambda x: list(x)})
+        .reset_index()
+    )
+    master = pd.merge(master, go_terms, on="Arabidopsis_Gene", how="left")
+
     logger.info(f"Writing master ortholog table to {args.final_merged_output}")
     master.to_csv(args.final_merged_output, sep="\t", index=False, header=True)
