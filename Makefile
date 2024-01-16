@@ -60,4 +60,8 @@ filter_RR_DN_syntelogs:
 	@echo Filtering RoyalRoyce and DelNorte SynMap results
 	python $(ROOT_DIR)/src/syntelogs.py $(DATA_DIR)/orthologs/RR_DN_SynMap.txt $(RESULTS_DIR)/Cleaned_Syntelogs.tsv
 
-
+# TODO this may need to be changed when I start looking at the other genomes
+.PHONY: filter_RR_expression
+filter_RR_expression:
+	@echo Filtering RoyalRoyce expression data
+	python $(ROOT_DIR)/src/expression_data.py $(DATA_DIR)/Royal_Royce/RoyalRoyce_Cold_Warm_count_matrix.csv $(RESULTS_DIR)
