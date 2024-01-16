@@ -54,3 +54,10 @@ filter_genes:
 	python $(ROOT_DIR)/src/import_strawberry_gene_anno.py $(DEV_FVI_UNCLEAN_GENES) $(RESULTS_DIR) FVI
 	python $(ROOT_DIR)/src/import_strawberry_gene_anno.py $(DEV_FNI_UNCLEAN_GENES) $(RESULTS_DIR) FNI
 	python $(ROOT_DIR)/src/import_strawberry_gene_anno.py $(DEV_FII_UNCLEAN_GENES) $(RESULTS_DIR) FII
+
+.PHONY: filter_RR_DN_syntelogs
+filter_RR_DN_syntelogs:
+	@echo Filtering RoyalRoyce and DelNorte SynMap results
+	python $(ROOT_DIR)/src/syntelogs.py $(DATA_DIR)/orthologs/RR_DN_SynMap.txt $(RESULTS_DIR)/Cleaned_Syntelogs.tsv
+
+
