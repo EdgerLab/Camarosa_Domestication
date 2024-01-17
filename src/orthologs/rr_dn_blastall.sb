@@ -1,0 +1,44 @@
+#!/bin/bash -login
+
+#SBATCH -J blast_rr_dn
+#SBATCH --time=12:00:00
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=6
+#SBATCH --mem-per-cpu=5G
+#SBATCH -o /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/logs/RR_DN_BLAST.out
+
+# Load Modules
+module purge
+module load BLAST/2.2.26-Linux_x86_64
+echo "My Job ID:" $SLURM_JOB_ID
+
+cd /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/orthologs/
+
+# Prepare the protein indices
+formatdb -i /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/orthologs/farr1.protein.fa -p T
+
+# Run the blast search
+blastall -p blastp -d \
+/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/orthologs/farr1.protein.fa \
+-i /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/orthologs/DN_maker_annotation.proteins.fasta \
+-o /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/orthologs/RR_DN.blast \
+-m 8 \
+-a 6 \
+-e 0.05
+
+echo "Done"
+
+
+# NOTE deprecated code that was used when I didn't have the protein fastas premade
+#-------------------------------
+## Prepare the protein indices
+#formatdb -i /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/orthologs/RR_CDS_as_Proteins.fa -p T
+#
+## Run the blast search
+#blastall -p blastp -d \
+#/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/orthologs/RR_CDS_as_Proteins.fa \
+#-i /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/orthologs/H4_CDS_as_Proteins.fa \
+#-o /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/orthologs/RR_H4.blast \
+#-m 8 \
+#-a 6 \
+#-e 0.05

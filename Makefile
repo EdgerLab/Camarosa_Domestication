@@ -16,6 +16,8 @@ DEV_FVI_UNCLEAN_TEs := $(RESULTS_DIR)/Pangenome_Annotation_Output/FVI_NewNames.f
 DEV_FNI_UNCLEAN_TEs := $(RESULTS_DIR)/Pangenome_Annotation_Output/FNI_NewNames.fasta.mod.EDTA.TEanno.gff3
 DEV_FII_UNCLEAN_TEs := $(RESULTS_DIR)/Pangenome_Annotation_Output/FII.fasta.mod.EDTA.TEanno.gff3
 
+
+# NOTE TODO these file paths no longer work
 DEV_H4_UNCLEAN_GENES := $(DATA_DIR)/Genomes/Fvesca_H4/Fvesca_H4_Gene_Annotation.gff
 DEV_DN_UNCLEAN_GENES := $(DATA_DIR)/Genomes/Del_Norte/Del_Norte_Gene_Annotation.gff
 DEV_RR_UNCLEAN_GENES := $(DATA_DIR)/Genomes/Royal_Royce/Royal_Royce_Gene_Annotation.gff
@@ -64,4 +66,17 @@ filter_RR_DN_syntelogs:
 .PHONY: filter_RR_expression
 filter_RR_expression:
 	@echo Filtering RoyalRoyce expression data
-	python $(ROOT_DIR)/src/expression_data.py $(DATA_DIR)/Royal_Royce/RoyalRoyce_Cold_Warm_count_matrix.csv $(RESULTS_DIR)
+	python $(ROOT_DIR)/src/expression_data.py $(DATA_DIR)/Genomes/Royal_Royce/RoyalRoyce_Cold_Warm_count_matrix.csv $(RESULTS_DIR)
+
+# NOTE this translates the Royal Royce CDS FASTA
+.PHONY: translate_CDS_to_protein
+translate_CDS_to_protein:
+	mkdir -p $(DATA_DIR)/Royal_Royce/RR_Proteins
+	@echo Converting Royal Royce files
+	python $(ROOT_DIR)/src/orthologs/translate_cds_fasta_to_protein.py $(DATA_DIR)/Genomes/Royal_Royce/RR_CDS.fa $(DATA_DIR)/orthologs/RR_CDS_as_Proteins.fa
+	@echo Converting H4 files
+	python $(ROOT_DIR)/src/orthologs/translate_cds_fasta_to_protein.py $(DATA_DIR)/Genomes/H4/H4_CDS.fa $(DATA_DIR)/orthologs/H4_CDS_as_Proteins.fa
+
+.PHONY: format_protein_database
+format_protein_database:
+	# TODO this is an sbatch script
