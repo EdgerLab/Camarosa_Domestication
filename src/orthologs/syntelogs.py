@@ -142,7 +142,7 @@ def save_clean_syntelogs(syntelogs, output_path, logger):
     syntelogs.to_csv(output_path, header=True, sep="\t", index=False)
 
 
-def import_clean_syntelogs(syntelog_input_file):
+def read_cleaned_syntelogs(syntelog_input_file):
     """
     Import the clean syntelogs from the pre-filtered file
     """
