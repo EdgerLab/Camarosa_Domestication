@@ -59,8 +59,28 @@ filter_genes:
 
 .PHONY: filter_RR_DN_syntelogs
 filter_RR_DN_syntelogs:
-	@echo Filtering RoyalRoyce and DelNorte SynMap results
-	python $(ROOT_DIR)/src/syntelogs.py $(DATA_DIR)/orthologs/RR_DN_SynMap.txt $(RESULTS_DIR)/Cleaned_Syntelogs.tsv
+	@echo Filtering Royal Royce and Del Norte SynMap results...
+	python $(ROOT_DIR)/src/orthologs/syntelogs.py $(DATA_DIR)/orthologs/RR_DN_SynMap.txt $(RESULTS_DIR)/Cleaned_RR_DN_Syntelogs.tsv
+
+# NOTE this does not yet work because the rules are custom for DN and RR, FUTURE TODO go back and fix this
+.PHONY: filter_RR_H4_syntelogs
+filter_RR_H4_syntelogs:
+	@echo Filtering Royal Royce and H4 SynMap results
+	python $(ROOT_DIR)/src/orthologs/syntelogs.py $(DATA_DIR)/orthologs/RR_H4_SynMap.txt $(RESULTS_DIR)/Cleaned_RR_H4_Syntelogs.tsv
+
+# Replace the names for the Del Norte BLAST results
+.PHONY: name_replace_DN_BLAST
+name_replace_DN_BLAST:
+	@echo Replacing Del Norte BLAST names
+	python $(ROOT_DIR)/src/orthologs/replace_blasted_DN_gene_names.py $(DATA_DIR)/orthologs/RR_DN.blast $(DATA_DIR)/orthologs/DN_salt.translation $(RESULTS_DIR)/RR_DN_BLAST_renamed.txt
+
+.PHONY: create_DN_RR_orthology_table
+create_DN_RR_orthology_table:
+	python $(ROOT_DIR)/src/orthologs/DN_RR_orthology_table.py $(RESULTS_DIR)/Cleaned_RR_DN_Syntelogs.tsv $(RESULTS_DIR)/RR_DN_BLAST_renamed.txt $(RESULTS_DIR)/RR_DN_orthologs.tsv
+
+
+
+
 
 # TODO this may need to be changed when I start looking at the other genomes
 .PHONY: filter_RR_expression
