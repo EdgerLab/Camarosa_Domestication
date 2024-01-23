@@ -68,6 +68,7 @@ filter_RR_expression:
 	@echo Filtering RoyalRoyce expression data
 	python $(ROOT_DIR)/src/expression_data.py $(DATA_DIR)/Genomes/Royal_Royce/RoyalRoyce_Cold_Warm_count_matrix.csv $(RESULTS_DIR)
 
+# NOTE DEPRECATED 1/23/2024
 # NOTE this translates the Royal Royce CDS FASTA
 .PHONY: translate_CDS_to_protein
 translate_CDS_to_protein:
