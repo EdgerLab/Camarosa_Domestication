@@ -86,13 +86,6 @@ filter_RR_DN_homologs:
 	@echo TODO
 	python $(ROOT_DIR)/src/orthologs/replace_and_reformat_DN_RR_BLAST_results.py $(DATA_DIR)/orthologs/RR_DN.blast $(DATA_DIR)/orthologs/DN_salt.translation $(DATA_DIR)/orthologs/filtered/RR_DN_BLAST_renamed.txt
 
-
-
-
-#.PHONY: create_DN_RR_orthology_table
-#create_DN_RR_orthology_table:
-	#python $(ROOT_DIR)/src/orthologs/DN_RR_orthology_table.py $(DATA_DIR)/orthologs/filtered/Cleaned_RR_DN_Syntelogs.tsv $(DATA_DIR)/orthologs/filtered/RR_DN_BLAST_renamed.txt $(DATA_DIR)/orthologs/filtered/RR_DN_orthologs.tsv
-
 .PHONY: create_pan_orthology_table
 create_pan_orthology_table:
 	python $(ROOT_DIR)/src/orthologs/pan_orthology_table.py $(DATA_DIR)/orthologs/filtered/Cleaned_RR_H4_Syntelogs.tsv $(DATA_DIR)/orthologs/filtered/RR_H4_BLAST_renamed.txt $(DATA_DIR)/orthologs/filtered/Cleaned_RR_DN_Syntelogs.tsv $(DATA_DIR)/orthologs/filtered/RR_DN_BLAST_renamed.txt $(DATA_DIR)/orthologs/filtered/
