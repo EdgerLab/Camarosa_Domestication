@@ -12,6 +12,7 @@ import coloredlogs
 
 
 """
+TODO EDIT
 - The Del Norte protein file that was used for BLAST has gene names
     that are not the same as the gene names in the final gene annotation
 - This script replaces the gene names in the Del Norte protein file.

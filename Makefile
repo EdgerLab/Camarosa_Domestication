@@ -67,18 +67,11 @@ filter_RR_DN_syntelogs:
 	mkdir -p $(DATA_DIR)/orthologs/filtered
 	python $(ROOT_DIR)/src/orthologs/syntelogs.py $(DATA_DIR)/orthologs/RR_DN_SynMap.txt DN $(DATA_DIR)/orthologs/filtered/Cleaned_RR_DN_Syntelogs.tsv
 
-# NOTE this does not yet work because the rules are custom for DN and RR, FUTURE TODO go back and fix this
 .PHONY: filter_RR_H4_syntelogs
 filter_RR_H4_syntelogs:
 	@echo Filtering Royal Royce and H4 SynMap results
 	mkdir -p $(DATA_DIR)/orthologs/filtered
 	python $(ROOT_DIR)/src/orthologs/syntelogs.py $(DATA_DIR)/orthologs/RR_H4_SynMap.txt H4 $(DATA_DIR)/orthologs/filtered/Cleaned_RR_H4_Syntelogs.tsv
-
-# Replace the names for the Del Norte BLAST results and filter the results
-.PHONY: name_replace_DN_BLAST
-name_replace_DN_BLAST:
-	@echo Replacing Del Norte BLAST names
-	python $(ROOT_DIR)/src/orthologs/replace_and_reformat_DN_RR_BLAST_results.py $(DATA_DIR)/orthologs/RR_DN.blast $(DATA_DIR)/orthologs/DN_salt.translation $(DATA_DIR)/orthologs/filtered/RR_DN_BLAST_renamed.txt
 
 # Filter the BLAST results for RR and H4
 .PHONY: filter_RR_H4_homologs
@@ -86,15 +79,23 @@ filter_RR_H4_homologs:
 	@echo TODO
 	python $(ROOT_DIR)/src/orthologs/reformat_RR_H4_BLAST_results.py $(DATA_DIR)/orthologs/RR_H4.blast $(DATA_DIR)/orthologs/filtered/RR_H4_BLAST_renamed.txt
 
+# Replace the names for the Del Norte BLAST results and filter the results
+.PHONY: filter_RR_DN_homologs
+filter_RR_DN_homologs:
+	@echo Replacing Del Norte BLAST names
+	@echo TODO
+	python $(ROOT_DIR)/src/orthologs/replace_and_reformat_DN_RR_BLAST_results.py $(DATA_DIR)/orthologs/RR_DN.blast $(DATA_DIR)/orthologs/DN_salt.translation $(DATA_DIR)/orthologs/filtered/RR_DN_BLAST_renamed.txt
 
 
-.PHONY: create_DN_RR_orthology_table
-create_DN_RR_orthology_table:
-	python $(ROOT_DIR)/src/orthologs/DN_RR_orthology_table.py $(DATA_DIR)/orthologs/filtered/Cleaned_RR_DN_Syntelogs.tsv $(DATA_DIR)/orthologs/filtered/RR_DN_BLAST_renamed.txt $(DATA_DIR)/orthologs/filtered/RR_DN_orthologs.tsv
 
-.PHONY: create_DN_RR_orthology_table
-create_DN_RR_orthology_table:
-	python $(ROOT_DIR)/src/orthologs/DN_RR_orthology_table.py $(DATA_DIR)/orthologs/filtered/Cleaned_RR_DN_Syntelogs.tsv $(DATA_DIR)/orthologs/filtered/RR_DN_BLAST_renamed.txt $(DATA_DIR)/orthologs/filtered/RR_DN_orthologs.tsv
+
+#.PHONY: create_DN_RR_orthology_table
+#create_DN_RR_orthology_table:
+	#python $(ROOT_DIR)/src/orthologs/DN_RR_orthology_table.py $(DATA_DIR)/orthologs/filtered/Cleaned_RR_DN_Syntelogs.tsv $(DATA_DIR)/orthologs/filtered/RR_DN_BLAST_renamed.txt $(DATA_DIR)/orthologs/filtered/RR_DN_orthologs.tsv
+
+.PHONY: create_pan_orthology_table
+create_pan_orthology_table:
+	python $(ROOT_DIR)/src/orthologs/pan_orthology_table.py $(DATA_DIR)/orthologs/filtered/Cleaned_RR_H4_Syntelogs.tsv $(DATA_DIR)/orthologs/filtered/RR_H4_BLAST_renamed.txt $(DATA_DIR)/orthologs/filtered/Cleaned_RR_DN_Syntelogs.tsv $(DATA_DIR)/orthologs/filtered/RR_DN_BLAST_renamed.txt $(DATA_DIR)/orthologs/filtered/
 
 
 
