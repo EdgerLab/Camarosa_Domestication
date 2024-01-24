@@ -168,3 +168,43 @@ if __name__ == "__main__":
 
     # Ok at this point, both ortholog tables are in RAM. Now I need to merge
     # them as well.
+
+    # Modify the H4 columns so when we merge it isn't as messy
+    H4_RR_orthologs.rename(
+        columns={
+            "BLAST_E_Value": "H4_BLAST_E_Value",
+            "Syntelog_E_Value": "H4_Syntelog_E_Value",
+            "Point_of_Origin": "H4_Point_of_Origin",
+        },
+        inplace=True,
+    )
+    # Modify the DN columns so when we merge it isn't as messy
+    DN_RR_orthologs.rename(
+        columns={
+            "BLAST_E_Value": "DN_BLAST_E_Value",
+            "Syntelog_E_Value": "DN_Syntelog_E_Value",
+            "Point_of_Origin": "DN_Point_of_Origin",
+        },
+        inplace=True,
+    )
+    master = pd.concat([DN_RR_orthologs, H4_RR_orthologs], axis=0, join="outer")
+
+    # Reorder the columns
+    master = master[
+        [
+            "DN_Gene",
+            "RR_Gene",
+            "H4_Gene",
+            "DN_Chromosome",
+            "RR_Chromosome",
+            "H4_Chromosome",
+            "DN_BLAST_E_Value",
+            "DN_Syntelog_E_Value",
+            "DN_Point_of_Origin",
+            "H4_BLAST_E_Value",
+            "H4_Syntelog_E_Value",
+            "H4_Point_of_Origin",
+        ]
+    ]
+    print(master)
+    print(master.set_index("RR_Gene").head())
