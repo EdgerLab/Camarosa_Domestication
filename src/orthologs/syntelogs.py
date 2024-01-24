@@ -65,7 +65,9 @@ def import_unclean_syntelogs(syntelog_input_file):
     return syntelogs
 
 
-def filter_syntelogs(syntelogs):
+# maybe make a custom one for each genome, since the rules are different for
+# the H4/DN/RR gene names, and the outputs have different column names
+def filter_syntelogs_DN(syntelogs):
     """
     Filter the syntelogs to rename the columns so that they make more sense.
     Also, remove syntelogs with E-values greater than 0.05.
@@ -99,7 +101,7 @@ def filter_syntelogs(syntelogs):
     )
 
     # Fix Royal Royce genes in A
-    syntelogs["OrgA_Gene_Region"] = syntelogs["OrgA_Gene_Region"].str.split("\.").str[0]
+    syntelogs["OrgA_Gene_Region"] = syntelogs["OrgA_Gene_Region"].str.split(".").str[0]
 
     # Fix Del Norte genes in B
     syntelogs["OrgB_Gene_Region"] = (
@@ -113,6 +115,68 @@ def filter_syntelogs(syntelogs):
             "OrgB_Gene_Region": "DN_Gene",
             "OrgA_Chromosome": "RR_Chromosome",
             "OrgB_Chromosome": "DN_Chromosome",
+        },
+        inplace=True,
+    )
+
+    # MAGIC trim E-values less than 0.05
+    syntelogs = syntelogs.loc[syntelogs["E_Value"] < 0.05]
+
+    # Add column with identifier so we can later see what source we derived the
+    # gene pair from
+    syntelogs["Point_of_Origin"] = "Synteny"
+
+    syntelogs.drop(columns=["Diagonal_Score"], inplace=True)
+
+    return syntelogs
+
+
+def filter_syntelogs_H4(syntelogs):
+    """
+    Filter the syntelogs to rename the columns so that they make more sense.
+    Also, remove syntelogs with E-values greater than 0.05.
+    Parse the string names for the genes and chromosomes to remove the
+    extraneous information
+
+    Args:
+        syntelogs (pd.DataFrame): unclean syntelog data
+
+    Returns:
+        syntelogs (pd.DataFrame): clean syntelog data
+    """
+
+    # Get the correct name for the genes
+    # MAGIC
+    syntelogs["OrgA_Gene_Region"] = (
+        syntelogs["OrgA_Gene_Region"].str.split("\|\|").str[3]
+    )
+    # MAGIC
+    syntelogs["OrgB_Gene_Region"] = (
+        syntelogs["OrgB_Gene_Region"].str.split("\|\|").str[3]
+    )
+
+    # Get the correct name for the chromosome
+    # MAGIC splits to remove the nonsense info from SynMap
+    syntelogs["OrgA_Chromosome"] = (
+        syntelogs["OrgA_Chromosome"].str.split("_", n=1).str[1]
+    )
+    syntelogs["OrgB_Chromosome"] = (
+        syntelogs["OrgB_Chromosome"].str.split("_", n=1).str[1]
+    )
+
+    # Fix Royal Royce genes in A
+    syntelogs["OrgA_Gene_Region"] = syntelogs["OrgA_Gene_Region"].str.split(".").str[0]
+
+    # Fix Del Norte genes in B
+    syntelogs["OrgB_Gene_Region"] = syntelogs["OrgB_Gene_Region"].str.split(".").str[0]
+
+    # Rename columns so that they make more sense
+    syntelogs.rename(
+        columns={
+            "OrgA_Gene_Region": "H4_Gene",
+            "OrgB_Gene_Region": "RR_Gene",
+            "OrgA_Chromosome": "H4_Chromosome",
+            "OrgB_Chromosome": "RR_Chromosome",
         },
         inplace=True,
     )
@@ -161,6 +225,12 @@ if __name__ == "__main__":
         help="parent path of syntelog file",
     )
     parser.add_argument(
+        "genome_name",
+        type=str,
+        choices=["DN", "H4"],
+        help="name of genome to be used in proper function call",
+    )
+    parser.add_argument(
         "output_file",
         type=str,
         help="Path and filename to output results",
@@ -178,6 +248,11 @@ if __name__ == "__main__":
     coloredlogs.install(level=log_level)
 
     unclean_syntelogs = import_unclean_syntelogs(args.syntelog_input_file)
-    clean_syntelogs = filter_syntelogs(unclean_syntelogs)
+
+    if args.genome_name == "DN":
+        clean_syntelogs = filter_syntelogs_DN(unclean_syntelogs)
+    if args.genome_name == "H4":
+        clean_syntelogs = filter_syntelogs_H4(unclean_syntelogs)
+    print(clean_syntelogs)
 
     save_clean_syntelogs(clean_syntelogs, args.output_file, logger)
