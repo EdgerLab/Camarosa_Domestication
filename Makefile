@@ -74,7 +74,7 @@ filter_RR_H4_syntelogs:
 .PHONY: name_replace_DN_BLAST
 name_replace_DN_BLAST:
 	@echo Replacing Del Norte BLAST names
-	python $(ROOT_DIR)/src/orthologs/replace_blasted_DN_gene_names.py $(DATA_DIR)/orthologs/RR_DN.blast $(DATA_DIR)/orthologs/DN_salt.translation $(DATA_DIR)/orthologs/filtered/RR_DN_BLAST_renamed.txt
+	python $(ROOT_DIR)/src/orthologs/replace_and_reformat_DN_RR_BLAST_results.py $(DATA_DIR)/orthologs/RR_DN.blast $(DATA_DIR)/orthologs/DN_salt.translation $(DATA_DIR)/orthologs/filtered/RR_DN_BLAST_renamed.txt
 
 .PHONY: create_DN_RR_orthology_table
 create_DN_RR_orthology_table:
