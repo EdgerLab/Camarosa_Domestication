@@ -88,11 +88,12 @@ filter_RR_DN_homologs:
 
 .PHONY: create_pan_orthology_table
 create_pan_orthology_table:
-	python $(ROOT_DIR)/src/orthologs/pan_orthology_table.py $(DATA_DIR)/orthologs/filtered/Cleaned_RR_H4_Syntelogs.tsv $(DATA_DIR)/orthologs/filtered/RR_H4_BLAST_renamed.txt $(DATA_DIR)/orthologs/filtered/Cleaned_RR_DN_Syntelogs.tsv $(DATA_DIR)/orthologs/filtered/RR_DN_BLAST_renamed.txt $(DATA_DIR)/orthologs/filtered/
+	mkdir -p $(RESULTS_DIR)/orthologs
+	python $(ROOT_DIR)/src/orthologs/pan_orthology_table.py $(DATA_DIR)/orthologs/filtered/Cleaned_RR_H4_Syntelogs.tsv $(DATA_DIR)/orthologs/filtered/RR_H4_BLAST_renamed.txt $(DATA_DIR)/orthologs/filtered/Cleaned_RR_DN_Syntelogs.tsv $(DATA_DIR)/orthologs/filtered/RR_DN_BLAST_renamed.txt $(DATA_DIR)/orthologs/H4-At_Orthologs_March2022.tsv $(RESULTS_DIR)/orthologs/
 
 
 
-
+#-------------------------------------------------------------------#
 # TODO this may need to be changed when I start looking at the other genomes
 .PHONY: filter_RR_expression
 filter_RR_expression:
