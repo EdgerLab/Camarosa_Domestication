@@ -102,6 +102,8 @@ def filter_syntelogs_DN(syntelogs):
     syntelogs["OrgA_Gene_Region"] = syntelogs["OrgA_Gene_Region"].str.split(".").str[0]
 
     # Fix Del Norte genes in B
+    # TODO check with Pat should I eleminate the -mRNA-1? or 2?
+    # This is not an issue with H4-RR
     syntelogs["OrgB_Gene_Region"] = (
         syntelogs["OrgB_Gene_Region"].str.split("-mRNA-1").str[0]
     )
@@ -243,6 +245,7 @@ def filter_syntelogs_H4(syntelogs):
     # for our purposes we aren't trying to concern ourselves with the ancient
     # polyploidy events.
     # Drop the rows where the chromosomes do not match
+    # TODO CHECK THIS ONE MORE TIME
     syntelogs = syntelogs.loc[
         syntelogs["H4_Chromosome"] == syntelogs["RR_Chromosome"].str[0]
     ]

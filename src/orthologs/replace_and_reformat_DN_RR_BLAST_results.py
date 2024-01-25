@@ -77,7 +77,9 @@ def import_unclean_homologs(homolog_input_file):
     )
 
     # Get the correct name for the Del_Norte genes
-    homolog_pd["Del_Norte"] = homolog_pd["Del_Norte"].str.split("-mRNA-1").str[0]
+    # TODO I had a few -mRNA-2 in the names... normally I just split on 1.
+    # Check with Pat
+    homolog_pd["Del_Norte"] = homolog_pd["Del_Norte"].str.split("-mRNA-").str[0]
 
     # Get the correct name for the Royal_Royce genes
     homolog_pd["Royal_Royce"] = homolog_pd["Royal_Royce"].str.split(".").str[0]
@@ -99,6 +101,12 @@ def import_decoder_ring(decoder_ring_input_file):
 
 def replace_names(homolog_pd, decoder_ring):
     homolog_pd["Del_Norte"] = homolog_pd["Del_Norte"].replace(decoder_ring)
+    return homolog_pd
+
+
+def blacklist_if_no_new_name(homolog_pd, decoder_ring):
+    # Remove a Del Norte gene if it is not within the decoder ring
+    homolog_pd = homolog_pd.loc[homolog_pd["Del_Norte"].isin(decoder_ring)]
     return homolog_pd
 
 
@@ -144,6 +152,9 @@ if __name__ == "__main__":
 
     logger.info(f"Replacing names...")
     name_replaced_homologs = replace_names(unclean_homologs, decoder_ring)
+    name_replaced_homologs = blacklist_if_no_new_name(
+        name_replaced_homologs, decoder_ring
+    )
 
     logger.info(f"Saving results to disk at: {args.output_file}")
     name_replaced_homologs.to_csv(args.output_file, sep="\t", header=True, index=False)
