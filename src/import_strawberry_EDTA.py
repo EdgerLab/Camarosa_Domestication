@@ -185,11 +185,15 @@ def te_annot_renamer(TE_Data):
     return TE_Data
 
 
-def diagnostic_cleaner_helper(TE_Data):
+def diagnostic_cleaner_helper(te_data, genome_name, logger):
+    logger.info(f"Genome Name: {genome_name}")
+    logger.info(f"Number of unique TE Orders: {te_data['Order'].nunique()}")
+    logger.info(f"Unique TE Orders: {te_data['Order'].unique()}")
     print()
-    print(TE_Data.Order.unique())
-    print(TE_Data.SuperFamily.unique())
-    print()
+    logger.info(
+        f"Number of unique TE Superfamilies: {te_data['SuperFamily'].nunique()}"
+    )
+    logger.info(f"Unique TE Superfamilies: {te_data['SuperFamily'].unique()}")
 
     # To see unique for a given type:
     # print(TE_Data.loc[TE_Data['Order'] == 'LINE'].SuperFamily.unique())
@@ -224,7 +228,7 @@ if __name__ == "__main__":
     cleaned_transposons = import_transposons(
         args.TE_input_file, args.genome_name, logger
     )
-    # diagnostic_cleaner_helper(cleaned_transposons)
+    diagnostic_cleaner_helper(cleaned_transposons, args.genome_name, logger)
     write_cleaned_transposons(
         cleaned_transposons,
         args.output_dir,
