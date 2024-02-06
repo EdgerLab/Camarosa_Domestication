@@ -11,14 +11,9 @@ import logging
 import coloredlogs
 
 
-def write_cleaned_genes(gene_pandaframe, output_dir, old_filename, logger):
-    file_name = os.path.join(
-        output_dir,
-        ("Cleaned_" + os.path.splitext(os.path.basename(old_filename))[0]) + ".tsv",
-    )  # MAGIC to get proper extension
-
-    logger.info("Writing cleaned gene annotation file to: %s" % file_name)
-    gene_pandaframe.to_csv(file_name, sep="\t", header=True, index=True)
+def write_cleaned_genes(gene_pandaframe, out_file, logger):
+    logger.info(f"Writing cleaned gene annotation file to: {out_file}")
+    gene_pandaframe.to_csv(out_file, sep="\t", header=True, index=True)
 
 
 def import_genes(genes_input_path, genome_name, logger):
@@ -117,19 +112,19 @@ if __name__ == "__main__":
     parser.add_argument(
         "gene_input_file", type=str, help="Parent path of gene annotation file"
     )
-    parser.add_argument(
-        "output_dir",
-        type=str,
-        help="Parent directory to output results",
-    )
     parser.add_argument("genome_name", type=str)
+    parser.add_argument(
+        "output_file",
+        type=str,
+        help="path for output file",
+    )
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="set debugging level to DEBUG"
     )
 
     args = parser.parse_args()
     args.gene_input_file = os.path.abspath(args.gene_input_file)
-    args.output_dir = os.path.abspath(args.output_dir)
+    args.output_file = os.path.abspath(args.output_file)
 
     log_level = logging.DEBUG if args.verbose else logging.INFO
     logger = logging.getLogger(__name__)
@@ -137,4 +132,4 @@ if __name__ == "__main__":
 
     # Execute
     cleaned_genes = import_genes(args.gene_input_file, args.genome_name, logger)
-    write_cleaned_genes(cleaned_genes, args.output_dir, args.gene_input_file, logger)
+    write_cleaned_genes(cleaned_genes, args.output_file, logger)

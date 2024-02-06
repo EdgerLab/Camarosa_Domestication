@@ -1,7 +1,7 @@
 #!/usr/bin/env/python
 
 """
-Compare TE Density values between orthologs
+Compare TE Density values between strawberry syntelogs
 """
 
 __author__ = "Scott Teresi"
@@ -13,6 +13,8 @@ import coloredlogs
 import pandas as pd
 from collections import namedtuple
 
+
+# NOTE this will need to be edited.
 from transposon.gene_data import GeneData
 from transposon.density_data import DensityData
 from transposon.import_filtered_genes import import_filtered_genes
@@ -134,6 +136,8 @@ def identify_indices_of_syntelogs(
     return syntelog_matches
 
 
+# HOW much of this was refactored into density data on that shitty experimental
+# branch?
 def verify_te_type_sequence(density_data_one, density_data_two):
     """
     Simple function to verify that the actual order of the TE types in the

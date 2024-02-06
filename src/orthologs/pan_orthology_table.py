@@ -115,6 +115,13 @@ def H4_RR_merge_homologs_and_syntelogs(homologs, syntelogs):
     return merged_all
 
 
+def read_pan_orthology_table(pan_orthology_table_file):
+    """
+    Reads the output of this script to a Pandas dataframe
+    """
+    return pd.read_csv(pan_orthology_table_file, sep="\t", header="infer")
+
+
 if __name__ == "__main__":
 
     path_main = os.path.abspath(__file__)
@@ -129,7 +136,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "output_dir",
         type=str,
-        help="Path and filename to output results",
+        help="Path and filename to output miscellaneous results",
+    )
+    parser.add_argument(
+        "final_merged_output",
+        type=str,
+        help="Path and filename to output the master results",
     )
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="set debugging level to DEBUG"
@@ -157,6 +169,7 @@ if __name__ == "__main__":
     args.H4_AT_ortholog_input_file = os.path.abspath(args.H4_AT_ortholog_input_file)
 
     args.output_dir = os.path.abspath(args.output_dir)
+    args.final_merged_output = os.path.abspath(args.final_merged_output)
 
     log_level = logging.DEBUG if args.verbose else logging.INFO
     logger = logging.getLogger(__name__)
@@ -230,8 +243,5 @@ if __name__ == "__main__":
 
     # Note this still needs the Arabidopsis genes
     master = merge_arabidopsis_orthologs(master, args.H4_AT_ortholog_input_file)
-    output_file = os.path.abspath(
-        os.path.join(args.output_dir, "Strawberry_Arabidopsis_Ortholog_Table.tsv")
-    )
-    logger.info(f"Writing master ortholog table to {output_file}")
-    master.to_csv(output_file, sep="\t", index=False, header=True)
+    logger.info(f"Writing master ortholog table to {args.final_merged_output}")
+    master.to_csv(args.final_merged_output, sep="\t", index=False, header=True)
