@@ -165,13 +165,20 @@ $(RESULTS_DIR)/density_analysis:
 	mkdir -p $@
 
 # TODO add the paths for the other genomes
-$(SYNTELOG_W_DENSITY_TABLE): $(STRAWBERRY_ORTHOLOG_TABLE) $(DN_CLEAN_GENES) $(RR_CLEAN_GENES) $(DN_DENSITY_DIR) $(RR_DENSITY_DIR) $(RESULTS_DIR) | $(RESULTS_DIR)/density_analysis
+# TODO think about putting GNU parallel on this?
+# NOTE this script contains the args for subsetting the data
+$(SYNTELOG_W_DENSITY_TABLE): $(STRAWBERRY_ORTHOLOG_TABLE) $(DN_CLEAN_GENES) $(RR_CLEAN_GENES) $(DN_DENSITY_DIR) $(RR_DENSITY_DIR) $(RESULTS_DIR)/density_analysis | $(RESULTS_DIR)/density_analysis
 	echo TODO
 	python $(ROOT_DIR)/src/syntelog_differences/parse_density_data.py $^
 
 # Define a phony target to create the syntelog density table for convenience
 .PHONY: create_sytelog_density_table
 create_sytelog_density_table: $(SYNTELOG_W_DENSITY_TABLE)
+
+.PHONY: graph_syntelog_plots
+graph_syntelog_plots:
+	mkdir -p $(RESULTS_DIR)/density_analysis/figures
+	ls $(RESULTS_DIR)/density_analysis/*.tsv | parallel python $(ROOT_DIR)/src/syntelog_differences/bargraphs.py {} $(RESULTS_DIR)/density_analysis/figures
 
 #-------------------------------------------------------------------#
 # TODO this may need to be changed when I start looking at the other genomes
