@@ -2,30 +2,116 @@
 
 __author__ = "Scott Teresi"
 
+"""
+- Take the TE Density data of the RR and DN genomes and merge it with the
+preconstructed syntelog table
+"""
+
 import pandas as pd
 import numpy as np
-
 import os
 import argparse
 import logging
 import coloredlogs
 
-"""
-- Take the TE Density data and merge it with the syntelog table
-"""
 
 from src.orthologs.pan_orthology_table import read_pan_orthology_table
+
+# from src.syntelog_differences.bargraphs import graph_barplot_density_differences
+
 from transposon.import_filtered_genes import import_filtered_genes
 from transposon.gene_data import GeneData
-
 from transposon.density_data import DensityData
+from transposon.density_utils import (
+    add_hdf5_indices_to_gene_data_from_list_hdf5,
+    add_te_vals_to_gene_info_pandas_from_list_hdf5,
+    add_te_vals_to_gene_info_pandas,
+    get_specific_slice,
+    add_hdf5_indices_to_gene_data,
+    info_of_gene,
+)
 
-# from src.fish_utils import (
-#    add_hdf5_indices_to_gene_data_from_list_hdf5,
-#    add_te_vals_to_gene_info_pandas_from_list_hdf5,
-#    add_te_vals_to_syntelogs,
-#    parse_analysis_config,
-# )
+
+def make_table_for_te_type_and_direction(
+    orthologs,
+    cleaned_DN_genes,
+    cleaned_RR_genes,
+    processed_DN_data,
+    processed_RR_data,
+    major_group,
+    te_type,
+    direction,
+    window,
+):
+
+    # Add HDF5 indices to a pandas dataframe to enable easier HDF5 TE value
+    # access later
+    # This is used for the special and regular gene set independently
+
+    DN_gene_frame_with_indices = add_hdf5_indices_to_gene_data_from_list_hdf5(
+        cleaned_DN_genes, processed_DN_data
+    )
+    DN_gene_frame_with_values = add_te_vals_to_gene_info_pandas_from_list_hdf5(
+        DN_gene_frame_with_indices,
+        processed_DN_data,
+        major_group,
+        te_type,
+        direction,
+        window,
+    )
+
+    RR_gene_frame_with_indices = add_hdf5_indices_to_gene_data_from_list_hdf5(
+        cleaned_RR_genes, processed_RR_data
+    )
+    RR_gene_frame_with_values = add_te_vals_to_gene_info_pandas_from_list_hdf5(
+        RR_gene_frame_with_indices,
+        processed_RR_data,
+        major_group,
+        te_type,
+        direction,
+        window,
+    )
+    te_window_direction_str = f"{te_type}_{window}_{direction}"
+
+    DN_gene_frame_with_values.rename(
+        columns={
+            te_window_direction_str: f"DN_{te_window_direction_str}",
+            "Gene_Name": "DN_Gene",
+        },
+        inplace=True,
+    )
+    RR_gene_frame_with_values.rename(
+        columns={
+            te_window_direction_str: f"RR_{te_window_direction_str}",
+            "Gene_Name": "RR_Gene",
+        },
+        inplace=True,
+    )
+
+    for dataframe in [DN_gene_frame_with_values, RR_gene_frame_with_values]:
+        dataframe.drop(
+            columns=[
+                "Feature",
+                "Start",
+                "Stop",
+                "Strand",
+                "Length",
+                "Index_Val",
+                "Chromosome",
+                "index",
+            ],
+            inplace=True,
+        )
+    big_merge = pd.merge(orthologs, RR_gene_frame_with_values, on="RR_Gene")
+    bigga_merge = pd.merge(big_merge, DN_gene_frame_with_values, on="DN_Gene")
+
+    # MAGIC
+    # NOTE HARD CODED TO HAVE DN MINUS RR
+    bigga_merge["Difference"] = (
+        bigga_merge[f"DN_{te_window_direction_str}"]
+        - bigga_merge[f"RR_{te_window_direction_str}"]
+    )
+    return bigga_merge
 
 
 def get_gene_data_as_list(cleaned_genes):
@@ -96,16 +182,31 @@ if __name__ == "__main__":
         type=str,
         help="Parent directory to output results",
     )
-    logger = logging.getLogger(__name__)
+    parser.add_argument(
+        "-v", "--verbose", action="store_true", help="set debugging level to DEBUG"
+    )
+
     args = parser.parse_args()
     args.syntelog_file = os.path.abspath(args.syntelog_file)
     args.output_dir = os.path.abspath(args.output_dir)
+
+    log_level = logging.DEBUG if args.verbose else logging.INFO
+    logger = logging.getLogger(__name__)
+    coloredlogs.install(level=log_level)
 
     args.RR_HDF5_dir = os.path.abspath(args.RR_HDF5_dir)
     args.RR_gene_data = os.path.abspath(args.RR_gene_data)
 
     args.DN_gene_data = os.path.abspath(args.DN_gene_data)
     args.DN_HDF5_dir = os.path.abspath(args.DN_HDF5_dir)
+    # -----------------------------------------------------------------------
+    # Manually define our config
+    # MAGIC
+    orders = ["LTR", "TIR", "Total_TE_Density"]
+    superfamilies = ["Mutator", "Copia", "Gypsy", "hAT", "Tc1-Mariner"]
+    windows = [1000, 2500, 5000, 10000]
+    directions = ["Upstream", "Downstream"]
+
     # -----------------------------------------------------------------------
     # Read and initialize various data
 
@@ -115,10 +216,6 @@ if __name__ == "__main__":
     # Read cleaned genes for the given genome as pandas
     cleaned_RR_genes = import_filtered_genes(args.RR_gene_data, logger)
     cleaned_DN_genes = import_filtered_genes(args.DN_gene_data, logger)
-
-    print(orthologs)
-    print(cleaned_RR_genes)
-    print(cleaned_DN_genes)
 
     # Get list of GeneData for each genome to enable initialization of
     # DensityData
@@ -132,74 +229,61 @@ if __name__ == "__main__":
     processed_RR_data = DensityData.from_list_gene_data_and_hdf5_dir(
         genedata_RR_list, args.RR_HDF5_dir, "RR_(.*?).h5", logger
     )
-    print(processed_DN_data[0])
-    print(processed_RR_data[0])
-    raise NotImplementedError("This is not finished")
 
     # Reset index to make it easier to add the HDF5 indices to a pandas frame
-    cleaned_genes.reset_index(inplace=True)
+    cleaned_DN_genes.reset_index(inplace=True)
+    cleaned_RR_genes.reset_index(inplace=True)
 
-    # Add HDF5 indices to a pandas dataframe to enable easier HDF5 TE value
-    # access later
-    # This is used for the special and regular gene set independently
-    gene_frame_with_indices = add_hdf5_indices_to_gene_data_from_list_hdf5(
-        cleaned_genes, processed_dd_data
-    )
+    # Start looping to make the tables
 
-    # -----------------------------------------------------------------------
-    # Begin analysis of regular genes
-
-    # Do the loops to create graphs for the general set
     for window in windows:
         for direction in directions:
-            for order in orders:
-
-                # NOTE this is only for the orders. I could do it for the
-                # superfamilies but I don't think that is wanted or needed
-                cleaned_with_te_vals = add_te_vals_to_gene_info_pandas_from_list_hdf5(
-                    gene_frame_with_indices,
-                    processed_dd_data,
-                    "Order",
-                    order,
+            for te_type in orders:
+                major_group = "Order"
+                table = make_table_for_te_type_and_direction(
+                    orthologs,
+                    cleaned_DN_genes,
+                    cleaned_RR_genes,
+                    processed_DN_data,
+                    processed_RR_data,
+                    major_group,
+                    te_type,
                     direction,
                     window,
                 )
-
-                syntelogs_w_te_vals = add_te_vals_to_syntelogs(
-                    syntelogs, cleaned_with_te_vals, args.genome_name
+                file_string = os.path.join(
+                    args.output_dir, f"DN_minus_RR_{te_type}_{window}_{direction}.tsv"
                 )
+                logger.info(f"Writing to file: {file_string}")
+                table.to_csv(file_string, header=True, index=False, sep="\t")
 
-                # MAGIC string formatting
-                # NOTE A genome MINUS B genome. Negative values means that the
-                # B copy had more TE
-                syntelogs_w_te_vals["Difference"] = (
-                    syntelogs_w_te_vals[
-                        order + "_" + str(window) + "_" + direction + "_A"
-                    ]
-                    - syntelogs_w_te_vals[
-                        order + "_" + str(window) + "_" + direction + "_B"
-                    ]
-                )
-
-                total_length = len(syntelogs_w_te_vals)
-
-                # NB subset to have only rows with a nonzero difference
-
-                syntelogs_w_te_vals = syntelogs_w_te_vals.loc[
-                    syntelogs_w_te_vals["Difference"] != 0
-                ]
-                number_of_zeros = total_length - len(syntelogs_w_te_vals)
-
-                graph_histogram_density_differences(
-                    syntelogs_w_te_vals["Difference"].to_list(),
-                    order,
-                    window,
+            # NOTE duplicate code...
+            for te_type in superfamilies:
+                major_group = "Superfamily"
+                table = make_table_for_te_type_and_direction(
+                    orthologs,
+                    cleaned_DN_genes,
+                    cleaned_RR_genes,
+                    processed_DN_data,
+                    processed_RR_data,
+                    major_group,
+                    te_type,
                     direction,
-                    number_of_zeros,
-                    args.genome_name,
-                    args.genome_name + "_A",
-                    args.genome_name + "_B",
-                    args.output_dir,
-                    logger,
-                    display=False,
+                    window,
                 )
+                file_string = (
+                    f"{args.output_dir}/DN_minus_RR_{te_type}_{window}_{direction}.tsv"
+                )
+                logger.info(f"Writing to file: {file_string}")
+                table.to_csv(file_string, header=True, index=False, sep="\t")
+                # graph_barplot_density_differences(
+                #    table["Difference"],
+                #    te_type,
+                #    window,
+                #    direction,
+                #    0,
+                #    "home/scott",
+                #    logger,
+                #    display=True,
+                # )
+                # raise ValueError
