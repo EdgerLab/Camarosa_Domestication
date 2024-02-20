@@ -4,7 +4,7 @@
 #SBATCH --ntasks=1
 #SBATCH --mem-per-cpu=8G
 #SBATCH --array=1-2
-#SBATCH --output=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/logs/ArrayTrim.%A_%a.log
+#SBATCH --output=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/logs/ArrayTrim.%A_%a.out
 
 # TODO ADD IN ARRAY JOB
 module purge
