@@ -16,9 +16,10 @@ FASTA=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Ro
 ANNOTATION=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Royal_Royce/RR_GeneAnnotation.gff
 
 # genomeDir is output dir, dir must be clear & created prior
-genome_index_out_dir=/mnt/research/edgerpat_lab/Scotty/Blueberry_RNA_Seq_Expression_Analysis/results/rna_seq/genome_index_RR
-rm -r $genome_index_out_dir
+genome_index_out_dir=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/rna_seq/genome_index_RR
+rm -rf $genome_index_out_dir
 mkdir -p $genome_index_out_dir
+cd $genome_index_out_dir
 
 # Build a Genome Index for STAR
 STAR --runThreadN 2 \
@@ -26,5 +27,6 @@ STAR --runThreadN 2 \
 --genomeDir $genome_index_out_dir \
 --genomeFastaFiles $FASTA \
 --sjdbGTFfile $ANNOTATION \
+--genomeSAindexNbases 12 \
 --sjdbGTFtagExonParentTranscript Parent \
 --sjdbOverhang 149
