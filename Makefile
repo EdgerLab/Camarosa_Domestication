@@ -125,7 +125,7 @@ $(GO_ENRICHMENT_DIR):
 # MAGIC 1 for the top 1% of genes
 .PHONY: find_super_dense_genes
 find_super_dense_genes: | $(CUTOFF_TABLES_DIR)
-	ls $(RESULTS_DIR)/density_analysis/*.tsv | parallel python $(ROOT_DIR)/src/go_analysis/find_abnormal_genes.py {} 99 1 $(CUTOFF_TABLES_DIR)
+	ls $(RESULTS_DIR)/density_analysis/*.tsv | parallel python $(ROOT_DIR)/src/go_analysis/find_abnormal_genes.py {} 95 5 $(CUTOFF_TABLES_DIR)
 
 .PHONY: test_cutoff
 test_cutoff:
@@ -240,6 +240,9 @@ graph_syntelog_plots:
 	mkdir -p $(RESULTS_DIR)/density_analysis/figures
 	ls $(RESULTS_DIR)/density_analysis/*.tsv | parallel python $(ROOT_DIR)/src/syntelog_differences/bargraphs.py {} $(RESULTS_DIR)/density_analysis/figures
 
+.PHONY: test_syntelog_plots
+test_syntelog_plots:
+	python $(ROOT_DIR)/src/syntelog_differences/bargraphs.py $(RESULTS_DIR)/density_analysis/DN_minus_RR_Copia_1000_Downstream.tsv $(RESULTS_DIR)/density_analysis/figures
 #-------------------------------------------------------------------#
 # TODO this may need to be changed when I start looking at the other genomes
 .PHONY: filter_RR_expression

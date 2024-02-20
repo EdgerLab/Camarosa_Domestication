@@ -36,6 +36,10 @@ def perform_upper_cutoff_and_subset(
     TODO
     """
     table = table.copy(deep=True)
+
+    # Make sure nonzero values are used
+    table = table.loc[table[column_name] != 0.0]
+
     upper_cutoff_val = calculate_cutoff_value(
         table[column_name], upper_percentile_cutoff_int
     )
@@ -62,6 +66,10 @@ def perform_lower_cutoff_and_subset(
     TODO
     """
     table = table.copy(deep=True)
+
+    # Make sure nonzero values are used
+    table = table.loc[table[column_name] != 0.0]
+
     lower_cutoff_val = calculate_cutoff_value(
         table[column_name], lower_percentile_cutoff_int
     )

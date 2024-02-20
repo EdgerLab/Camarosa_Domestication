@@ -24,6 +24,7 @@ def graph_barplot_density_differences(
     logger,
     display=False,
     align="left",
+    upper_and_lower_cutoff_int=(95, 5),
 ):
     """
     Plot a histogram of TE density differences between syntelog pairs
@@ -73,7 +74,6 @@ def graph_barplot_density_differences(
         0.9,
         1.0,
     ]
-
     plt.figure(figsize=(8, 6))
     n, bins, patches = plt.hist(
         values, bins=tick_bins, facecolor="blue", ec="black", alpha=0.5
@@ -86,15 +86,40 @@ def graph_barplot_density_differences(
         label="Total Plotted Genes: %s \nTE type: %s \nWindow: %s \nDirection: %s \nNo. 0 Differences: %s"
         % (len(values), te_type, window_val, direction, str(number_of_zeros))
     )
-    # Get the mean and plot as red line
+    # -----------------------------------------
+    # Cutoffs
+    upper_cutoff_val = np.percentile(values, upper_and_lower_cutoff_int[0])
+    lower_cutoff_val = np.percentile(values, upper_and_lower_cutoff_int[1])
+    plt.axvline(upper_cutoff_val, color="g", linestyle="dashed", linewidth=2)
+    plt.axvline(lower_cutoff_val, color="g", linestyle="dashed", linewidth=2)
+
+    upper_label = plt.Line2D(
+        [],
+        [],
+        color="g",
+        marker="",
+        linestyle="",
+        label=f"Upper {upper_and_lower_cutoff_int[0]} Percentile Cutoff: {upper_cutoff_val:.2f}",
+    )
+    lower_label = plt.Line2D(
+        [],
+        [],
+        color="g",
+        marker="",
+        linestyle="",
+        label=f"Bottom {upper_and_lower_cutoff_int[1]} Percentile Cutoff: {lower_cutoff_val:.2f}",
+    )
+
+    # -----------------------------------------
+    # Get the mean and plot as red line, create object for legend
     diff_mean = np.mean(values)
-    custom_line_label = plt.Line2D(
+    mean_label = plt.Line2D(
         [], [], color="r", marker="", linestyle="", label=f"Mean: {diff_mean:.2f}"
     )
     plt.axvline(diff_mean, color="r", linestyle="dashed", linewidth=2)
 
     plt.xticks(tick_bins)
-    plt.legend(handles=[N, custom_line_label])
+    plt.legend(handles=[N, mean_label, lower_label, upper_label])
     path = os.path.join(
         output_dir,
         (te_type + "_" + str(window_val) + "_" + direction + "_DensityDifferences.png"),
