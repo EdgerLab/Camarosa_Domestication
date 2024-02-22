@@ -1,10 +1,10 @@
 #!/bin/sh -login
 #SBATCH -J Trimmomatic 
-#SBATCH --time 01:59:00
+#SBATCH --time 04:00:00
 #SBATCH --ntasks=1
 #SBATCH --mem-per-cpu=8G
-#SBATCH --array=1-2
-#SBATCH --output=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/logs/ArrayTrim.%A_%a.out
+#SBATCH --array=1-6
+#SBATCH --output=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/logs/rna_seq_logs/ArrayTrim.%A_%a.out
 
 # TODO ADD IN ARRAY JOB
 module purge
@@ -16,7 +16,7 @@ echo "My SLURM_ARRAY_TASK_ID:" $SLURM_ARRAY_TASK_ID
 RAW_READS_DIR='/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/untrimmed'
 OUT_DIR='/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/trimmed'
 
-# TODO EDIT THIS PATH
+# TODO EDIT THIS PATH for when I have the full data
 GUIDE_FILE='/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/src/rna_seq/trimmomatic_manifest.tsv'
 
 LINE_FOR_JOB=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "$GUIDE_FILE")
@@ -33,4 +33,5 @@ echo "My R2:" $R2
 # Start running Trimmomatic
 # CD to the output dir, that is where results will be located
 cd $OUT_DIR
+# TODO DOUBLE-CHECK these parameters before doing the complete run
 java -jar $EBROOTTRIMMOMATIC/trimmomatic-0.38.jar PE -threads 1 $R1 $R2 ${R1_BASE}_trimmed_P1.fq.gz ${R1_BASE}_trimmed_U1.fq.gz ${R2_BASE}_trimmed_P2.fq.gz ${R2_BASE}_trimmed_U2.fq.gz ILLUMINACLIP:/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication_Analysis/data/expression/Trimmomatic_adapter/TruSeq3-PE.fa:2:30:10 HEADCROP:15 AVGQUAL:25 TRAILING:30
