@@ -145,6 +145,11 @@ run_topgo: $(TOP_GO_REFERENCE_FILE) | $(GO_ENRICHMENT_DIR)
 
 # to look at output 
 # grep -nr "stress" . --exclude="*Tc1*" | cut -f1,20-24
+#
+#
+.PHONY: upset_plot
+upset_plot:
+	python $(ROOT_DIR)/src/go_analysis/upset_plot.py $(GO_ENRICHMENT_DIR)/Overrepresented_RR_Mutator_2500_Upstream_Upper_95_density_percentile.tsv $(GO_ENRICHMENT_DIR)/Overrepresented_DN_Mutator_2500_Upstream_Upper_95_density_percentile.tsv $(ROOT_DIR)/results/
 
 
 .PHONY: clear_go_output
