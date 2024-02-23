@@ -34,4 +34,4 @@ echo "My R2:" $R2
 # CD to the output dir, that is where results will be located
 cd $OUT_DIR
 # TODO DOUBLE-CHECK these parameters before doing the complete run
-java -jar $EBROOTTRIMMOMATIC/trimmomatic-0.38.jar PE -threads 1 $R1 $R2 ${R1_BASE}_trimmed_P1.fq.gz ${R1_BASE}_trimmed_U1.fq.gz ${R2_BASE}_trimmed_P2.fq.gz ${R2_BASE}_trimmed_U2.fq.gz ILLUMINACLIP:/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication_Analysis/data/expression/Trimmomatic_adapter/TruSeq3-PE.fa:2:30:10 HEADCROP:15 AVGQUAL:25 TRAILING:30
+java -jar $EBROOTTRIMMOMATIC/trimmomatic-0.38.jar PE -threads 1 $R1 $R2 ${R1_BASE}_trimmed_P1.fq.gz ${R1_BASE}_trimmed_U1.fq.gz ${R2_BASE}_trimmed_P2.fq.gz ${R2_BASE}_trimmed_U2.fq.gz ILLUMINACLIP:/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/Trimmomatic_adapter/TruSeq3-PE.fa:2:30:10 HEADCROP:15 AVGQUAL:25 TRAILING:30
