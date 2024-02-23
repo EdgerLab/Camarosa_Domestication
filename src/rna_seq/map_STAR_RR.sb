@@ -1,37 +1,44 @@
 #!/bin/bash -login
 #SBATCH -J map_RR
-#SBATCH --time=03:59:00
+#SBATCH --time=24:00:00
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=2
-#SBATCH --mem-per-cpu=8G
-#SBATCH --output=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/logs/RR_Array_test
+#SBATCH --cpus-per-task=4
+#SBATCH --mem-per-cpu=12G
+#SBATCH --output=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/logs/rna_seq_logs/starmap.log
+
+echo $SLURM_JOB_ID
+echo $SLURM_ARRAY_TASK_ID
 
 # Load Modules
 module purge
 module load GCC/11.3.0 STAR/2.7.10b
-# SAMtools/1.9
-
-# TODO NOT FINISHED YET
+#SAMtools/1.16.1
 
 # Files:
-MANIFEST=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/src/rna_seq/test_manifest.tsv
+MANIFEST=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/src/rna_seq/starmap_manifest.tsv
 GENOME_INDEX_DIR=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/rna_seq/genome_index_RR/
+OUTPUT_DIR=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/rna_seq/mapping/
+
+mkdir -p $OUTPUT_DIR
 
 # New STAR
-STAR --runThreadN 2 \
+STAR --runThreadN 4 \
 --genomeDir $GENOME_INDEX_DIR \
 --readFilesManifest $MANIFEST \
 --readFilesCommand gunzip -c \
---outFilterMultimapNmax 1
+--outFilterMultimapNmax 1 \
+--outFileNamePrefix $OUTPUT_DIR \
+--outSAMtype BAM Unsorted
 
 #--------------------------------------------------
 #
 ## SAMTools
 #echo Starting SAMTools
-#samtools sort Aligned.out.sam -n -@ 8 -m 8G -o SortedSam.sam
+# We are sorting by name
+#samtools sort Aligned.out.sam -n --threads 8 -m 8G -o SortedSam.sam
 #rm Aligned.out.sam
-#
-#
-#end=`date +%s`
-#elapsed=`expr $end - $begin`
-#echo Time taken: $elapsed
+
+# Later it might be wise to concatenate all the SAM files together 
+# samtools cat -o merged.sam file1.sam file2.sam etc
+# And resort
+# samtools sort sort_merged.sam -n --threads 8 -m 8G -o merged.sam
