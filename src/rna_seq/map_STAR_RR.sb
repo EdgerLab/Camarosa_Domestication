@@ -1,13 +1,12 @@
 #!/bin/bash -login
 #SBATCH -J map_RR
-#SBATCH --time=24:00:00
+#SBATCH --time=12:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
-#SBATCH --mem-per-cpu=12G
+#SBATCH --mem-per-cpu=8G
 #SBATCH --output=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/logs/rna_seq_logs/starmap.log
 
 echo $SLURM_JOB_ID
-echo $SLURM_ARRAY_TASK_ID
 
 # Load Modules
 module purge
