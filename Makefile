@@ -1,6 +1,7 @@
 # scripts for development
 # __file__ Makefile
 # __author__ Scott Teresi
+SHELL=/bin/bash
 
 ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 DATA_DIR := $(ROOT_DIR)/data
@@ -108,6 +109,7 @@ GO_OUT_DIR := $(RESULTS_DIR)/go_analysis
 # TODO think about changing this path to a GO folder
 CUTOFF_TABLES_DIR := $(RESULTS_DIR)/density_analysis/cutoff_tables
 GO_ENRICHMENT_DIR := $(GO_OUT_DIR)/enrichment
+GO_UPSET_PLOT_DIR := $(RESULTS_DIR)/go_analysis/enrichment/upset_plots
 
 # Define a target to create the directory if it doesn't exist
 $(GO_OUT_DIR):
@@ -117,6 +119,9 @@ $(CUTOFF_TABLES_DIR):
 	mkdir -p $@
 
 $(GO_ENRICHMENT_DIR):
+	mkdir -p $@
+
+$(GO_UPSET_PLOT_DIR):
 	mkdir -p $@
 
 # Define a target to create tables of the top X% of TE-dense genes
@@ -148,9 +153,8 @@ run_topgo: $(TOP_GO_REFERENCE_FILE) | $(GO_ENRICHMENT_DIR)
 #
 #
 .PHONY: upset_plot
-upset_plot:
-	python $(ROOT_DIR)/src/go_analysis/upset_plot.py $(GO_ENRICHMENT_DIR)/Overrepresented_RR_Mutator_2500_Upstream_Upper_95_density_percentile.tsv $(GO_ENRICHMENT_DIR)/Overrepresented_DN_Mutator_2500_Upstream_Upper_95_density_percentile.tsv $(ROOT_DIR)/results/
-
+upset_plot: | $(GO_UPSET_PLOT_DIR)
+	find $(GO_ENRICHMENT_DIR)/ -maxdepth 1 -type f | sort | xargs -n2 sh -c 'python $(ROOT_DIR)/src/go_analysis/upset_plot.py $$2 $$3 $$1' sh $(GO_UPSET_PLOT_DIR)
 
 .PHONY: clear_go_output
 clear_go_output:
