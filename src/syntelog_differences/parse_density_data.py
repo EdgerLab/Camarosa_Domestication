@@ -34,10 +34,12 @@ from transposon.density_utils import (
 
 def make_table_for_te_type_and_direction(
     orthologs,
-    cleaned_DN_genes,
-    cleaned_RR_genes,
+    DN_gene_frame_with_indices,
+    RR_gene_frame_with_indices,
+    H4_gene_frame_with_indices,
     processed_DN_data,
     processed_RR_data,
+    processed_H4_data,
     major_group,
     te_type,
     direction,
@@ -48,9 +50,7 @@ def make_table_for_te_type_and_direction(
     # access later
     # This is used for the special and regular gene set independently
 
-    DN_gene_frame_with_indices = add_hdf5_indices_to_gene_data_from_list_hdf5(
-        cleaned_DN_genes, processed_DN_data
-    )
+    # TODO refactor this to be outside of the function
     DN_gene_frame_with_values = add_te_vals_to_gene_info_pandas_from_list_hdf5(
         DN_gene_frame_with_indices,
         processed_DN_data,
@@ -60,9 +60,6 @@ def make_table_for_te_type_and_direction(
         window,
     )
 
-    RR_gene_frame_with_indices = add_hdf5_indices_to_gene_data_from_list_hdf5(
-        cleaned_RR_genes, processed_RR_data
-    )
     RR_gene_frame_with_values = add_te_vals_to_gene_info_pandas_from_list_hdf5(
         RR_gene_frame_with_indices,
         processed_RR_data,
@@ -71,6 +68,16 @@ def make_table_for_te_type_and_direction(
         direction,
         window,
     )
+
+    H4_gene_frame_with_values = add_te_vals_to_gene_info_pandas_from_list_hdf5(
+        H4_gene_frame_with_indices,
+        processed_H4_data,
+        major_group,
+        te_type,
+        direction,
+        window,
+    )
+
     te_window_direction_str = f"{te_type}_{window}_{direction}"
 
     DN_gene_frame_with_values.rename(
@@ -88,7 +95,19 @@ def make_table_for_te_type_and_direction(
         inplace=True,
     )
 
-    for dataframe in [DN_gene_frame_with_values, RR_gene_frame_with_values]:
+    H4_gene_frame_with_values.rename(
+        columns={
+            te_window_direction_str: f"H4_{te_window_direction_str}",
+            "Gene_Name": "H4_Gene",
+        },
+        inplace=True,
+    )
+
+    for dataframe in [
+        DN_gene_frame_with_values,
+        RR_gene_frame_with_values,
+        H4_gene_frame_with_values,
+    ]:
         dataframe.drop(
             columns=[
                 "Feature",
@@ -105,13 +124,26 @@ def make_table_for_te_type_and_direction(
     big_merge = pd.merge(orthologs, RR_gene_frame_with_values, on="RR_Gene")
     bigga_merge = pd.merge(big_merge, DN_gene_frame_with_values, on="DN_Gene")
 
+    print(bigga_merge)
+
+    # TODO I think this is busted, I am having duplicate names???
+
+    # TODO revisit this, I don't want to increase the size of the table by
+    # having NA in the RR or DN because I tried to outer join the H4, but I
+    # also don't want to inner join, maybe outer join is best?
+    biggest_merge = pd.merge(
+        bigga_merge, H4_gene_frame_with_values, on="H4_Gene", how="left"
+    )
+    print(biggest_merge)
+    raise ValueError
+
     # MAGIC
     # NOTE HARD CODED TO HAVE DN MINUS RR
-    bigga_merge["Difference"] = (
-        bigga_merge[f"DN_{te_window_direction_str}"]
-        - bigga_merge[f"RR_{te_window_direction_str}"]
+    biggest_merge["Difference"] = (
+        biggest_merge[f"DN_{te_window_direction_str}"]
+        - biggest_merge[f"RR_{te_window_direction_str}"]
     )
-    return bigga_merge
+    return biggest_merge
 
 
 def get_gene_data_as_list(cleaned_genes):
@@ -161,6 +193,7 @@ if __name__ == "__main__":
         type=str,
         help="gene data file that is the input to TE Density for DN",
     )
+
     parser.add_argument(
         "RR_gene_data",
         type=str,
@@ -168,14 +201,27 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
+        "H4_gene_data",
+        type=str,
+        help="gene data file that is the input to TE Density for H4",
+    )
+
+    parser.add_argument(
         "DN_HDF5_dir",
         type=str,
         help=".h5 files corresponding to the DN genome",
     )
+
     parser.add_argument(
         "RR_HDF5_dir",
         type=str,
         help=".h5 files corresponding to the RR genome",
+    )
+
+    parser.add_argument(
+        "H4_HDF5_dir",
+        type=str,
+        help=".h5 files corresponding to the H4 genome",
     )
     parser.add_argument(
         "output_dir",
@@ -199,6 +245,9 @@ if __name__ == "__main__":
 
     args.DN_gene_data = os.path.abspath(args.DN_gene_data)
     args.DN_HDF5_dir = os.path.abspath(args.DN_HDF5_dir)
+
+    args.H4_gene_data = os.path.abspath(args.H4_gene_data)
+    args.H4_HDF5_dir = os.path.abspath(args.H4_HDF5_dir)
     # -----------------------------------------------------------------------
     # Manually define our config
     # MAGIC
@@ -209,18 +258,26 @@ if __name__ == "__main__":
 
     # -----------------------------------------------------------------------
     # Read and initialize various data
+    # TODO there has to be a better way to do this, I am repeating the same
+    # code for DN, RR, and H4. This is so ugly. Maybe I can make a function to
+    # clean it up but then I am just recreating DensityData?
 
     # Read the universal syntelog table
     orthologs = read_pan_orthology_table(args.syntelog_file)
+    print(orthologs)
+    print(orthologs.loc[orthologs.duplicated(subset="RR_Gene", keep=False)])
+    raise ValueError
 
     # Read cleaned genes for the given genome as pandas
     cleaned_RR_genes = import_filtered_genes(args.RR_gene_data, logger)
     cleaned_DN_genes = import_filtered_genes(args.DN_gene_data, logger)
+    cleaned_H4_genes = import_filtered_genes(args.H4_gene_data, logger)
 
     # Get list of GeneData for each genome to enable initialization of
     # DensityData
     genedata_DN_list = get_gene_data_as_list(cleaned_DN_genes)
     genedata_RR_list = get_gene_data_as_list(cleaned_RR_genes)
+    genedata_H4_list = get_gene_data_as_list(cleaned_H4_genes)
 
     # Initialize DensityData for each genome
     processed_DN_data = DensityData.from_list_gene_data_and_hdf5_dir(
@@ -229,10 +286,24 @@ if __name__ == "__main__":
     processed_RR_data = DensityData.from_list_gene_data_and_hdf5_dir(
         genedata_RR_list, args.RR_HDF5_dir, "RR_(.*?).h5", logger
     )
+    processed_H4_data = DensityData.from_list_gene_data_and_hdf5_dir(
+        genedata_H4_list, args.H4_HDF5_dir, "H4_(.*?).h5", logger
+    )
 
     # Reset index to make it easier to add the HDF5 indices to a pandas frame
     cleaned_DN_genes.reset_index(inplace=True)
     cleaned_RR_genes.reset_index(inplace=True)
+    cleaned_H4_genes.reset_index(inplace=True)
+
+    DN_gene_frame_with_indices = add_hdf5_indices_to_gene_data_from_list_hdf5(
+        cleaned_DN_genes, processed_DN_data
+    )
+    RR_gene_frame_with_indices = add_hdf5_indices_to_gene_data_from_list_hdf5(
+        cleaned_RR_genes, processed_RR_data
+    )
+    H4_gene_frame_with_indices = add_hdf5_indices_to_gene_data_from_list_hdf5(
+        cleaned_H4_genes, processed_H4_data
+    )
 
     # Start looping to make the tables
 
@@ -242,10 +313,12 @@ if __name__ == "__main__":
                 major_group = "Order"
                 table = make_table_for_te_type_and_direction(
                     orthologs,
-                    cleaned_DN_genes,
-                    cleaned_RR_genes,
+                    DN_gene_frame_with_indices,
+                    RR_gene_frame_with_indices,
+                    H4_gene_frame_with_indices,
                     processed_DN_data,
                     processed_RR_data,
+                    processed_H4_data,
                     major_group,
                     te_type,
                     direction,
@@ -262,28 +335,19 @@ if __name__ == "__main__":
                 major_group = "Superfamily"
                 table = make_table_for_te_type_and_direction(
                     orthologs,
-                    cleaned_DN_genes,
-                    cleaned_RR_genes,
+                    DN_gene_frame_with_indices,
+                    RR_gene_frame_with_indices,
+                    H4_gene_frame_with_indices,
                     processed_DN_data,
                     processed_RR_data,
+                    processed_H4_data,
                     major_group,
                     te_type,
                     direction,
                     window,
                 )
-                file_string = (
-                    f"{args.output_dir}/DN_minus_RR_{te_type}_{window}_{direction}.tsv"
+                file_string = os.path.join(
+                    args.output_dir, f"DN_minus_RR_{te_type}_{window}_{direction}.tsv"
                 )
                 logger.info(f"Writing to file: {file_string}")
                 table.to_csv(file_string, header=True, index=False, sep="\t")
-                # graph_barplot_density_differences(
-                #    table["Difference"],
-                #    te_type,
-                #    window,
-                #    direction,
-                #    0,
-                #    "home/scott",
-                #    logger,
-                #    display=True,
-                # )
-                # raise ValueError
