@@ -12,6 +12,7 @@ import coloredlogs
 
 from src.orthologs.syntelogs import read_cleaned_syntelogs
 from src.orthologs.homologs import read_cleaned_homologs
+from transposon.import_filtered_genes import import_filtered_genes
 
 """
 - TODO
@@ -58,8 +59,30 @@ def DN_RR_merge_homologs_and_syntelogs(homologs, syntelogs):
     # I will also rename the E_Value column in the syntelog file
     syntelogs.rename(columns={"E_Value": "Syntelog_E_Value"}, inplace=True)
 
+    # Remove a gene from the homologs if it is in the syntelogs
+    # TODO do I also need to do this with the RR genes?
+    # Or do I need to do this pairwise with both genes being considered?
+    # is this even the right command right here?
+    # TODO Tuesday check out the blueberry code to se how I managed it
+    # First write out rules for which genes are kept, RR genes must be unique,
+    # but so must the DN genes...
+    homologs = homologs[~homologs["DN_Gene"].isin(syntelogs["DN_Gene"])]
+
+    print(homologs)
+    print(syntelogs)
+    raise ValueError
+
     # Now I will merge the two dataframes
-    merged_all = pd.concat([homologs, syntelogs], axis=0, join="outer")
+    # merged_all = pd.concat([homologs, syntelogs], axis=0, join="outer")
+    merged_all = pd.merge(
+        homologs, syntelogs, on=["DN_Gene", "RR_Gene", "Point_of_Origin"], how="outer"
+    )
+
+    # Drop duplicates
+    print(merged_all)
+    merged_all.drop_duplicates(subset=["DN_Gene"], keep="first", inplace=True)
+    print(merged_all)
+    raise ValueError
 
     # Sort the merged dataframe by Royal Royce gene name and Point_of_Origin,
     # then by Evalues
@@ -144,6 +167,23 @@ if __name__ == "__main__":
     parser.add_argument("H4_AT_ortholog_input_file", type=str, help="TODO")
     parser.add_argument("go_id_with_term_file", type=str, help="TODO")
     parser.add_argument(
+        "DN_gene_data",
+        type=str,
+        help="gene data file that is the input to TE Density for DN",
+    )
+
+    parser.add_argument(
+        "RR_gene_data",
+        type=str,
+        help="gene data file that is the input to TE Density for RR",
+    )
+
+    parser.add_argument(
+        "H4_gene_data",
+        type=str,
+        help="gene data file that is the input to TE Density for H4",
+    )
+    parser.add_argument(
         "output_dir",
         type=str,
         help="Path and filename to output miscellaneous results",
@@ -158,6 +198,11 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
+
+    # Gene Data files for final sanity check
+    args.RR_gene_data = os.path.abspath(args.RR_gene_data)
+    args.DN_gene_data = os.path.abspath(args.DN_gene_data)
+    args.H4_gene_data = os.path.abspath(args.H4_gene_data)
 
     # H4 files
     args.H4_RR_cleaned_syntelog_input_file = os.path.abspath(
@@ -186,12 +231,68 @@ if __name__ == "__main__":
     logger = logging.getLogger(__name__)
     coloredlogs.install(level=log_level)
     # ------------------------------------------
-
     # Begin work, read in the data
+
+    # Read in the cleaned gene annotations from the density work, and cut out
+    # any genes in the ortholog table that are not in the annotations (i.e they
+    # would not be in the TE Density output)
+    # Sanity check, having to do this mostly because Pat's AT-H4 ortholog file
+    # has some extra genes that were not in my regular gene annotation
+    cleaned_RR_genes = import_filtered_genes(args.RR_gene_data, logger)
+    cleaned_DN_genes = import_filtered_genes(args.DN_gene_data, logger)
+    cleaned_H4_genes = import_filtered_genes(args.H4_gene_data, logger)
+
     H4_RR_syntelogs = read_cleaned_syntelogs(args.H4_RR_cleaned_syntelog_input_file)
     H4_RR_homologs = read_cleaned_homologs(args.H4_RR_cleaned_homolog_input_file)
     DN_RR_syntelogs = read_cleaned_syntelogs(args.DN_RR_cleaned_syntelog_input_file)
     DN_RR_homologs = read_cleaned_homologs(args.DN_RR_cleaned_homolog_input_file)
+
+    # Remove a gene from the homologs if it is not in the cleaned gene
+    # file
+    # TODO put all of this in a function
+    H4_RR_homologs = H4_RR_homologs[
+        H4_RR_homologs["Royal_Royce"].isin(cleaned_RR_genes.index)
+    ]
+    H4_RR_homologs = H4_RR_homologs[H4_RR_homologs["H4"].isin(cleaned_H4_genes.index)]
+
+    DN_RR_homologs = DN_RR_homologs[
+        DN_RR_homologs["Royal_Royce"].isin(cleaned_RR_genes.index)
+    ]
+    DN_RR_homologs = DN_RR_homologs[
+        DN_RR_homologs["Del_Norte"].isin(cleaned_DN_genes.index)
+    ]
+
+    # Remove a gene from the syntelogs if is not in the cleaned gene file
+    # TODO put all of this in a function
+    H4_RR_syntelogs = H4_RR_syntelogs[
+        H4_RR_syntelogs["H4_Gene"].isin(cleaned_H4_genes.index)
+    ]
+    H4_RR_syntelogs = H4_RR_syntelogs[
+        H4_RR_syntelogs["RR_Gene"].isin(cleaned_RR_genes.index)
+    ]
+
+    DN_RR_syntelogs = DN_RR_syntelogs[
+        DN_RR_syntelogs["RR_Gene"].isin(cleaned_RR_genes.index)
+    ]
+    DN_RR_syntelogs = DN_RR_syntelogs[
+        DN_RR_syntelogs["DN_Gene"].isin(cleaned_DN_genes.index)
+    ]
+
+    # Add the chromosome IDs to the homolog files
+    # TODO put all of this in a function
+    DN_RR_homologs["DN_Chromosome"] = DN_RR_homologs["Del_Norte"].map(
+        cleaned_DN_genes["Chromosome"]
+    )
+    DN_RR_homologs["RR_Chromosome"] = DN_RR_homologs["Royal_Royce"].map(
+        cleaned_RR_genes["Chromosome"]
+    )
+
+    H4_RR_homologs["H4_Chromosome"] = H4_RR_homologs["H4"].map(
+        cleaned_H4_genes["Chromosome"]
+    )
+    H4_RR_homologs["RR_Chromosome"] = H4_RR_homologs["Royal_Royce"].map(
+        cleaned_RR_genes["Chromosome"]
+    )
 
     H4_RR_orthologs = H4_RR_merge_homologs_and_syntelogs(
         H4_RR_homologs, H4_RR_syntelogs
@@ -199,6 +300,10 @@ if __name__ == "__main__":
     DN_RR_orthologs = DN_RR_merge_homologs_and_syntelogs(
         DN_RR_homologs, DN_RR_syntelogs
     )
+    print(DN_RR_syntelogs)
+    print(DN_RR_homologs)
+    print(DN_RR_orthologs)
+    raise ValueError
 
     output_file = os.path.abspath(os.path.join(args.output_dir, "DN_RR_orthologs.tsv"))
     logger.info(f"Writing DN-RR orthologs to {output_file}")

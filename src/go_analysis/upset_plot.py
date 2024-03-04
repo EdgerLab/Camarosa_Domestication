@@ -61,6 +61,12 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
+        "H4_preprocessed_go_enrichment_table",
+        type=str,
+        help="TODO",
+    )
+
+    parser.add_argument(
         "output_dir",
         type=str,
         help="parent directory to output results",
@@ -76,6 +82,9 @@ if __name__ == "__main__":
     args.RR_preprocessed_go_enrichment_table = os.path.abspath(
         args.RR_preprocessed_go_enrichment_table
     )
+    args.H4_preprocessed_go_enrichment_table = os.path.abspath(
+        args.H4_preprocessed_go_enrichment_table
+    )
     args.output_dir = os.path.abspath(args.output_dir)
 
     log_level = logging.DEBUG if args.verbose else logging.INFO
@@ -86,6 +95,7 @@ if __name__ == "__main__":
     # Read in the data
     DN_table = read_go_enrichment_table(args.DN_preprocessed_go_enrichment_table)
     RR_table = read_go_enrichment_table(args.RR_preprocessed_go_enrichment_table)
+    H4_table = read_go_enrichment_table(args.H4_preprocessed_go_enrichment_table)
 
     # NOTE
     # Plot title is something like "Mutator 2500 Upstream Upper 95 Percentile"
@@ -101,17 +111,21 @@ if __name__ == "__main__":
 
     RR_terms = RR_table["GO_ID"].values
     DN_terms = DN_table["GO_ID"].values
+    H4_terms = DN_table["GO_ID"].values
 
-    data = from_contents({"RR": RR_terms, "DN": DN_terms})
+    data = from_contents({"RR": RR_terms, "DN": DN_terms, "H4": H4_terms})
 
     # Initialize the plot figure object
     fig = plt.figure()
     upset = UpSet(data, subset_size="count")
-    upset.style_subsets(present="RR", absent="DN", facecolor="red")
-    upset.style_subsets(present="DN", absent="RR", facecolor="blue")
+    upset.style_subsets(present="RR", absent=["DN", "H4"], facecolor="red")
+    upset.style_subsets(present="DN", absent=["RR", "H4"], facecolor="blue")
+    upset.style_subsets(present="H4", absent=["DN", "RR"], facecolor="green")
     upset.style_subsets(present=["RR", "DN"], hatch="xx", edgecolor="purple")
+    upset.style_subsets(present=["H4", "DN"], hatch="xxx", edgecolor="yellow")
     upset.plot(fig=fig)
     plt.suptitle(plot_title)
-    # plt.show()
+    plt.show()
+    raise ValueError("stop here")
     plt.savefig(os.path.join(args.output_dir, filename), bbox_inches="tight")
     plt.clf()

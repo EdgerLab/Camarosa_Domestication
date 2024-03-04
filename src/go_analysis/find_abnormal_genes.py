@@ -39,6 +39,7 @@ def perform_upper_cutoff_and_subset(
 
     # Make sure nonzero values are used
     table = table.loc[table[column_name] != 0.0]
+    print(table)
 
     upper_cutoff_val = calculate_cutoff_value(
         table[column_name], upper_percentile_cutoff_int
@@ -151,15 +152,24 @@ if __name__ == "__main__":
         os.path.basename(args.preprocessed_density_table)
     )
 
-    # This calculates the top 1% of the genes for each genome, and then the
+    # This calculates the top X% of the genes for each genome, and then the
     # top and bottom for the difference.
     # MAGIC genome names
-    for genome in ["DN", "RR"]:
+    for genome in ["H4", "DN", "RR"]:
         te_col = f"{genome}_{te_type}_{window}_{direction}"
         # Perform the upper cutoff and subset
-        mod_table = perform_upper_cutoff_and_subset(
-            base_table, te_col, args.upper_percentile_cutoff_int, logger
-        )
+        # mod_table = perform_upper_cutoff_and_subset(
+        #    base_table, te_col, args.upper_percentile_cutoff_int, logger
+        # )
+
+        if genome == "H4":
+            print(base_table)
+            test = perform_upper_cutoff_and_subset(
+                base_table, te_col, args.upper_percentile_cutoff_int, logger
+            )
+            print(test)
+
+        raise ValueError("STOP")
 
         # Subset the table so that each entry MUST have an Arabidopsis gene
         mod_table = subset_by_arabidopsis_presence(mod_table)
