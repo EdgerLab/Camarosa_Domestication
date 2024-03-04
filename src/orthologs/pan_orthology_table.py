@@ -119,7 +119,16 @@ def read_pan_orthology_table(pan_orthology_table_file):
     """
     Reads the output of this script to a Pandas dataframe
     """
-    return pd.read_csv(pan_orthology_table_file, sep="\t", header="infer")
+    return pd.read_csv(
+        pan_orthology_table_file,
+        sep="\t",
+        dtype={
+            "H4_Chromosome": object,
+            "RR_Chromosome": object,
+            "DN_Chromosome": object,
+        },
+        header="infer",
+    )
 
 
 if __name__ == "__main__":
