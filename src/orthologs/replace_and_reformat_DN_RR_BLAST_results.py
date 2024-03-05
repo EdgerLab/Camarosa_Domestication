@@ -10,6 +10,9 @@ import argparse
 import logging
 import coloredlogs
 
+from transposon.import_filtered_genes import import_filtered_genes
+from src.orthologs.utils import map_chromosomes
+
 
 """
 - The Del Norte protein file that was used for BLAST has gene names
@@ -127,6 +130,17 @@ if __name__ == "__main__":
         help="parent path of decoder ring file",
     )
     parser.add_argument(
+        "RR_gene_data",
+        type=str,
+        help="gene data file that is the input to TE Density for RR",
+    )
+    parser.add_argument(
+        "DN_gene_data",
+        type=str,
+        help="gene data file that is the input to TE Density for DN",
+    )
+
+    parser.add_argument(
         "output_file",
         type=str,
         help="Path and filename to output results",
@@ -138,6 +152,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     args.homolog_input_file = os.path.abspath(args.homolog_input_file)
     args.decoder_ring_input_file = os.path.abspath(args.decoder_ring_input_file)
+    args.DN_gene_data = os.path.abspath(args.DN_gene_data)
+    args.RR_gene_data = os.path.abspath(args.RR_gene_data)
     args.output_file = os.path.abspath(args.output_file)
 
     log_level = logging.DEBUG if args.verbose else logging.INFO
@@ -155,6 +171,59 @@ if __name__ == "__main__":
     name_replaced_homologs = blacklist_if_no_new_name(
         name_replaced_homologs, decoder_ring
     )
+
+    # Rename the columns
+    name_replaced_homologs.rename(
+        columns={
+            "Del_Norte": "DN_Gene",
+            "Royal_Royce": "RR_Gene",
+            "E_Value": "BLAST_E_Value",
+        },
+        inplace=True,
+    )
+
+    # Remove a gene from the BLAST results if it is not within the Cleaned Gene
+    # Annotation
+    # First read the gene annotation file
+    cleaned_DN_genes = import_filtered_genes(args.DN_gene_data, logger)
+    cleaned_RR_genes = import_filtered_genes(args.RR_gene_data, logger)
+    # MAGIC tuple indexing, the 0th element is the column name, the first is
+    # the reference to the pandaframe
+    # print(name_replaced_homologs["DN_Gene"])
+    for i in zip(("RR_Gene", "DN_Gene"), (cleaned_RR_genes, cleaned_DN_genes)):
+        name_replaced_homologs = name_replaced_homologs.loc[
+            name_replaced_homologs[i[0]].isin(i[1].index)
+        ]
+
+    # Add the chromosome IDs to the files, from the gene data
+    # MAGIC tuple indexing, the 0th element is the chrom column name,
+    # the first is the gene column name, and the second is the gene data
+    for i in zip(
+        ("DN_Chromosome", "RR_Chromosome"),
+        ("DN_Gene", "RR_Gene"),
+        (cleaned_DN_genes, cleaned_RR_genes),
+    ):
+        name_replaced_homologs[i[0]] = name_replaced_homologs[i[1]].map(
+            i[2]["Chromosome"]
+        )
+
+    # Reformat the chromosome names in the DN dataset
+    name_replaced_homologs["DN_Chromosome"] = name_replaced_homologs[
+        "DN_Chromosome"
+    ].str.replace("_", "-")
+    name_replaced_homologs = map_chromosomes(name_replaced_homologs, "DN_Chromosome")
+
+    # Reformat the chromosomes in the RR dataset
+    name_replaced_homologs["RR_Chromosome"] = (
+        name_replaced_homologs["RR_Chromosome"].str.split("_", n=1).str[1]
+    )
+
+    # Drop the rows where the chromosomes do not match
+    # TODO check with Pat that we want to do this for the homolog data
+    name_replaced_homologs = name_replaced_homologs.loc[
+        name_replaced_homologs["DN_Chromosome"]
+        == name_replaced_homologs["RR_Chromosome"]
+    ]
 
     logger.info(f"Saving results to disk at: {args.output_file}")
     name_replaced_homologs.to_csv(args.output_file, sep="\t", header=True, index=False)

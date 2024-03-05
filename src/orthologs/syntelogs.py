@@ -10,6 +10,16 @@ import argparse
 import logging
 import coloredlogs
 
+from src.orthologs.utils import (
+    map_chromosomes,
+    reformat_chromosomes_from_SynMap,
+    reformat_gene_names_from_SynMap,
+    reformat_gene_names_with_period,
+    drop_rows_with_bad_val_in_col,
+    remove_str_prefix_from_val_in_col,
+    remove_ragtag_from_name,
+)
+
 """
 - Import unclean syntelog data previously downloaded from CoGe
 - Filter unclean syntelog data and save to disk
@@ -80,26 +90,17 @@ def filter_syntelogs_DN(syntelogs):
     """
 
     # Get the correct name for the genes
-    # MAGIC
-    syntelogs["OrgA_Gene_Region"] = (
-        syntelogs["OrgA_Gene_Region"].str.split("\|\|").str[3]
-    )
-    # MAGIC
-    syntelogs["OrgB_Gene_Region"] = (
-        syntelogs["OrgB_Gene_Region"].str.split("\|\|").str[3]
-    )
+    # MAGIC splits to remove the nonsense info from SynMap
+    for i in ["OrgA_Gene_Region", "OrgB_Gene_Region"]:
+        syntelogs = reformat_gene_names_from_SynMap(syntelogs, i)
 
     # Get the correct name for the chromosome
     # MAGIC splits to remove the nonsense info from SynMap
-    syntelogs["OrgA_Chromosome"] = (
-        syntelogs["OrgA_Chromosome"].str.split("_", n=1).str[1]
-    )
-    syntelogs["OrgB_Chromosome"] = (
-        syntelogs["OrgB_Chromosome"].str.split("_", n=1).str[1]
-    )
+    for i in ["OrgA_Chromosome", "OrgB_Chromosome"]:
+        syntelogs = reformat_chromosomes_from_SynMap(syntelogs, i)
 
     # Fix Royal Royce genes in A
-    syntelogs["OrgA_Gene_Region"] = syntelogs["OrgA_Gene_Region"].str.split(".").str[0]
+    syntelogs = reformat_gene_names_with_period(syntelogs, "OrgA_Gene_Region")
 
     # Fix Del Norte genes in B
     # TODO check with Pat should I eleminate the -mRNA-1? or 2?
@@ -118,15 +119,11 @@ def filter_syntelogs_DN(syntelogs):
         },
         inplace=True,
     )
-    syntelogs["DN_Chromosome"] = syntelogs["DN_Chromosome"].str.strip("_RagTag")
+    syntelogs = remove_ragtag_from_name(syntelogs, "DN_Chromosome")
 
     # Drop the rows where the chromosome starts with 'contig'
-    syntelogs = syntelogs.loc[
-        syntelogs["DN_Chromosome"].str.startswith("contig") == False
-    ]
-    syntelogs = syntelogs.loc[
-        syntelogs["RR_Chromosome"].str.startswith("contig") == False
-    ]
+    for i in ["DN_Chromosome", "RR_Chromosome"]:
+        syntelogs = drop_rows_with_bad_val_in_col(syntelogs, "contig", i)
 
     # Whitelist the genes we want to keep, some chromosomes shouldn't have
     # syntelogs between one another. This is probably biologically real, but
@@ -134,43 +131,16 @@ def filter_syntelogs_DN(syntelogs):
     # polyploidy events.
     # MAGIC took this list from the Hardigan paper
     # Renaming the Del Norte chromosomes to match the Royal Royce chromosomes
-    mapper = {
-        "Fvb1-1": "1D",
-        "Fvb1-2": "1B",
-        "Fvb1-3": "1C",
-        "Fvb1-4": "1D",
-        "Fvb2-1": "2C",
-        "Fvb2-2": "2A",
-        "Fvb2-3": "2D",
-        "Fvb2-4": "2B",
-        "Fvb3-1": "3D",
-        "Fvb3-2": "3B",
-        "Fvb3-3": "3C",
-        "Fvb3-4": "3A",
-        "Fvb4-1": "4D",
-        "Fvb4-2": "4C",
-        "Fvb4-3": "4A",
-        "Fvb4-4": "4B",
-        "Fvb5-1": "5A",
-        "Fvb5-2": "5D",
-        "Fvb5-3": "5B",
-        "Fvb5-4": "5C",
-        "Fvb6-1": "6A",
-        "Fvb6-2": "6C",
-        "Fvb6-3": "6B",
-        "Fvb6-4": "6D",
-        "Fvb7-1": "7C",
-        "Fvb7-2": "7A",
-        "Fvb7-3": "7B",
-        "Fvb7-4": "7D",
-    }
-    syntelogs["DN_Chromosome"] = syntelogs["DN_Chromosome"].map(mapper)
+    syntelogs = map_chromosomes(syntelogs, "DN_Chromosome")
 
     # Drop the rows where the chromosomes do not match
     syntelogs = syntelogs.loc[syntelogs["DN_Chromosome"] == syntelogs["RR_Chromosome"]]
 
     # MAGIC trim E-values less than 0.05
     syntelogs = syntelogs.loc[syntelogs["E_Value"] < 0.05]
+
+    # Rename the E-value column to be more descriptive
+    syntelogs.rename(columns={"E_Value": "Synteny_E_Value"}, inplace=True)
 
     # Add column with identifier so we can later see what source we derived the
     # gene pair from
@@ -192,31 +162,19 @@ def filter_syntelogs_H4(syntelogs):
     Returns:
         syntelogs (pd.DataFrame): clean syntelog data
     """
-
     # Get the correct name for the genes
-    # MAGIC
-    syntelogs["OrgA_Gene_Region"] = (
-        syntelogs["OrgA_Gene_Region"].str.split("\|\|").str[3]
-    )
-    # MAGIC
-    syntelogs["OrgB_Gene_Region"] = (
-        syntelogs["OrgB_Gene_Region"].str.split("\|\|").str[3]
-    )
+    # MAGIC splits to remove the nonsense info from SynMap
+    for i in ["OrgA_Gene_Region", "OrgB_Gene_Region"]:
+        syntelogs = reformat_gene_names_from_SynMap(syntelogs, i)
 
     # Get the correct name for the chromosome
     # MAGIC splits to remove the nonsense info from SynMap
-    syntelogs["OrgA_Chromosome"] = (
-        syntelogs["OrgA_Chromosome"].str.split("_", n=1).str[1]
-    )
-    syntelogs["OrgB_Chromosome"] = (
-        syntelogs["OrgB_Chromosome"].str.split("_", n=1).str[1]
-    )
+    for i in ["OrgA_Chromosome", "OrgB_Chromosome"]:
+        syntelogs = reformat_chromosomes_from_SynMap(syntelogs, i)
 
-    # Fix Royal Royce genes in A
-    syntelogs["OrgA_Gene_Region"] = syntelogs["OrgA_Gene_Region"].str.split(".").str[0]
-
-    # Fix Del Norte genes in B
-    syntelogs["OrgB_Gene_Region"] = syntelogs["OrgB_Gene_Region"].str.split(".").str[0]
+    # Fix H4 and RR genes in A and B
+    for i in ["OrgA_Gene_Region", "OrgB_Gene_Region"]:
+        syntelogs = reformat_gene_names_with_period(syntelogs, i)
 
     # Rename columns so that they make more sense
     syntelogs.rename(
@@ -230,28 +188,28 @@ def filter_syntelogs_H4(syntelogs):
     )
 
     # Remove the prefix 'Fvb' from the H4 chromosome names
-    syntelogs["H4_Chromosome"] = syntelogs["H4_Chromosome"].str.strip("Fvb")
+    syntelogs = remove_str_prefix_from_val_in_col(syntelogs, "Fvb", "H4_Chromosome")
 
     # Drop the rows where the chromosome starts with 'contig'
-    syntelogs = syntelogs.loc[
-        syntelogs["H4_Chromosome"].str.startswith("contig") == False
-    ]
-    syntelogs = syntelogs.loc[
-        syntelogs["RR_Chromosome"].str.startswith("contig") == False
-    ]
+    for i in ["H4_Chromosome", "RR_Chromosome"]:
+        syntelogs = drop_rows_with_bad_val_in_col(syntelogs, "contig", i)
 
     # Whitelist the genes we want to keep, some chromosomes shouldn't have
     # syntelogs between one another. This is probably biologically real, but
     # for our purposes we aren't trying to concern ourselves with the ancient
     # polyploidy events.
     # Drop the rows where the chromosomes do not match
-    # TODO CHECK THIS ONE MORE TIME
+    # TODO CHECK THIS ONE MORE TIME, check with Pat.
+    # MAGIC to compare a 7D vs 7
     syntelogs = syntelogs.loc[
         syntelogs["H4_Chromosome"] == syntelogs["RR_Chromosome"].str[0]
     ]
 
     # MAGIC trim E-values less than 0.05
     syntelogs = syntelogs.loc[syntelogs["E_Value"] < 0.05]
+
+    # Rename the E-value column to be more descriptive
+    syntelogs.rename(columns={"E_Value": "Synteny_E_Value"}, inplace=True)
 
     # Add column with identifier so we can later see what source we derived the
     # gene pair from

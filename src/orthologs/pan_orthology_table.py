@@ -67,9 +67,12 @@ def DN_RR_merge_homologs_and_syntelogs(homologs, syntelogs):
     # First write out rules for which genes are kept, RR genes must be unique,
     # but so must the DN genes...
     homologs = homologs[~homologs["DN_Gene"].isin(syntelogs["DN_Gene"])]
+    merged_all = pd.concat([homologs, syntelogs], axis=0, join="outer")
 
     print(homologs)
     print(syntelogs)
+    print(merged_all)
+    print(merged_all.loc[merged_all.duplicated(subset=["DN_Gene"], keep=False)])
     raise ValueError
 
     # Now I will merge the two dataframes
@@ -108,16 +111,6 @@ def H4_RR_merge_homologs_and_syntelogs(homologs, syntelogs):
     # print(syntelogs.loc[syntelogs.duplicated(subset=["RR_Gene"], keep=False)])
 
     # Let's merge the homologs and syntelogs
-    # First I will rename the columns in the homolog file to make it easier to
-    # merge
-    homologs.rename(
-        columns={
-            "H4": "H4_Gene",
-            "Royal_Royce": "RR_Gene",
-            "E_Value": "BLAST_E_Value",
-        },
-        inplace=True,
-    )
     # I will also rename the E_Value column in the syntelog file
     syntelogs.rename(columns={"E_Value": "Syntelog_E_Value"}, inplace=True)
 
@@ -300,9 +293,9 @@ if __name__ == "__main__":
     DN_RR_orthologs = DN_RR_merge_homologs_and_syntelogs(
         DN_RR_homologs, DN_RR_syntelogs
     )
-    print(DN_RR_syntelogs)
-    print(DN_RR_homologs)
-    print(DN_RR_orthologs)
+    # print(DN_RR_syntelogs)
+    # print(DN_RR_homologs)
+    # print(DN_RR_orthologs)
     raise ValueError
 
     output_file = os.path.abspath(os.path.join(args.output_dir, "DN_RR_orthologs.tsv"))

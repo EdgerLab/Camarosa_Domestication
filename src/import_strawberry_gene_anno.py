@@ -10,6 +10,12 @@ import os
 import logging
 import coloredlogs
 
+from src.orthologs.utils import (
+    remove_str_from_val,
+    drop_rows_with_bad_val_in_col,
+    map_chromosomes,
+)
+
 
 def write_cleaned_genes(gene_pandaframe, out_file, logger):
     logger.info(f"Writing cleaned gene annotation file to: {out_file}")
@@ -62,38 +68,26 @@ def import_genes(genes_input_path, genome_name, logger):
 
     # NOTE, this works for H4, DN, and RR, still need to check FNI, FII, and
     # FVI
-    gene_pandaframe = gene_pandaframe.loc[
-        ~gene_pandaframe["Chromosome"].str.contains("contig")
-    ]
-    gene_pandaframe = gene_pandaframe.loc[
-        ~gene_pandaframe["Chromosome"].str.contains("ptg")
-    ]
-    gene_pandaframe = gene_pandaframe.loc[
-        ~gene_pandaframe["Chromosome"].str.contains("scaf")
-    ]
+    for i in ["contig", "ptg", "scaf"]:
+        gene_pandaframe = drop_rows_with_bad_val_in_col(
+            gene_pandaframe, i, "Chromosome"
+        )
 
     # Fix the chromosome names of the Del_Norte annotation so that they
     # correspond to the chromosomes of the TE annotation
     if genome_name == "DN":
-        # Fix the '_RagTag' suffix and replace the hyphen between the
-        # 'subchromosomes'
-        gene_pandaframe["Chromosome"] = gene_pandaframe["Chromosome"].str.replace(
-            "_RagTag", ""
-        )
-        gene_pandaframe["Chromosome"] = gene_pandaframe["Chromosome"].str.replace(
-            "-", "_"
-        )
+        gene_pandaframe = remove_str_from_val(gene_pandaframe, "_RagTag", "Chromosome")
+        gene_pandaframe = map_chromosomes(gene_pandaframe, "Chromosome")
 
-    # Fix the chromosome names of the FVI/FNI annotation so that they
-    # correspond to the chromosomes of the TE annotation
-    if genome_name == "FVI" or genome_name == "FNI":
-        # Fix the '_RagTag' suffix and replace the hyphen between the
-        # 'subchromosomes'
-        gene_pandaframe["Chromosome"] = gene_pandaframe["Chromosome"].str.replace(
-            "_RagTag", ""
-        )
+    # Remove the Fvb prefix from the chr names, particularly in FNI, FVI, and H4
+    gene_pandaframe = remove_str_from_val(gene_pandaframe, "Fvb", "Chromosome")
 
-    # print(gene_pandaframe["Chromosome"].unique())
+    # Remove the chr prefix from the chr names, particularly in RR, and FII
+    gene_pandaframe = remove_str_from_val(gene_pandaframe, "chr_", "Chromosome")
+    gene_pandaframe = remove_str_from_val(gene_pandaframe, "chr", "Chromosome")
+
+    # Remove the _RagTag from the chromosome names
+    gene_pandaframe = remove_str_from_val(gene_pandaframe, "_RagTag", "Chromosome")
 
     # Drop extraneous columns
     gene_pandaframe = gene_pandaframe.drop(columns=["FullName", "Software"])
