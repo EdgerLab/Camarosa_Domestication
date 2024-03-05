@@ -51,12 +51,12 @@ FNI_UNCLEAN_GENES := $(DATA_DIR)/Genomes/F_nipponica/FNI_GeneAnnotation.gff
 FII_UNCLEAN_GENES := $(DATA_DIR)/Genomes/F_iinumae/FII_GeneAnnotation.gff
 
 # Define the file paths for the cleaned gene annotations
-H4_CLEAN_GENES := $(RESULTS_DIR)/cleaned_annotations/Cleaned_H4_GeneAnnotation.gff
-DN_CLEAN_GENES := $(RESULTS_DIR)/cleaned_annotations/Cleaned_DN_GeneAnnotation.gff
-RR_CLEAN_GENES := $(RESULTS_DIR)/cleaned_annotations/Cleaned_RR_GeneAnnotation.gff
-FVI_CLEAN_GENES := $(RESULTS_DIR)/cleaned_annotations/Cleaned_FVI_GeneAnnotation.gff
-FNI_CLEAN_GENES := $(RESULTS_DIR)/cleaned_annotations/Cleaned_FNI_GeneAnnotation.gff
-FII_CLEAN_GENES := $(RESULTS_DIR)/cleaned_annotations/Cleaned_FII_GeneAnnotation.gff
+H4_CLEAN_GENES := $(RESULTS_DIR)/cleaned_annotations/Cleaned_H4_GeneAnnotation.tsv
+DN_CLEAN_GENES := $(RESULTS_DIR)/cleaned_annotations/Cleaned_DN_GeneAnnotation.tsv
+RR_CLEAN_GENES := $(RESULTS_DIR)/cleaned_annotations/Cleaned_RR_GeneAnnotation.tsv
+FVI_CLEAN_GENES := $(RESULTS_DIR)/cleaned_annotations/Cleaned_FVI_GeneAnnotation.tsv
+FNI_CLEAN_GENES := $(RESULTS_DIR)/cleaned_annotations/Cleaned_FNI_GeneAnnotation.tsv
+FII_CLEAN_GENES := $(RESULTS_DIR)/cleaned_annotations/Cleaned_FII_GeneAnnotation.tsv
 
 # Define a target to create the output directory if it doesn't exist
 $(RESULTS_DIR)/cleaned_annotations:
@@ -146,7 +146,6 @@ $(DATA_DIR)/orthologs/filtered $(RESULTS_DIR)/orthologs:
 	mkdir -p $@
 #-----------------------------------#
 
-# Define a target to clean the syntelog files
 .PHONY: filter_RR_DN_syntelogs
 filter_RR_DN_syntelogs: $(CLEANED_RR_DN_SYNTELOGS)
 

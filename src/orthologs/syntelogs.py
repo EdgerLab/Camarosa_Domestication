@@ -16,8 +16,7 @@ from src.orthologs.utils import (
     reformat_gene_names_from_SynMap,
     reformat_gene_names_with_period,
     drop_rows_with_bad_val_in_col,
-    remove_str_prefix_from_val_in_col,
-    remove_ragtag_from_name,
+    remove_str_from_val,
 )
 
 """
@@ -119,7 +118,7 @@ def filter_syntelogs_DN(syntelogs):
         },
         inplace=True,
     )
-    syntelogs = remove_ragtag_from_name(syntelogs, "DN_Chromosome")
+    syntelogs = remove_str_from_val(syntelogs, "_RagTag", "DN_Chromosome")
 
     # Drop the rows where the chromosome starts with 'contig'
     for i in ["DN_Chromosome", "RR_Chromosome"]:
@@ -188,7 +187,7 @@ def filter_syntelogs_H4(syntelogs):
     )
 
     # Remove the prefix 'Fvb' from the H4 chromosome names
-    syntelogs = remove_str_prefix_from_val_in_col(syntelogs, "Fvb", "H4_Chromosome")
+    syntelogs = remove_str_from_val(syntelogs, "Fvb", "H4_Chromosome")
 
     # Drop the rows where the chromosome starts with 'contig'
     for i in ["H4_Chromosome", "RR_Chromosome"]:
