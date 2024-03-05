@@ -66,8 +66,7 @@ def import_genes(genes_input_path, genome_name, logger):
     gene_pandaframe["Gene_Name"] = gene_pandaframe["FullName"].str.extract(r"ID=(.*?);")
     gene_pandaframe.set_index("Gene_Name", inplace=True)
 
-    # NOTE, this works for H4, DN, and RR, still need to check FNI, FII, and
-    # FVI
+    # Remove extaneous BS chromosomes
     for i in ["contig", "ptg", "scaf"]:
         gene_pandaframe = drop_rows_with_bad_val_in_col(
             gene_pandaframe, i, "Chromosome"

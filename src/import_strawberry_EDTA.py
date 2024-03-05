@@ -11,6 +11,12 @@ import os
 import logging
 import coloredlogs
 
+from src.orthologs.utils import (
+    remove_str_from_val,
+    drop_rows_with_bad_val_in_col,
+    map_chromosomes,
+)
+
 
 def check_nulls(my_df, logger):
     """Check the TE dataframe for ANY null values in ANY rows
@@ -80,17 +86,28 @@ def import_transposons(tes_input_path, genome_name, logger):
     te_data.SuperFamily = te_data.SuperFamily.astype(str)
     te_data.Strand = te_data.Strand.astype(str)
 
-    # Remove 'chromosomes' where I don't have that chromosome in both the gene
-    # and TE annotation
-    # Remove 'contigs'
-    te_data = te_data.loc[~te_data["Chromosome"].str.contains("contig")]
-    te_data = te_data.loc[~te_data["Chromosome"].str.contains("ptg")]
+    # Remove extaneous BS chromosomes
+    for i in ["contig", "ptg", "scaf"]:
+        te_data = drop_rows_with_bad_val_in_col(te_data, i, "Chromosome")
+
+    # Remove the Fvb prefix from the chr names, particularly in FNI, FVI, and H4
+
+    if genome_name != "DN":
+        te_data = remove_str_from_val(te_data, "Fvb", "Chromosome")
 
     if genome_name == "FII":
         te_data = te_data[te_data["Chromosome"] != "Chr0"]
         te_data["Chromosome"] = te_data["Chromosome"].str.lower()
 
-    # print(te_data["Chromosome"].unique())
+    # Remove the chr prefix from the chr names, particularly in RR, and FII
+    te_data = remove_str_from_val(te_data, "chr_", "Chromosome")
+    te_data = remove_str_from_val(te_data, "chr", "Chromosome")
+
+    # Replace the underscore in the DN chrom name with a hypen and then convert
+    # with the map
+    if genome_name == "DN":
+        te_data["Chromosome"] = te_data["Chromosome"].str.replace("_", "-")
+        te_data = map_chromosomes(te_data, "Chromosome")
 
     # Call renamer
     te_data = te_annot_renamer(te_data)

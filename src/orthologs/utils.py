@@ -81,14 +81,6 @@ def drop_rows_with_bad_val_in_col(dataframe, bad_val, col):
     return dataframe
 
 
-def remove_str_prefix_from_val_in_col(dataframe, str_val, col):
-    """
-    Remove the Fvb prefix from the gene names
-    """
-    dataframe[col] = dataframe[col].str.split(str_val).str[1]
-    return dataframe
-
-
 def remove_str_from_val(dataframe, str_val, col):
     """
     TODO
