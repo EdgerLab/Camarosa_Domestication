@@ -1,0 +1,33 @@
+#!/bin/bash -login
+
+#SBATCH -J HTSeq
+#SBATCH --time=02:00:00
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem-per-cpu=10G
+#SBATCH --output=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/logs/rna_seq_logs/HTSeq_RR.log
+
+module purge
+module load GCCcore/11.3.0 Python/3.10.4
+source /mnt/research/edgerpat_lab/Scotty/venvs/HTSeq/bin/activate
+
+OUTPUT_MAPPING_LOCATION='/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/star_map/'
+cd $OUTPUT_MAPPING_LOCATION
+OUTPUT_FILENAME='TODO'
+
+cd /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/htseq/
+
+# Paired end sequencing must be sorted by position or by read name
+
+# New Htseq-count command
+BIG_BAM_FILE='TODO'
+ANNOTATION_FILE=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Royal_Royce/RR_GeneAnnotation_GFFRead.gtf
+
+# Need two positional arguments that are the samfilenames and the GTF/GFF filename, it seems like I can provide multiple SAM files and this doesn't need to be an array job?
+htseq-count $BIG_BAM_FILE $ANNOTATION_FILE --format bam --order name --stranded yes --type exon --idattr Parent --mode union --nonunique none --counts_output $OUTPUT_FILENAME
+
+# TRY htseq-count -h
+
+# Also need to check samtools sort --help
+
+

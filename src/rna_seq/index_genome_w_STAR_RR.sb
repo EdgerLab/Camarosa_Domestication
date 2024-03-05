@@ -4,7 +4,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=2
 #SBATCH --mem-per-cpu=20G
-#SBATCH -o /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/logs/genome_index_RR.out
+#SBATCH -o /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/logs/rna_seq_logs/genome_index_RR.out
 # -------------------------------
 
 # Load Modules
@@ -13,7 +13,7 @@ module load GCC/11.3.0 STAR/2.7.10b
 
 # Files:
 FASTA=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Royal_Royce/RR.fa
-ANNOTATION=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Royal_Royce/RR_GeneAnnotation.gff
+ANNOTATION=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Royal_Royce/RR_GeneAnnotation_GFFRead.gtf
 
 # genomeDir is output dir, dir must be clear & created prior
 genome_index_out_dir=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/rna_seq/genome_index_RR
@@ -28,5 +28,15 @@ STAR --runThreadN 2 \
 --genomeFastaFiles $FASTA \
 --sjdbGTFfile $ANNOTATION \
 --genomeSAindexNbases 12 \
---sjdbGTFtagExonParentTranscript Parent \
 --sjdbOverhang 149
+
+# OLD with GFF
+## Build a Genome Index for STAR
+#STAR --runThreadN 2 \
+#--runMode genomeGenerate \
+#--genomeDir $genome_index_out_dir \
+#--genomeFastaFiles $FASTA \
+#--sjdbGTFfile $ANNOTATION \
+#--genomeSAindexNbases 12 \
+# --sjdbGTFtagExonParentTranscript Parent \
+#--sjdbOverhang 149
