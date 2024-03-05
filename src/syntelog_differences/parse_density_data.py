@@ -117,20 +117,22 @@ def make_table_for_te_type_and_direction(
                 "Length",
                 "Index_Val",
                 "Chromosome",
-                "index",
             ],
             inplace=True,
         )
     big_merge = pd.merge(orthologs, RR_gene_frame_with_values, on="RR_Gene")
     bigga_merge = pd.merge(big_merge, DN_gene_frame_with_values, on="DN_Gene")
 
-    print(bigga_merge)
-
     # TODO I think this is busted, I am having duplicate names???
 
     # TODO revisit this, I don't want to increase the size of the table by
     # having NA in the RR or DN because I tried to outer join the H4, but I
     # also don't want to inner join, maybe outer join is best?
+    print(H4_gene_frame_with_values)
+    print()
+    print(bigga_merge)
+    print()
+
     biggest_merge = pd.merge(
         bigga_merge, H4_gene_frame_with_values, on="H4_Gene", how="left"
     )
@@ -264,9 +266,6 @@ if __name__ == "__main__":
 
     # Read the universal syntelog table
     orthologs = read_pan_orthology_table(args.syntelog_file)
-    print(orthologs)
-    print(orthologs.loc[orthologs.duplicated(subset="RR_Gene", keep=False)])
-    raise ValueError
 
     # Read cleaned genes for the given genome as pandas
     cleaned_RR_genes = import_filtered_genes(args.RR_gene_data, logger)
@@ -291,9 +290,9 @@ if __name__ == "__main__":
     )
 
     # Reset index to make it easier to add the HDF5 indices to a pandas frame
-    cleaned_DN_genes.reset_index(inplace=True)
-    cleaned_RR_genes.reset_index(inplace=True)
-    cleaned_H4_genes.reset_index(inplace=True)
+    # cleaned_DN_genes.reset_index(inplace=True)
+    # cleaned_RR_genes.reset_index(inplace=True)
+    # cleaned_H4_genes.reset_index(inplace=True)
 
     DN_gene_frame_with_indices = add_hdf5_indices_to_gene_data_from_list_hdf5(
         cleaned_DN_genes, processed_DN_data
@@ -304,6 +303,16 @@ if __name__ == "__main__":
     H4_gene_frame_with_indices = add_hdf5_indices_to_gene_data_from_list_hdf5(
         cleaned_H4_genes, processed_H4_data
     )
+
+    # NOTE TODO there are some H4 genes in the ortholog file that are not in
+    # the gene annotation file, I need to figure out why this is happening
+    # unique_h4_orthos = orthologs["H4_Gene"].unique()
+
+    # unique_gene_anno_orthos = H4_gene_frame_with_indices["Gene_Name"].unique()
+
+    # print([item for item in unique_h4_orthos if item not in unique_gene_anno_orthos])
+
+    # raise ValueError
 
     # Start looping to make the tables
 

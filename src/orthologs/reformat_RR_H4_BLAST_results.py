@@ -10,6 +10,8 @@ import argparse
 import logging
 import coloredlogs
 
+from transposon.import_filtered_genes import import_filtered_genes
+
 
 """
 TODO EDIT
@@ -103,6 +105,18 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
+        "RR_gene_data",
+        type=str,
+        help="gene data file that is the input to TE Density for RR",
+    )
+
+    parser.add_argument(
+        "H4_gene_data",
+        type=str,
+        help="gene data file that is the input to TE Density for H4",
+    )
+
+    parser.add_argument(
         "output_file",
         type=str,
         help="Path and filename to output results",
@@ -115,12 +129,37 @@ if __name__ == "__main__":
     args.homolog_input_file = os.path.abspath(args.homolog_input_file)
     args.output_file = os.path.abspath(args.output_file)
 
+    # Gene Data files for TODO
+    args.RR_gene_data = os.path.abspath(args.RR_gene_data)
+    args.H4_gene_data = os.path.abspath(args.H4_gene_data)
+
     log_level = logging.DEBUG if args.verbose else logging.INFO
     logger = logging.getLogger(__name__)
     coloredlogs.install(level=log_level)
 
     logger.info(f"Importing unclean homologs...")
     clean_homologs = import_unclean_homologs(args.homolog_input_file)
+
+    # Rename the columns
+    clean_homologs.rename(
+        columns={
+            "H4": "H4_Gene",
+            "Royal_Royce": "RR_Gene",
+            "E_Value": "BLAST_E_Value",
+        },
+        inplace=True,
+    )
+
+    # Remove a gene from the homolog table if is not in the cleaned gene file
+    cleaned_RR_genes = import_filtered_genes(args.RR_gene_data, logger)
+    cleaned_H4_genes = import_filtered_genes(args.H4_gene_data, logger)
+    for i in zip(("RR_Gene", "H4_Gene"), (cleaned_RR_genes, cleaned_H4_genes)):
+        clean_homologs = clean_homologs.loc[clean_homologs[i[0]].isin(i[1].index)]
+
+    print(clean_homologs)
+    raise ValueError
+
+    # TODO do some sort of chromosome check?
 
     # TODO change this arg
     logger.info(f"Saving results to disk at: {args.output_file}")

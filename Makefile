@@ -95,7 +95,7 @@ $(FVI_CLEAN_GENES): $(FVI_UNCLEAN_GENES) | $(RESULTS_DIR)/cleaned_annotations
 # FUTURE if you want more individually type the phonies out
 # TODO DEV REMOVE FUTURE
 .PHONY: filter_H4_genes
-filter_H4_genes: $(H4_CLEAN_GENES)
+filter_H4_genes: $(DN_CLEAN_GENES)
 
 
 # TODO CLEANUP
@@ -126,15 +126,17 @@ clear_go_output:
 	# 3. Filter the BLAST results
 	# 4. Generate the master orthology table
 
-# Define the file paths for the cleaned syntelogs files
+# Define the file paths for the regular and cleaned syntelogs files
+RR_DN_SYNTELOG_REGULAR := $(DATA_DIR)/orthologs/RR_DN_SynMap.txt
+RR_H4_SYNTELOG_REGULAR := $(DATA_DIR)/orthologs/RR_H4_SynMap.txt
 CLEANED_RR_DN_SYNTELOGS := $(DATA_DIR)/orthologs/filtered/Cleaned_RR_DN_Syntelogs.tsv
 CLEANED_RR_H4_SYNTELOGS := $(DATA_DIR)/orthologs/filtered/Cleaned_RR_H4_Syntelogs.tsv
 
 # Define the file paths for the renamed BLAST results
 RR_H4_BLAST_REGULAR := $(DATA_DIR)/orthologs/RR_H4.blast
 RR_DN_BLAST_REGULAR := $(DATA_DIR)/orthologs/RR_DN.blast
-RR_H4_BLAST_RENAMED := $(DATA_DIR)/orthologs/filtered/RR_H4_BLAST_renamed.txt
-RR_DN_BLAST_RENAMED := $(DATA_DIR)/orthologs/filtered/RR_DN_BLAST_renamed.txt
+RR_H4_BLAST_RENAMED := $(DATA_DIR)/orthologs/filtered/RR_H4_BLAST_renamed.tsv
+RR_DN_BLAST_RENAMED := $(DATA_DIR)/orthologs/filtered/RR_DN_BLAST_renamed.tsv
 
 # Define the file paths for the master orthology table that is the final product
 STRAWBERRY_ORTHOLOG_TABLE := $(RESULTS_DIR)/orthologs/Strawberry_Arabidopsis_Ortholog_Table.tsv
@@ -144,12 +146,17 @@ $(DATA_DIR)/orthologs/filtered $(RESULTS_DIR)/orthologs:
 	mkdir -p $@
 #-----------------------------------#
 
-$(CLEANED_RR_DN_SYNTELOGS): $(DATA_DIR)/orthologs/RR_DN_SynMap.txt | $(DATA_DIR)/orthologs/filtered
-	@echo Filtering Royal Royce and Del Norte SynMap results...
+# Define a target to clean the syntelog files
+.PHONY: filter_RR_DN_syntelogs
+filter_RR_DN_syntelogs: $(CLEANED_RR_DN_SYNTELOGS)
+
+.PHONY: filter_RR_H4_syntelogs
+filter_RR_H4_syntelogs: $(CLEANED_RR_H4_SYNTELOGS)
+
+$(CLEANED_RR_DN_SYNTELOGS): $(RR_DN_SYNTELOG_REGULAR) | $(DATA_DIR)/orthologs/filtered
 	python $(ROOT_DIR)/src/orthologs/syntelogs.py $< DN $@
 
-$(CLEANED_RR_H4_SYNTELOGS): $(DATA_DIR)/orthologs/RR_H4_SynMap.txt | $(DATA_DIR)/orthologs/filtered
-	@echo "Filtering Royal Royce and H4 SynMap results..."
+$(CLEANED_RR_H4_SYNTELOGS): $(RR_H4_SYNTELOG_REGULAR) | $(DATA_DIR)/orthologs/filtered
 	python $(ROOT_DIR)/src/orthologs/syntelogs.py $< H4 $@
 
 # Define a target to generate the vanilla BLAST results, must be run on cluster.
@@ -169,14 +176,13 @@ rename_RR_H4_BLAST: $(RR_H4_BLAST_RENAMED)
 .PHONY: rename_RR_DN_BLAST
 rename_RR_DN_BLAST: $(RR_DN_BLAST_RENAMED)
 
+$(RR_H4_BLAST_RENAMED): $(RR_H4_BLAST_REGULAR) $(RR_CLEAN_GENES) $(H4_CLEAN_GENES) | $(DATA_DIR)/orthologs/filtered
+	python $(ROOT_DIR)/src/orthologs/reformat_RR_H4_BLAST_results.py $^ $@
+
 # NOTE there is a gene renaming step in this particular script
-$(RR_DN_BLAST_RENAMED): $(RR_DN_BLAST_REGULAR) $(DATA_DIR)/orthologs/DN_salt.translation | $(DATA_DIR)/orthologs/filtered
-	@echo "Reformatting the Royal Royce and Del Norte BLAST results..."
+$(RR_DN_BLAST_RENAMED): $(RR_DN_BLAST_REGULAR) $(DATA_DIR)/orthologs/DN_salt.translation $(RR_CLEAN_GENES) $(DN_CLEAN_GENES) | $(DATA_DIR)/orthologs/filtered
 	python $(ROOT_DIR)/src/orthologs/replace_and_reformat_DN_RR_BLAST_results.py $^ $@
 
-$(RR_H4_BLAST_RENAMED): $(RR_H4_BLAST_REGULAR) | $(DATA_DIR)/orthologs/filtered
-	@echo "Reformatting the Royal Royce and H4 BLAST results..."
-	python $(ROOT_DIR)/src/orthologs/reformat_RR_H4_BLAST_results.py $< $@
 
 # Define a target to generate the ortholog table from the BLAST and SynMap results
 .PHONY: generate_ortholog_table
