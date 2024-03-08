@@ -14,14 +14,8 @@ from transposon.import_filtered_genes import import_filtered_genes
 
 
 """
-TODO EDIT
-- The Del Norte protein file that was used for BLAST has gene names
-    that are not the same as the gene names in the final gene annotation
-- This script replaces the gene names in the Del Norte protein file.
-- This step ought to performed before filtering the results for identifying all
-    syntelogs and homologs
-- This is performed with the BLAST output and a file that maps the old gene, a
-    decoder ring
+Reformat the BLAST results for the H4 and Royal_Royce genes.
+Perform an E Value filter and remove any genes that are not in the gene data
 """
 
 
@@ -71,8 +65,7 @@ def import_unclean_homologs(homolog_input_file):
         by=["Query", "E_Value"], ascending=(True, True), inplace=True
     )
 
-    # TODO CHECK THIS WITH PAT, I'm not sure I should be discarding duplicates
-    # Need to take first occurrence of a duplicated gene, the one with the smallest
+    # NOTE take first occurrence of a duplicated gene, the one with the smallest
     # E-Value
     homolog_pd = homolog_pd.drop_duplicates(subset=["Query"], keep="first")
 
@@ -96,7 +89,7 @@ if __name__ == "__main__":
 
     path_main = os.path.abspath(__file__)
     dir_main = os.path.dirname(path_main)
-    parser = argparse.ArgumentParser(description="TODO")
+    parser = argparse.ArgumentParser()
 
     parser.add_argument(
         "homolog_input_file",
@@ -129,7 +122,9 @@ if __name__ == "__main__":
     args.homolog_input_file = os.path.abspath(args.homolog_input_file)
     args.output_file = os.path.abspath(args.output_file)
 
-    # Gene Data files for TODO
+    # Gene Data files for RR and H4, to be used in removing genes that don't
+    # match my gene annotation, so we can have an easy merge with the TE
+    # Density results later
     args.RR_gene_data = os.path.abspath(args.RR_gene_data)
     args.H4_gene_data = os.path.abspath(args.H4_gene_data)
 
@@ -156,11 +151,26 @@ if __name__ == "__main__":
     for i in zip(("RR_Gene", "H4_Gene"), (cleaned_RR_genes, cleaned_H4_genes)):
         clean_homologs = clean_homologs.loc[clean_homologs[i[0]].isin(i[1].index)]
 
-    print(clean_homologs)
-    raise ValueError
+    # First merge the data in and verify that they have the same chromosome
+    for i in zip((cleaned_RR_genes, cleaned_H4_genes), ("RR_Gene", "H4_Gene")):
+        genes = i[0].reset_index()
+        genes.rename(
+            columns={
+                "Gene_Name": i[1],
+                "Chromosome": i[1].split("_")[0] + "_Chromosome",
+            },
+            inplace=True,
+        )
+        clean_homologs = clean_homologs.merge(genes, on=i[1], how="left")
+        clean_homologs.drop(
+            columns=["Feature", "Start", "Stop", "Strand", "Length"], inplace=True
+        )
 
-    # TODO do some sort of chromosome check?
+    # Perform a chromosome check similar to the syntelog data, don't want BLAST
+    # results from different chromosomes
+    clean_homologs = clean_homologs.loc[
+        clean_homologs["H4_Chromosome"] == clean_homologs["RR_Chromosome"].str[0]
+    ]
 
-    # TODO change this arg
     logger.info(f"Saving results to disk at: {args.output_file}")
     clean_homologs.to_csv(args.output_file, sep="\t", header=True, index=False)

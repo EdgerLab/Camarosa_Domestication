@@ -15,7 +15,10 @@ from src.orthologs.homologs import read_cleaned_homologs
 from transposon.import_filtered_genes import import_filtered_genes
 
 """
-- TODO
+Generate a master orthology table which is composed of:
+    - Del Norte to Royal Royce syntelogs and homologs
+    - H4 to Royal Royce syntelogs and homologs
+    - H4 to Arabidopsis orthologs
 """
 
 
@@ -43,57 +46,19 @@ def DN_RR_merge_homologs_and_syntelogs(homologs, syntelogs):
 
     # Are there any Royal Royce syntelogs that are not unique?
     # Yes indeed there are quite a lot...
-    # print(syntelogs.loc[syntelogs.duplicated(subset=["RR_Gene"], keep=False)])
 
-    # Let's merge the homologs and syntelogs
-    # First I will rename the columns in the homolog file to make it easier to
-    # merge
-    homologs.rename(
-        columns={
-            "Del_Norte": "DN_Gene",
-            "Royal_Royce": "RR_Gene",
-            "E_Value": "BLAST_E_Value",
-        },
-        inplace=True,
-    )
-    # I will also rename the E_Value column in the syntelog file
-    syntelogs.rename(columns={"E_Value": "Syntelog_E_Value"}, inplace=True)
-
-    # Remove a gene from the homologs if it is in the syntelogs
-    # TODO do I also need to do this with the RR genes?
-    # Or do I need to do this pairwise with both genes being considered?
-    # is this even the right command right here?
-    # TODO Tuesday check out the blueberry code to se how I managed it
-    # First write out rules for which genes are kept, RR genes must be unique,
-    # but so must the DN genes...
-    homologs = homologs[~homologs["DN_Gene"].isin(syntelogs["DN_Gene"])]
     merged_all = pd.concat([homologs, syntelogs], axis=0, join="outer")
 
-    print(homologs)
-    print(syntelogs)
-    print(merged_all)
-    print(merged_all.loc[merged_all.duplicated(subset=["DN_Gene"], keep=False)])
-    raise ValueError
+    for i in ["RR_Gene", "DN_Gene"]:
+        merged_all.sort_values(
+            by=[i, "Point_of_Origin", "Synteny_E_Value", "BLAST_E_Value"],
+            ascending=[True, False, True, True],
+            inplace=True,
+        )
 
-    # Now I will merge the two dataframes
-    # merged_all = pd.concat([homologs, syntelogs], axis=0, join="outer")
-    merged_all = pd.merge(
-        homologs, syntelogs, on=["DN_Gene", "RR_Gene", "Point_of_Origin"], how="outer"
-    )
-
-    # Drop duplicates
-    print(merged_all)
-    merged_all.drop_duplicates(subset=["DN_Gene"], keep="first", inplace=True)
-    print(merged_all)
-    raise ValueError
-
-    # Sort the merged dataframe by Royal Royce gene name and Point_of_Origin,
-    # then by Evalues
-    merged_all.sort_values(
-        by=["RR_Gene", "Point_of_Origin", "Syntelog_E_Value", "BLAST_E_Value"],
-        ascending=[True, False, True, True],
-        inplace=True,
-    )
+        # Drop duplicates
+        # NOTE most of these seem to be tandem duplicates
+        merged_all.drop_duplicates(subset=[i], keep="first", inplace=True)
 
     return merged_all
 
@@ -112,21 +77,23 @@ def H4_RR_merge_homologs_and_syntelogs(homologs, syntelogs):
 
     # Let's merge the homologs and syntelogs
     # I will also rename the E_Value column in the syntelog file
-    syntelogs.rename(columns={"E_Value": "Syntelog_E_Value"}, inplace=True)
 
     # Now I will merge the two dataframes
     merged_all = pd.concat([homologs, syntelogs], axis=0, join="outer")
 
-    # Convert the H4 chromosome column to string
-    merged_all["H4_Chromosome"] = merged_all["H4_Chromosome"].astype(str)
+    # TODO check with Pat because I am only removing RR duplicates here which
+    # makes sense because H4 is the diploid..? But this may cause problem in
+    # the enrichment on H4.
+    for i in ["RR_Gene"]:
+        merged_all.sort_values(
+            by=[i, "Point_of_Origin", "Synteny_E_Value", "BLAST_E_Value"],
+            ascending=[True, False, True, True],
+            inplace=True,
+        )
 
-    # Sort the merged dataframe by Royal Royce gene name and Point_of_Origin,
-    # then by Evalues
-    merged_all.sort_values(
-        by=["RR_Gene", "Point_of_Origin", "Syntelog_E_Value", "BLAST_E_Value"],
-        ascending=[True, False, True, True],
-        inplace=True,
-    )
+        # Drop duplicates
+        # NOTE most of these seem to be tandem duplicates
+        merged_all.drop_duplicates(subset=[i], keep="first", inplace=True)
 
     return merged_all
 
@@ -151,14 +118,14 @@ if __name__ == "__main__":
 
     path_main = os.path.abspath(__file__)
     dir_main = os.path.dirname(path_main)
-    parser = argparse.ArgumentParser(description="TODO")
+    parser = argparse.ArgumentParser()
 
-    parser.add_argument("H4_RR_cleaned_syntelog_input_file", type=str, help="TODO")
-    parser.add_argument("H4_RR_cleaned_homolog_input_file", type=str, help="TODO")
-    parser.add_argument("DN_RR_cleaned_syntelog_input_file", type=str, help="TODO")
-    parser.add_argument("DN_RR_cleaned_homolog_input_file", type=str, help="TODO")
-    parser.add_argument("H4_AT_ortholog_input_file", type=str, help="TODO")
-    parser.add_argument("go_id_with_term_file", type=str, help="TODO")
+    parser.add_argument("H4_RR_cleaned_syntelog_input_file", type=str)
+    parser.add_argument("H4_RR_cleaned_homolog_input_file", type=str)
+    parser.add_argument("DN_RR_cleaned_syntelog_input_file", type=str)
+    parser.add_argument("DN_RR_cleaned_homolog_input_file", type=str)
+    parser.add_argument("H4_AT_ortholog_input_file", type=str)
+    parser.add_argument("go_id_with_term_file", type=str)
     parser.add_argument(
         "DN_gene_data",
         type=str,
@@ -231,61 +198,14 @@ if __name__ == "__main__":
     # would not be in the TE Density output)
     # Sanity check, having to do this mostly because Pat's AT-H4 ortholog file
     # has some extra genes that were not in my regular gene annotation
-    cleaned_RR_genes = import_filtered_genes(args.RR_gene_data, logger)
-    cleaned_DN_genes = import_filtered_genes(args.DN_gene_data, logger)
-    cleaned_H4_genes = import_filtered_genes(args.H4_gene_data, logger)
+    # cleaned_RR_genes = import_filtered_genes(args.RR_gene_data, logger)
+    # cleaned_DN_genes = import_filtered_genes(args.DN_gene_data, logger)
+    # cleaned_H4_genes = import_filtered_genes(args.H4_gene_data, logger)
 
     H4_RR_syntelogs = read_cleaned_syntelogs(args.H4_RR_cleaned_syntelog_input_file)
     H4_RR_homologs = read_cleaned_homologs(args.H4_RR_cleaned_homolog_input_file)
     DN_RR_syntelogs = read_cleaned_syntelogs(args.DN_RR_cleaned_syntelog_input_file)
     DN_RR_homologs = read_cleaned_homologs(args.DN_RR_cleaned_homolog_input_file)
-
-    # Remove a gene from the homologs if it is not in the cleaned gene
-    # file
-    # TODO put all of this in a function
-    H4_RR_homologs = H4_RR_homologs[
-        H4_RR_homologs["Royal_Royce"].isin(cleaned_RR_genes.index)
-    ]
-    H4_RR_homologs = H4_RR_homologs[H4_RR_homologs["H4"].isin(cleaned_H4_genes.index)]
-
-    DN_RR_homologs = DN_RR_homologs[
-        DN_RR_homologs["Royal_Royce"].isin(cleaned_RR_genes.index)
-    ]
-    DN_RR_homologs = DN_RR_homologs[
-        DN_RR_homologs["Del_Norte"].isin(cleaned_DN_genes.index)
-    ]
-
-    # Remove a gene from the syntelogs if is not in the cleaned gene file
-    # TODO put all of this in a function
-    H4_RR_syntelogs = H4_RR_syntelogs[
-        H4_RR_syntelogs["H4_Gene"].isin(cleaned_H4_genes.index)
-    ]
-    H4_RR_syntelogs = H4_RR_syntelogs[
-        H4_RR_syntelogs["RR_Gene"].isin(cleaned_RR_genes.index)
-    ]
-
-    DN_RR_syntelogs = DN_RR_syntelogs[
-        DN_RR_syntelogs["RR_Gene"].isin(cleaned_RR_genes.index)
-    ]
-    DN_RR_syntelogs = DN_RR_syntelogs[
-        DN_RR_syntelogs["DN_Gene"].isin(cleaned_DN_genes.index)
-    ]
-
-    # Add the chromosome IDs to the homolog files
-    # TODO put all of this in a function
-    DN_RR_homologs["DN_Chromosome"] = DN_RR_homologs["Del_Norte"].map(
-        cleaned_DN_genes["Chromosome"]
-    )
-    DN_RR_homologs["RR_Chromosome"] = DN_RR_homologs["Royal_Royce"].map(
-        cleaned_RR_genes["Chromosome"]
-    )
-
-    H4_RR_homologs["H4_Chromosome"] = H4_RR_homologs["H4"].map(
-        cleaned_H4_genes["Chromosome"]
-    )
-    H4_RR_homologs["RR_Chromosome"] = H4_RR_homologs["Royal_Royce"].map(
-        cleaned_RR_genes["Chromosome"]
-    )
 
     H4_RR_orthologs = H4_RR_merge_homologs_and_syntelogs(
         H4_RR_homologs, H4_RR_syntelogs
@@ -293,10 +213,6 @@ if __name__ == "__main__":
     DN_RR_orthologs = DN_RR_merge_homologs_and_syntelogs(
         DN_RR_homologs, DN_RR_syntelogs
     )
-    # print(DN_RR_syntelogs)
-    # print(DN_RR_homologs)
-    # print(DN_RR_orthologs)
-    raise ValueError
 
     output_file = os.path.abspath(os.path.join(args.output_dir, "DN_RR_orthologs.tsv"))
     logger.info(f"Writing DN-RR orthologs to {output_file}")
@@ -312,22 +228,22 @@ if __name__ == "__main__":
     # Modify the H4 columns so when we merge it isn't as messy
     H4_RR_orthologs.rename(
         columns={
-            "BLAST_E_Value": "H4_BLAST_E_Value",
-            "Syntelog_E_Value": "H4_Syntelog_E_Value",
-            "Point_of_Origin": "H4_Point_of_Origin",
+            "BLAST_E_Value": "H4_RR_BLAST_E_Value",
+            "Synteny_E_Value": "H4_RR_Syntelog_E_Value",
+            "Point_of_Origin": "H4_RR_Point_of_Origin",
         },
         inplace=True,
     )
     # Modify the DN columns so when we merge it isn't as messy
     DN_RR_orthologs.rename(
         columns={
-            "BLAST_E_Value": "DN_BLAST_E_Value",
-            "Syntelog_E_Value": "DN_Syntelog_E_Value",
-            "Point_of_Origin": "DN_Point_of_Origin",
+            "BLAST_E_Value": "DN_RR_BLAST_E_Value",
+            "Synteny_E_Value": "DN_RR_Syntelog_E_Value",
+            "Point_of_Origin": "DN_RR_Point_of_Origin",
         },
         inplace=True,
     )
-    # TODO I don't think I am merging these right
+
     # master = pd.concat([DN_RR_orthologs, H4_RR_orthologs], axis=0, join="outer")
     master = pd.merge(
         DN_RR_orthologs, H4_RR_orthologs, on=["RR_Gene", "RR_Chromosome"], how="outer"
@@ -342,12 +258,12 @@ if __name__ == "__main__":
             "DN_Chromosome",
             "RR_Chromosome",
             "H4_Chromosome",
-            "DN_BLAST_E_Value",
-            "DN_Syntelog_E_Value",
-            "DN_Point_of_Origin",
-            "H4_BLAST_E_Value",
-            "H4_Syntelog_E_Value",
-            "H4_Point_of_Origin",
+            "DN_RR_BLAST_E_Value",
+            "DN_RR_Syntelog_E_Value",
+            "DN_RR_Point_of_Origin",
+            "H4_RR_BLAST_E_Value",
+            "H4_RR_Syntelog_E_Value",
+            "H4_RR_Point_of_Origin",
         ]
     ]
 
