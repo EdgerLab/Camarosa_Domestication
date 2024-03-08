@@ -196,9 +196,9 @@ $(STRAWBERRY_ORTHOLOG_TABLE): $(CLEANED_RR_H4_SYNTELOGS) $(RR_H4_BLAST_RENAMED) 
 #-------------------------------------------------------------------#
 # TE Density analysis of Syntelogs
 # Define the file paths for the density data
-DN_DENSITY_DIR := $(DATA_DIR)/density/DN
-RR_DENSITY_DIR := $(DATA_DIR)/density/RR
-H4_DENSITY_DIR := $(DATA_DIR)/density/H4
+DN_DENSITY_DIR := $(RESULTS_DIR)/density/DN
+RR_DENSITY_DIR := $(RESULTS_DIR)/density/RR
+H4_DENSITY_DIR := $(RESULTS_DIR)/density/H4
 
 # Define the file path for the syntelog density table
 # TODO this is actually never made because the code got refactored into multiple tables
