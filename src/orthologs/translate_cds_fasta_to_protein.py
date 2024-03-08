@@ -35,16 +35,17 @@ if __name__ == "__main__":
     # Parse command line arguments
     path_main = os.path.abspath(__file__)
     dir_main = os.path.dirname(path_main)
-    parser = argparse.ArgumentParser(
-        description="""Import unclean gene expression data previously
-        downloaded from Edger Lab"""
-    )
+    parser = argparse.ArgumentParser()
 
-    parser.add_argument("input_nucleotides", type=str, help="TODO")
+    parser.add_argument(
+        "input_nucleotides",
+        type=str,
+        help="""Input nucleotides file in FASTA format.""",
+    )
     parser.add_argument(
         "output_nucleotides",
         type=str,
-        help="TODO",
+        help="Output protein file in FASTA format.",
     )
     args = parser.parse_args()
     args.input_nucleotides = os.path.abspath(args.input_nucleotides)

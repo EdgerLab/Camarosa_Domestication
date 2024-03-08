@@ -1,7 +1,7 @@
 def dn_chromosome_dict():
     """
     Dictionary to replace the chromosome names in the DN dataset to match the
-    RR chromosome names, this data was taken from the Hardigan paper
+    RR chromosome names, this dictionary was taken from the Hardigan paper
     """
     mapper = {
         "Fvb1-1": "1D",
@@ -36,17 +36,29 @@ def dn_chromosome_dict():
     return mapper
 
 
-def map_chromosomes(dataframe, chromosome_col, mapper=dn_chromosome_dict()):
+def map_names(dataframe, chromosome_col, mapper=dn_chromosome_dict()):
     """
-    Test
+    Using a dictionary replace the values in a dataframe column with the key:values in
+    the dictionary
+
+    Args:
+        dataframe (pd.DataFrame)
+        chromosome_col (str): The name of the column to map, doesn't
+            necessarily have to be a chromosome column
+        mapper (dict): The dictionary to use to map the values
+
+    Returns:
+        dataframe (pd.DataFrame): With updated values
     """
-    dataframe[chromosome_col] = dataframe[chromosome_col].map(mapper)
+    # dataframe[chromosome_col] = dataframe[chromosome_col].map(mapper)
+    dataframe[chromosome_col] = dataframe[chromosome_col].replace(mapper)
     return dataframe
 
 
 def reformat_chromosomes_from_SynMap(dataframe, chromosome_col):
     """
-    Chromosomes that are of the form a6734_1A, we want to remove the a6734_
+    Chromosomes that are of the form a6734_1A, we want to remove the a6734_ and
+    take the second (MAGIC first index) part of the string.
     """
     dataframe[chromosome_col] = dataframe[chromosome_col].str.split("_", n=1).str[1]
     return dataframe
@@ -54,7 +66,9 @@ def reformat_chromosomes_from_SynMap(dataframe, chromosome_col):
 
 def reformat_gene_names_from_SynMap(dataframe, gene_col):
     """
-    TODO
+    Take the SynMap output table in Pandas DataFrame format and reformat the
+    column that pertains to the gene names. It remove the extraneous '|'
+    characters by performing a string split with a MAGIC number
     """
     dataframe[gene_col] = dataframe[gene_col].str.split("\|\|").str[3]
     return dataframe
@@ -71,10 +85,8 @@ def reformat_gene_names_with_period(dataframe, gene_col):
 
 def drop_rows_with_bad_val_in_col(dataframe, bad_val, col):
     """
-    Drop the rows where the chromosome starts with 'contig'
-
-    Args:
-        bad_val (str)
+    Helper function to drop rows in a dataframe where a column contains the
+    'bad_val'.
     """
 
     dataframe = dataframe.loc[~dataframe[col].str.contains(bad_val)]
@@ -83,7 +95,13 @@ def drop_rows_with_bad_val_in_col(dataframe, bad_val, col):
 
 def remove_str_from_val(dataframe, str_val, col):
     """
-    TODO
+    Helper function to remove a string from each value in a column in a dataframe
+    This is done by replacing the string with an empty string "".
+
+    Args:
+        dataframe (pd.DataFrame)
+        str_val (str): The value to remove
+        col (str): The name of the column
     """
     dataframe[col] = dataframe[col].str.replace(str_val, "")
     return dataframe

@@ -11,7 +11,7 @@ import logging
 import coloredlogs
 
 from src.orthologs.utils import (
-    map_chromosomes,
+    map_names,
     reformat_chromosomes_from_SynMap,
     reformat_gene_names_from_SynMap,
     reformat_gene_names_with_period,
@@ -87,6 +87,7 @@ def filter_syntelogs_DN(syntelogs):
     Returns:
         syntelogs (pd.DataFrame): clean syntelog data
     """
+    syntelogs = syntelogs.copy(deep=True)
 
     # Get the correct name for the genes
     # MAGIC splits to remove the nonsense info from SynMap
@@ -102,11 +103,14 @@ def filter_syntelogs_DN(syntelogs):
     syntelogs = reformat_gene_names_with_period(syntelogs, "OrgA_Gene_Region")
 
     # Fix Del Norte genes in B
-    # TODO check with Pat should I eleminate the -mRNA-1? or 2?
-    # This is not an issue with H4-RR
+    # This is not an issue with H4-RR, reformat the gene names for the -mRNA-1
+    # and keep those, remove the others
+    # TODO should I check for duplicates here now or later?
     syntelogs["OrgB_Gene_Region"] = (
         syntelogs["OrgB_Gene_Region"].str.split("-mRNA-1").str[0]
     )
+    # Remove the other genes with -mRNA-2 or 2+
+    syntelogs = syntelogs.loc[~syntelogs["OrgB_Gene_Region"].str.contains("mRNA")]
 
     # Rename columns so that they make more sense
     syntelogs.rename(
@@ -130,7 +134,7 @@ def filter_syntelogs_DN(syntelogs):
     # polyploidy events.
     # MAGIC took this list from the Hardigan paper
     # Renaming the Del Norte chromosomes to match the Royal Royce chromosomes
-    syntelogs = map_chromosomes(syntelogs, "DN_Chromosome")
+    syntelogs = map_names(syntelogs, "DN_Chromosome")
 
     # Drop the rows where the chromosomes do not match
     syntelogs = syntelogs.loc[syntelogs["DN_Chromosome"] == syntelogs["RR_Chromosome"]]
@@ -198,7 +202,6 @@ def filter_syntelogs_H4(syntelogs):
     # for our purposes we aren't trying to concern ourselves with the ancient
     # polyploidy events.
     # Drop the rows where the chromosomes do not match
-    # TODO CHECK THIS ONE MORE TIME, check with Pat.
     # MAGIC to compare a 7D vs 7
     syntelogs = syntelogs.loc[
         syntelogs["H4_Chromosome"] == syntelogs["RR_Chromosome"].str[0]
@@ -243,7 +246,7 @@ if __name__ == "__main__":
 
     path_main = os.path.abspath(__file__)
     dir_main = os.path.dirname(path_main)
-    parser = argparse.ArgumentParser(description="TODO")
+    parser = argparse.ArgumentParser()
 
     parser.add_argument(
         "syntelog_input_file",

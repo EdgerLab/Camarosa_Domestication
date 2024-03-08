@@ -11,17 +11,16 @@ import logging
 import coloredlogs
 
 from transposon.import_filtered_genes import import_filtered_genes
-from src.orthologs.utils import map_chromosomes
+
+from src.orthologs.utils import map_names
 
 
 """
-- The Del Norte protein file that was used for BLAST has gene names
-    that are not the same as the gene names in the final gene annotation
-- This script replaces the gene names in the Del Norte protein file.
-- This step ought to performed before filtering the results for identifying all
-    syntelogs and homologs
-- This is performed with the BLAST output and a file that maps the old gene, a
-    decoder ring
+Take the vanilla output from a BLAST run between Del Norte (DN) and Royal
+Royce (RR) and filter it to reformat the gene and chromosome names.
+
+The gene names from the vanilla BLAST output do not match the "Updated" gene
+names that are similar to the Arabidopsis gene naming scheme.
 """
 
 
@@ -79,9 +78,8 @@ def import_unclean_homologs(homolog_input_file):
         columns={"Query": "Del_Norte", "Subject": "Royal_Royce"}, inplace=True
     )
 
-    # Get the correct name for the Del_Norte genes
-    # TODO I had a few -mRNA-2 in the names... normally I just split on 1.
-    # Check with Pat
+    # Get the correct name for the Del_Norte genes by removing the -mRNA-
+    # TODO need to check for duplicates here? Or later?
     homolog_pd["Del_Norte"] = homolog_pd["Del_Norte"].str.split("-mRNA-").str[0]
 
     # Get the correct name for the Royal_Royce genes
@@ -102,11 +100,6 @@ def import_decoder_ring(decoder_ring_input_file):
     return decoder_ring
 
 
-def replace_names(homolog_pd, decoder_ring):
-    homolog_pd["Del_Norte"] = homolog_pd["Del_Norte"].replace(decoder_ring)
-    return homolog_pd
-
-
 def blacklist_if_no_new_name(homolog_pd, decoder_ring):
     # Remove a Del Norte gene if it is not within the decoder ring
     homolog_pd = homolog_pd.loc[~homolog_pd["Del_Norte"].isin(decoder_ring)]
@@ -117,7 +110,7 @@ if __name__ == "__main__":
 
     path_main = os.path.abspath(__file__)
     dir_main = os.path.dirname(path_main)
-    parser = argparse.ArgumentParser(description="TODO")
+    parser = argparse.ArgumentParser()
 
     parser.add_argument(
         "homolog_input_file",
@@ -167,7 +160,7 @@ if __name__ == "__main__":
     unclean_homologs = import_unclean_homologs(args.homolog_input_file)
 
     logger.info(f"Replacing names...")
-    name_replaced_homologs = replace_names(unclean_homologs, decoder_ring)
+    name_replaced_homologs = map_names(unclean_homologs, "Del_Norte", decoder_ring)
     name_replaced_homologs = blacklist_if_no_new_name(
         name_replaced_homologs, decoder_ring
     )
@@ -207,19 +200,7 @@ if __name__ == "__main__":
             i[2]["Chromosome"]
         )
 
-    # Reformat the chromosome names in the DN dataset
-    name_replaced_homologs["DN_Chromosome"] = name_replaced_homologs[
-        "DN_Chromosome"
-    ].str.replace("_", "-")
-    name_replaced_homologs = map_chromosomes(name_replaced_homologs, "DN_Chromosome")
-
-    # Reformat the chromosomes in the RR dataset
-    name_replaced_homologs["RR_Chromosome"] = (
-        name_replaced_homologs["RR_Chromosome"].str.split("_", n=1).str[1]
-    )
-
     # Drop the rows where the chromosomes do not match
-    # TODO check with Pat that we want to do this for the homolog data
     name_replaced_homologs = name_replaced_homologs.loc[
         name_replaced_homologs["DN_Chromosome"]
         == name_replaced_homologs["RR_Chromosome"]

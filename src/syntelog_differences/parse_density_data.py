@@ -120,6 +120,8 @@ def make_table_for_te_type_and_direction(
             ],
             inplace=True,
         )
+    # TODO create some kind of logger statement if the gene names are duplicate
+    # in the table
     big_merge = pd.merge(orthologs, RR_gene_frame_with_values, on="RR_Gene")
     bigga_merge = pd.merge(big_merge, DN_gene_frame_with_values, on="DN_Gene")
 
