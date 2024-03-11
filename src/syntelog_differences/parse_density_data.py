@@ -120,26 +120,13 @@ def make_table_for_te_type_and_direction(
             ],
             inplace=True,
         )
-    # TODO create some kind of logger statement if the gene names are duplicate
-    # in the table
+
     big_merge = pd.merge(orthologs, RR_gene_frame_with_values, on="RR_Gene")
     bigga_merge = pd.merge(big_merge, DN_gene_frame_with_values, on="DN_Gene")
-
-    # TODO I think this is busted, I am having duplicate names???
-
-    # TODO revisit this, I don't want to increase the size of the table by
-    # having NA in the RR or DN because I tried to outer join the H4, but I
-    # also don't want to inner join, maybe outer join is best?
-    print(H4_gene_frame_with_values)
-    print()
-    print(bigga_merge)
-    print()
 
     biggest_merge = pd.merge(
         bigga_merge, H4_gene_frame_with_values, on="H4_Gene", how="left"
     )
-    print(biggest_merge)
-    raise ValueError
 
     # MAGIC
     # NOTE HARD CODED TO HAVE DN MINUS RR
@@ -291,11 +278,6 @@ if __name__ == "__main__":
         genedata_H4_list, args.H4_HDF5_dir, "H4_(.*?).h5", logger
     )
 
-    # Reset index to make it easier to add the HDF5 indices to a pandas frame
-    # cleaned_DN_genes.reset_index(inplace=True)
-    # cleaned_RR_genes.reset_index(inplace=True)
-    # cleaned_H4_genes.reset_index(inplace=True)
-
     DN_gene_frame_with_indices = add_hdf5_indices_to_gene_data_from_list_hdf5(
         cleaned_DN_genes, processed_DN_data
     )
@@ -305,16 +287,7 @@ if __name__ == "__main__":
     H4_gene_frame_with_indices = add_hdf5_indices_to_gene_data_from_list_hdf5(
         cleaned_H4_genes, processed_H4_data
     )
-
-    # NOTE TODO there are some H4 genes in the ortholog file that are not in
-    # the gene annotation file, I need to figure out why this is happening
-    # unique_h4_orthos = orthologs["H4_Gene"].unique()
-
-    # unique_gene_anno_orthos = H4_gene_frame_with_indices["Gene_Name"].unique()
-
-    # print([item for item in unique_h4_orthos if item not in unique_gene_anno_orthos])
-
-    # raise ValueError
+    logger.info("Starting to iterate and create the sub-tables...")
 
     # Start looping to make the tables
 

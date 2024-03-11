@@ -99,29 +99,27 @@ def filter_syntelogs_DN(syntelogs):
     for i in ["OrgA_Chromosome", "OrgB_Chromosome"]:
         syntelogs = reformat_chromosomes_from_SynMap(syntelogs, i)
 
-    # Fix Royal Royce genes in A
-    syntelogs = reformat_gene_names_with_period(syntelogs, "OrgA_Gene_Region")
-
-    # Fix Del Norte genes in B
-    # This is not an issue with H4-RR, reformat the gene names for the -mRNA-1
-    # and keep those, remove the others
-    # TODO should I check for duplicates here now or later?
-    syntelogs["OrgB_Gene_Region"] = (
-        syntelogs["OrgB_Gene_Region"].str.split("-mRNA-1").str[0]
-    )
-    # Remove the other genes with -mRNA-2 or 2+
-    syntelogs = syntelogs.loc[~syntelogs["OrgB_Gene_Region"].str.contains("mRNA")]
-
     # Rename columns so that they make more sense
     syntelogs.rename(
         columns={
-            "OrgA_Gene_Region": "RR_Gene",
-            "OrgB_Gene_Region": "DN_Gene",
-            "OrgA_Chromosome": "RR_Chromosome",
-            "OrgB_Chromosome": "DN_Chromosome",
+            "OrgB_Gene_Region": "RR_Gene",
+            "OrgA_Gene_Region": "DN_Gene",
+            "OrgB_Chromosome": "RR_Chromosome",
+            "OrgA_Chromosome": "DN_Chromosome",
         },
         inplace=True,
     )
+
+    # Fix Royal Royce genes in B
+    syntelogs = reformat_gene_names_with_period(syntelogs, "RR_Gene")
+
+    # Fix Del Norte genes in A
+    # This is not an issue with H4-RR, reformat the gene names for the -mRNA-1
+    # and keep those, remove the others
+    syntelogs["DN_Gene"] = syntelogs["DN_Gene"].str.split("-mRNA-1").str[0]
+    # Remove the other genes with -mRNA-2 or 2+
+    syntelogs = syntelogs.loc[~syntelogs["DN_Gene"].str.contains("mRNA")]
+
     syntelogs = remove_str_from_val(syntelogs, "_RagTag", "DN_Chromosome")
 
     # Drop the rows where the chromosome starts with 'contig'
@@ -182,10 +180,10 @@ def filter_syntelogs_H4(syntelogs):
     # Rename columns so that they make more sense
     syntelogs.rename(
         columns={
-            "OrgA_Gene_Region": "H4_Gene",
-            "OrgB_Gene_Region": "RR_Gene",
-            "OrgA_Chromosome": "H4_Chromosome",
-            "OrgB_Chromosome": "RR_Chromosome",
+            "OrgB_Gene_Region": "H4_Gene",
+            "OrgA_Gene_Region": "RR_Gene",
+            "OrgB_Chromosome": "H4_Chromosome",
+            "OrgA_Chromosome": "RR_Chromosome",
         },
         inplace=True,
     )
