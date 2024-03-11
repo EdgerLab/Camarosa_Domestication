@@ -210,6 +210,8 @@ $(RESULTS_DIR)/density_analysis:
 
 # Define a phony target to create the syntelog density table for convenience
 # NOTE this script takes a while....
+# FUTURE efforts could be made to take the loop out of the parse_density_data.py script and make it so that
+# the script can be run in parallel
 .PHONY: create_sytelog_density_tables
 create_sytelog_density_tables: $(STRAWBERRY_ORTHOLOG_TABLE) $(DN_CLEAN_GENES) $(RR_CLEAN_GENES) $(H4_CLEAN_GENES) $(DN_DENSITY_DIR) $(RR_DENSITY_DIR) $(H4_DENSITY_DIR) $(RESULTS_DIR)/density_analysis | $(RESULTS_DIR)/density_analysis
 	python $(ROOT_DIR)/src/syntelog_differences/parse_density_data.py $^

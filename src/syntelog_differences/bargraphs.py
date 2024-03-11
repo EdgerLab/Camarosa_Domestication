@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import os
 
+import scipy.stats as stats
+
 """
 Generate barplots of syntelog TE density differences
 """
@@ -124,6 +126,11 @@ def graph_barplot_density_differences(
         output_dir,
         (te_type + "_" + str(window_val) + "_" + direction + "_DensityDifferences.png"),
     )
+
+    # Wilcoxon signed-rank test
+    # TODO possibly add this to the legend or print out
+    wilcoxon = stats.wilcoxon(values)
+
     logger.info("Saving graph to: %s" % path)
     plt.savefig(path)
     if display:

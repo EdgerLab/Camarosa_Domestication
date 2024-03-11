@@ -13,7 +13,7 @@ import coloredlogs
 from src.orthologs.utils import (
     remove_str_from_val,
     drop_rows_with_bad_val_in_col,
-    map_chromosomes,
+    map_names,
 )
 
 
@@ -76,7 +76,7 @@ def import_genes(genes_input_path, genome_name, logger):
     # correspond to the chromosomes of the TE annotation
     if genome_name == "DN":
         gene_pandaframe = remove_str_from_val(gene_pandaframe, "_RagTag", "Chromosome")
-        gene_pandaframe = map_chromosomes(gene_pandaframe, "Chromosome")
+        gene_pandaframe = map_names(gene_pandaframe, "Chromosome")
 
     # Remove the Fvb prefix from the chr names, particularly in FNI, FVI, and H4
     gene_pandaframe = remove_str_from_val(gene_pandaframe, "Fvb", "Chromosome")

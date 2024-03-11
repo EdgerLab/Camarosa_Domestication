@@ -16,3 +16,12 @@
 | F. iinumae   | /mnt/research/strawberry/Reference_Genomes/Diploids/F_iinumae/FII.fasta                                   | Pre-existing: /mnt/research/strawberry/Reference_Genomes/Diploids/F_iinumae/FII.cds                                                    | Not using                                                                                                                    | Not creating   |
 | F. nipponica | /mnt/research/strawberry/Reference_Genomes/Diploids/F_nipponica/nipponica.ragtag.scaffolds.fasta          | Not creating or using                                                                                                                  | Not available                                                                                                                | Not creating   |
 | F. viridis   | /mnt/research/strawberry/Reference_Genomes/Diploids/F_viridis/viridis.ragtag.scaffolds.fasta              | Not creating or using                                                                                                                  | Not available                                                                                                                | Not creating   |
+
+
+
+# New
+H4
+https://genomevolution.org/r/1r9uy
+
+DN
+https://genomevolution.org/r/1r9uk
