@@ -21,6 +21,7 @@ import logging
 import coloredlogs
 import numpy as np
 import pandas as pd
+from collections import namedtuple
 
 from src.syntelog_differences.bargraphs import decode_te_window_direction_str
 
@@ -38,8 +39,11 @@ def perform_upper_cutoff_and_subset(
     table = table.copy(deep=True)
 
     # Make sure nonzero values are used
+    # TODO verify this is the right thing to do, do we want to remove non-zeros
+    # before we calculate the cutoff?
+    # But most genes have a 0 value for TE density, so it makes sense to test
+    # those who do have a TE near them
     table = table.loc[table[column_name] != 0.0]
-    print(table)
 
     upper_cutoff_val = calculate_cutoff_value(
         table[column_name], upper_percentile_cutoff_int
@@ -48,7 +52,7 @@ def perform_upper_cutoff_and_subset(
     # Check the cutoff value and raise a warning if the value is below 10%
     if upper_cutoff_val < 0.1:
         logger.warning(
-            f"Upper Cutoff Value is below 10%: it is {upper_cutoff_val} for {column_name}"
+            f"Upper Cutoff Value is below 10% density: it is {upper_cutoff_val} for {column_name}"
         )
 
     # This column is used to store the cutoff value for each gene and may
@@ -64,7 +68,7 @@ def perform_lower_cutoff_and_subset(
     table, column_name, lower_percentile_cutoff_int, logger
 ):
     """
-    TODO
+    This is only needed for the difference column?
     """
     table = table.copy(deep=True)
 
@@ -79,7 +83,7 @@ def perform_lower_cutoff_and_subset(
     # TODO revist if this warning is needed for the lower cutoff
     if lower_cutoff_val > -0.1:
         logger.warning(
-            f"Upper Cutoff Value is below 10%: {lower_cutoff_val} for {column_name}"
+            f"Lower Cutoff Value is below 10%: {lower_cutoff_val} for {column_name}"
         )
 
     # This column is used to store the cutoff value for each gene and may
@@ -152,64 +156,69 @@ if __name__ == "__main__":
         os.path.basename(args.preprocessed_density_table)
     )
 
+    # Create a named tuple that is the cutoff function and its percentile in
+    # integer format
+    cutoff_function_w_percentile = namedtuple(
+        "cutoff_function_w_percentile",
+        ["cutoff_function", "percentile", "upper_or_lower_str"],
+    )
+    upper = cutoff_function_w_percentile(
+        perform_upper_cutoff_and_subset, args.upper_percentile_cutoff_int, "Upper"
+    )
+    lower = cutoff_function_w_percentile(
+        perform_lower_cutoff_and_subset, args.lower_percentile_cutoff_int, "Lower"
+    )
+
     # This calculates the top X% of the genes for each genome, and then the
     # top and bottom for the difference.
     # MAGIC genome names
     for genome in ["H4", "DN", "RR"]:
         te_col = f"{genome}_{te_type}_{window}_{direction}"
-        # Perform the upper cutoff and subset
-        # mod_table = perform_upper_cutoff_and_subset(
-        #    base_table, te_col, args.upper_percentile_cutoff_int, logger
-        # )
 
-        if genome == "H4":
-            print(base_table)
-            test = perform_upper_cutoff_and_subset(
-                base_table, te_col, args.upper_percentile_cutoff_int, logger
+        # Use the functions as first class objects to iterate over them, and
+        # calculate the upper and lower cutoffs
+        # TODO consider making these a named tuple
+        for i in [upper]:
+            if genome == "H4":
+                # TODO it is possible for H4 to have duplicate gene names before we run
+                # TopGO.
+                # H4 has NaN so we need to remove those before calculations
+                mod_table = base_table.copy(deep=True)
+                mod_table.dropna(axis=0, subset=["H4_Gene"], inplace=True)
+                mod_table = i.cutoff_function(mod_table, te_col, i.percentile, logger)
+            else:
+                # Perform the cutoffs and subset
+                mod_table = i.cutoff_function(base_table, te_col, i.percentile, logger)
+
+            # Subset the table so that each entry MUST have an Arabidopsis gene
+            mod_table = subset_by_arabidopsis_presence(mod_table)
+            out_filename = f"{te_col}_{i.upper_or_lower_str}_{str(i.percentile)}_density_percentile.tsv"
+            save_table_to_disk(
+                mod_table,
+                args.output_dir,
+                out_filename,
+                logger,
             )
-            print(test)
 
-        raise ValueError("STOP")
+    # ----------------------------------------
+    # Calculate the 'Difference' column
+    column_name = "Difference"
+    col_to_save = f"{column_name}_{te_type}_{window}_{direction}"
+    for genome, i in [("DN", upper), ("RR", lower)]:
+        # We don't have a 'Difference' column for H4, the difference
+        # column is for DN vs RR.
+        # NOTE MAGIC, if positive it is a DEL NORTE biased gene pair
+        # NOTE MAGIC, if negative it is a Royal Royce biased gene pair, hence
+        # we will apply the lower cutoff function to the RR dataset
 
-        # Subset the table so that each entry MUST have an Arabidopsis gene
+        # Perform the cutoffs and subset
+        mod_table = i.cutoff_function(base_table, column_name, i.percentile, logger)
+
         mod_table = subset_by_arabidopsis_presence(mod_table)
-        out_filename = f"{te_col}_Upper_{str(args.upper_percentile_cutoff_int)}_density_percentile.tsv"
+        out_filename = f"{col_to_save}_BiasedTowards_{genome}_{str(i.percentile)}_density_percentile.tsv"
         save_table_to_disk(
             mod_table,
             args.output_dir,
             out_filename,
             logger,
         )
-
-    # ----------------------------------------
-    column_name = "Difference"
-    col_to_save = f"{column_name}_{te_type}_{window}_{direction}"
-    mod_table = perform_upper_cutoff_and_subset(
-        base_table, column_name, args.upper_percentile_cutoff_int, logger
-    )
-    # Subset the table so that each entry MUST have an Arabidopsis gene
-    mod_table = subset_by_arabidopsis_presence(mod_table)
-
-    # NOTE MAGIC, if positive it is a DEL NORTE biased gene pair
-    out_filename = f"{col_to_save}_BiasedTowards_DN_{str(args.upper_percentile_cutoff_int)}_density_percentile.tsv"
-    save_table_to_disk(
-        mod_table,
-        args.output_dir,
-        out_filename,
-        logger,
-    )
-
-    # Now we need to perform the lower cutoff and subset
-    mod_table = perform_lower_cutoff_and_subset(
-        base_table, column_name, args.lower_percentile_cutoff_int, logger
-    )
-
-    # NOTE MAGIC, if negative it is a Royal Royce biased gene pair
-    out_filename = f"{col_to_save}_BiasedTowards_RR_{str(args.lower_percentile_cutoff_int)}_density_percentile.tsv"
-    mod_table = subset_by_arabidopsis_presence(mod_table)
-    save_table_to_disk(
-        mod_table,
-        args.output_dir,
-        out_filename,
-        logger,
-    )

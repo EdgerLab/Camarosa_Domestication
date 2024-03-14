@@ -269,6 +269,7 @@ test_cutoff:
 # Define a target to run TopGO on the super dense gene output files
 .PHONY: run_topgo
 run_topgo: $(TOP_GO_REFERENCE_FILE) | $(GO_ENRICHMENT_DIR)
+	rm $(GO_ENRICHMENT_DIR)/*
 	ls $(CUTOFF_TABLES_DIR)/*.tsv | parallel Rscript $(ROOT_DIR)/src/go_analysis/TopGO.R {} $(TOP_GO_REFERENCE_FILE) $(GO_ENRICHMENT_DIR)
 
 # to look at output 
