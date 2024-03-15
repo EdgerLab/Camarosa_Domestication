@@ -269,7 +269,7 @@ test_cutoff:
 # Define a target to run TopGO on the super dense gene output files
 .PHONY: run_topgo
 run_topgo: $(TOP_GO_REFERENCE_FILE) | $(GO_ENRICHMENT_DIR)
-	rm $(GO_ENRICHMENT_DIR)/*
+	#rm -rf $(GO_ENRICHMENT_DIR)/*
 	ls $(CUTOFF_TABLES_DIR)/*.tsv | parallel Rscript $(ROOT_DIR)/src/go_analysis/TopGO.R {} $(TOP_GO_REFERENCE_FILE) $(GO_ENRICHMENT_DIR)
 
 # to look at output 
@@ -279,9 +279,20 @@ run_topgo: $(TOP_GO_REFERENCE_FILE) | $(GO_ENRICHMENT_DIR)
 
 # Define a target to generate an UpSet plot for the GO enrichment results
 # TODO verify one more time that the files are being provided in the correct order
+# NOTE THIS DOES NOT WORK FOR THE 'DIFFERENCE' FILES
 .PHONY: upset_plot
 upset_plot: | $(GO_UPSET_PLOT_DIR)
-	find $(GO_ENRICHMENT_DIR)/ -maxdepth 1 -type f | sort | xargs -n2 sh -c 'python $(ROOT_DIR)/src/go_analysis/upset_plot.py $$2 $$3 $$1' sh $(GO_UPSET_PLOT_DIR)
+	find $(GO_ENRICHMENT_DIR)/ -maxdepth 1 -type f -not -name "*Difference*" | sort | xargs -n3 sh -c 'python $(ROOT_DIR)/src/go_analysis/upset_plot.py $$1 $$2 $$3 $(GO_UPSET_PLOT_DIR)' sh
+
+.PHONY: test_upset
+test_upset:
+	mkdir -p $(GO_UPSET_PLOT_DIR)
+	python $(ROOT_DIR)/src/go_analysis/upset_plot.py \
+		$(GO_ENRICHMENT_DIR)/Overrepresented_DN_LTR_5000_Upstream_Upper_95_density_percentile.tsv \
+		$(GO_ENRICHMENT_DIR)/Overrepresented_RR_LTR_5000_Upstream_Upper_95_density_percentile.tsv \
+		$(GO_ENRICHMENT_DIR)/Overrepresented_H4_LTR_5000_Upstream_Upper_95_density_percentile.tsv \
+		$(GO_UPSET_PLOT_DIR)
+
 
 
 #-------------------------------------------------------------------#

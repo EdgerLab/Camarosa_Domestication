@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 
 from upsetplot import from_contents
+from upsetplot import from_memberships
 from upsetplot import UpSet
 import matplotlib.pyplot as plt
 
@@ -18,20 +19,18 @@ def read_go_enrichment_table(path):
     """
     # TODO think about refactoring this to the find_abnormal_genes.py script
     df = pd.read_csv(path, sep="\t", header="infer")
-    df = df.loc[:, ["GO_ID"]]
-    df = df.drop_duplicates()
     return df
 
 
-def read_go_enrichment_table(path):
-    """
-    Read in the preprocessed GO enrichment table
-    """
-    # TODO think about refactoring this to the find_abnormal_genes.py script
-    df = pd.read_csv(path, sep="\t", header="infer")
-    df = df.loc[:, ["GO_ID"]]
-    df = df.drop_duplicates()
-    return df
+def get_nonredundant_terms(df):
+    """Return as a set"""
+    x = df.loc[:, ["GO_ID"]]
+
+    # TODO check if we need to change any options in the drop duplicates
+    # function
+    x.drop_duplicates(inplace=True)
+
+    return set(x["GO_ID"].values)
 
 
 def decode_te_window_direction_str_go_file(path):
@@ -55,13 +54,13 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "RR_preprocessed_go_enrichment_table",
+        "H4_preprocessed_go_enrichment_table",
         type=str,
         help="TODO",
     )
 
     parser.add_argument(
-        "H4_preprocessed_go_enrichment_table",
+        "RR_preprocessed_go_enrichment_table",
         type=str,
         help="TODO",
     )
@@ -91,6 +90,9 @@ if __name__ == "__main__":
     logger = logging.getLogger(__name__)
     coloredlogs.install(level=log_level)
 
+    # TODO implement some sort of check to ensure that the input files have the
+    # same string filename structure
+
     # ---------------------------
     # Read in the data
     DN_table = read_go_enrichment_table(args.DN_preprocessed_go_enrichment_table)
@@ -109,23 +111,78 @@ if __name__ == "__main__":
     plot_title = " ".join(name)
     filename = "_".join(name)
 
-    RR_terms = RR_table["GO_ID"].values
-    DN_terms = DN_table["GO_ID"].values
-    H4_terms = DN_table["GO_ID"].values
+    # print(args.DN_preprocessed_go_enrichment_table)
+    # print(args.RR_preprocessed_go_enrichment_table)
+    # print(args.H4_preprocessed_go_enrichment_table)
+    # print(filename)
+    # print()
+    # print()
+    # raise ValueError
 
-    data = from_contents({"RR": RR_terms, "DN": DN_terms, "H4": H4_terms})
+    # Get the set of terms
+    RR_terms = get_nonredundant_terms(RR_table)
+    DN_terms = get_nonredundant_terms(DN_table)
+    H4_terms = get_nonredundant_terms(H4_table)
+
+    # Get the count of unique genes in the GO enrichment table
+    RR_gene_count = RR_table["RR_Gene"].nunique()
+    DN_gene_count = DN_table["DN_Gene"].nunique()
+    H4_gene_count = H4_table["H4_Gene"].nunique()
+
+    print(RR_table)
+    print(len(RR_terms))
+    print(RR_gene_count)
+    print()
+
+    # Generate the data structure for the UpSet plot
+    data = {"RR": RR_terms, "DN": DN_terms, "H4": H4_terms}
+    data = from_contents(data)
 
     # Initialize the plot figure object
-    fig = plt.figure()
-    upset = UpSet(data, subset_size="count")
+    fig = plt.figure(figsize=(10, 9))
+    upset = UpSet(data, subset_size="count", show_counts=True)
     upset.style_subsets(present="RR", absent=["DN", "H4"], facecolor="red")
     upset.style_subsets(present="DN", absent=["RR", "H4"], facecolor="blue")
     upset.style_subsets(present="H4", absent=["DN", "RR"], facecolor="green")
-    upset.style_subsets(present=["RR", "DN"], hatch="xx", edgecolor="purple")
-    upset.style_subsets(present=["H4", "DN"], hatch="xxx", edgecolor="yellow")
+    # upset.style_subsets(present="RR", facecolor="red")
+    # upset.style_subsets(present="DN", facecolor="blue")
+    # upset.style_subsets(present="H4", facecolor="green")
+    upset.style_subsets(present=["RR", "DN"], hatch="xx", facecolor="yellow")
+    upset.style_subsets(present=["H4", "DN"], hatch="xx", facecolor="cyan")
+    upset.style_subsets(present=["H4", "RR"], hatch="xx", facecolor="brown")
+    upset.style_subsets(present=["DN", "H4", "RR"], hatch="xx", facecolor="black")
     upset.plot(fig=fig)
     plt.suptitle(plot_title)
-    plt.show()
-    raise ValueError("stop here")
-    plt.savefig(os.path.join(args.output_dir, filename), bbox_inches="tight")
+    fig.supxlabel("Number of GO Terms")
+
+    # Add the gene count to the plot
+    # TODO work on this, it is getting too crowded
+    gene_count_handles = []
+    for i in [
+        (RR_gene_count, "red", "RR"),
+        (DN_gene_count, "blue", "DN"),
+        (H4_gene_count, "green", "H4"),
+    ]:
+        gene_count_handles.append(
+            plt.Line2D(
+                [],
+                [],
+                marker="s",
+                color=i[1],
+                linestyle="",
+                label=f"{i[2]} Unique Genes: {i[0]}",
+            )
+        )
+    fig.legend(
+        handles=gene_count_handles,
+        loc="upper left",
+        fontsize="small",
+        bbox_to_anchor=(0.9, 0.9),
+    )
+
+    # plt.show()
+    # plt.tight_layout()
+    outfile = os.path.join(args.output_dir, filename)
+    logger.info(f"Saving plot to {outfile}")
+    plt.savefig(outfile, bbox_inches="tight")
     plt.clf()
