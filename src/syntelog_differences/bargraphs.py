@@ -10,6 +10,7 @@ import matplotlib.patches as mpatches
 import os
 
 import scipy.stats as stats
+import statsmodels.api as sm
 
 """
 Generate barplots of syntelog TE density differences
@@ -50,7 +51,6 @@ def graph_barplot_density_differences(
         display (boolean): Defaults to False, if True shows the plot upon
         generation with the plt.show() command
     """
-
     # MAGIC, the bins to group density values for the histogram AND the values
     # for the xticks on the xaxis
     tick_bins = [
@@ -111,25 +111,48 @@ def graph_barplot_density_differences(
         linestyle="",
         label=f"Bottom {upper_and_lower_cutoff_int[1]} Percentile Cutoff: {lower_cutoff_val:.2f}",
     )
+    # -----------------------------------------
+    # Wilcoxon signed-rank test
+    # TODO possibly add this to the legend or print out
+    # Wilxocon signed rank test is supposed be to carried out after the zero
+    # difference values are filtered away
+    # Because the data does not come from a normal distribution, I will use the
+    # Wilcoxon signed rank test to test if the median of the differences is
+    # significantly different than zero.
+    # wilcoxon = stats.wilcoxon(values, alternative="two-sided")
+
+    # I could also edit the alernative hypothesis to be one-sided, and specify
+    # that DN is always higher than RR. This would help me get at whether or
+    # not DN is more dense.
+    wilcoxon = stats.wilcoxon(values, alternative="greater")
+
+    significance = wilcoxon[1]
+    significance = plt.Line2D(
+        [],
+        [],
+        color="r",
+        marker="",
+        linestyle="",
+        label=f"Wilcoxon signed-rank test p-value: {significance:.3e}",
+    )
 
     # -----------------------------------------
     # Get the mean and plot as red line, create object for legend
     diff_mean = np.mean(values)
     mean_label = plt.Line2D(
-        [], [], color="r", marker="", linestyle="", label=f"Mean: {diff_mean:.2f}"
+        [], [], color="r", marker="", linestyle="", label=f"Mean: {diff_mean:.3f}"
     )
     plt.axvline(diff_mean, color="r", linestyle="dashed", linewidth=2)
 
     plt.xticks(tick_bins)
-    plt.legend(handles=[N, mean_label, lower_label, upper_label])
+    plt.legend(
+        handles=[N, mean_label, lower_label, upper_label, significance],
+        loc="upper left",
+    )
     path = os.path.join(
         output_dir,
         (te_type + "_" + str(window_val) + "_" + direction + "_DensityDifferences.png"),
     )
-
-    # Wilcoxon signed-rank test
-    # TODO possibly add this to the legend or print out
-    wilcoxon = stats.wilcoxon(values)
 
     logger.info("Saving graph to: %s" % path)
     plt.savefig(path)
@@ -197,6 +220,19 @@ if __name__ == "__main__":
     num_non_zero = calculate_number_of_nonzero_differences(table)
     num_zero = num_original_rows - num_non_zero
     table_sans_zeros = get_table_of_nonzero_differences(table)
+
+    # This is the code for a qqplot which tells us how well the data fits a
+    # normal distribution
+    # Based on the qq plot, the data does not appear to come from a normal
+    # distribution
+    # fig = sm.qqplot(table["Difference"], line="45")
+    # plt.show()
+    # plt.clf()
+
+    # This is code to perform a Shapiro Wilkes test, more formal way to see if
+    # normal distribution
+    # The data does not appear to come from a normal distribution
+    # Shapiro = stats.shapiro(table["Difference"])
 
     graph_barplot_density_differences(
         table_sans_zeros["Difference"],
