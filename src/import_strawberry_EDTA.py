@@ -14,7 +14,7 @@ import coloredlogs
 from src.orthologs.utils import (
     remove_str_from_val,
     drop_rows_with_bad_val_in_col,
-    map_chromosomes,
+    map_names,
 )
 
 
@@ -73,6 +73,11 @@ def import_transposons(tes_input_path, genome_name, logger):
         dtype={"Start": "float64", "Stop": "float64"},
     )
 
+    # Code to extract the TE name (unique identifier) and identity for future use
+    # TODO save these columns to disk or something
+    # te_data["Name"] = te_data["Attribute"].str.extract(r"Name=(.*?);")
+    # te_data["Identity"] = te_data["Attribute"].str.extract(r"Identity=(.*?);")
+
     # Drop extraneous columns
     te_data.drop(columns=["Score", "Software", "Phase", "Feature"], inplace=True)
 
@@ -107,7 +112,7 @@ def import_transposons(tes_input_path, genome_name, logger):
     # with the map
     if genome_name == "DN":
         te_data["Chromosome"] = te_data["Chromosome"].str.replace("_", "-")
-        te_data = map_chromosomes(te_data, "Chromosome")
+        te_data = map_names(te_data, "Chromosome")
 
     # Call renamer
     te_data = te_annot_renamer(te_data)
