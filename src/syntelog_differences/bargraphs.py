@@ -80,7 +80,7 @@ def graph_barplot_density_differences(
     n, bins, patches = plt.hist(
         values, bins=tick_bins, facecolor="blue", ec="black", alpha=0.5
     )
-    plt.rcParams["xtick.labelsize"] = 7  # MAGIC set size of axis ticks
+    plt.rcParams["xtick.labelsize"] = 5  # MAGIC set size of axis ticks
     plt.ylabel("Number of Genes")
     plt.xlabel("Difference in TE Density Values")
     plt.title("Del Norte vs Royal Royce")  # MAGIC genome name order here
@@ -100,7 +100,7 @@ def graph_barplot_density_differences(
         [],
         color="g",
         marker="",
-        linestyle="",
+        linestyle="--",
         label=f"Upper {upper_and_lower_cutoff_int[0]} Percentile Cutoff: {upper_cutoff_val:.2f}",
     )
     lower_label = plt.Line2D(
@@ -108,7 +108,7 @@ def graph_barplot_density_differences(
         [],
         color="g",
         marker="",
-        linestyle="",
+        linestyle="--",
         label=f"Bottom {upper_and_lower_cutoff_int[1]} Percentile Cutoff: {lower_cutoff_val:.2f}",
     )
     # -----------------------------------------
@@ -140,11 +140,11 @@ def graph_barplot_density_differences(
     # Get the mean and plot as red line, create object for legend
     diff_mean = np.mean(values)
     mean_label = plt.Line2D(
-        [], [], color="r", marker="", linestyle="", label=f"Mean: {diff_mean:.3f}"
+        [], [], color="r", marker="", linestyle="--", label=f"Mean: {diff_mean:.3f}"
     )
     plt.axvline(diff_mean, color="r", linestyle="dashed", linewidth=2)
 
-    plt.xticks(tick_bins)
+    plt.xticks(tick_bins, rotation=45)
     plt.legend(
         handles=[N, mean_label, lower_label, upper_label, significance],
         loc="upper left",
@@ -225,15 +225,23 @@ if __name__ == "__main__":
     # normal distribution
     # Based on the qq plot, the data does not appear to come from a normal
     # distribution
-    # fig = sm.qqplot(table["Difference"], line="45")
-    # plt.show()
-    # plt.clf()
+    fig = sm.qqplot(table["Difference"], line="45")
+    plt.title(
+        f"Del Norte vs Royal Royce \n{str(window)} BP {direction} {te_type}"
+    )  # MAGIC genome name order here
+    outfile = os.path.join(
+        args.output_dir,
+        (te_type + "_" + str(window) + "_" + direction + "_QQ_Plot.png"),
+    )
+    plt.savefig(outfile)
+    plt.clf()
 
     # This is code to perform a Shapiro Wilkes test, more formal way to see if
     # normal distribution
     # The data does not appear to come from a normal distribution
     # Shapiro = stats.shapiro(table["Difference"])
 
+    # Generate the syntelog plot
     graph_barplot_density_differences(
         table_sans_zeros["Difference"],
         te_type,
