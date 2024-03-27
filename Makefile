@@ -243,6 +243,23 @@ test_syntelog_plots:
 
 
 #-------------------------------------------------------------------#
+# Define the file paths for dotplot output directory
+DOTPLOT_OUT_DIR := $(RESULTS_DIR)/dotplot
+DOTPLOT_CONFIG_FILE := $(ROOT_DIR)/src/dotplot/dotplot_config_parameters.ini
+
+# Define a target to create the directory if it doesn't exist
+$(DOTPLOT_OUT_DIR):
+	mkdir -p $@
+
+.PHONY: generate_RR_dotplot
+generate_RR_dotplot: $(RR_DENSITY_DIR) $(RR_CLEAN_GENES) $(DOTPLOT_OUT_DIR) $(STRAWBERRY_ORTHOLOG_TABLE) $(DOTPLOT_CONFIG_FILE) | $(DOTPLOT_OUT_DIR)
+	python $(ROOT_DIR)/src/dotplot/generate_dotplots.py $^ 'RR_(.*?).h5' 'RR' 
+
+.PHONY: generate_DN_dotplot
+generate_DN_dotplot: $(DN_DENSITY_DIR) $(DN_CLEAN_GENES) $(DOTPLOT_OUT_DIR) $(STRAWBERRY_ORTHOLOG_TABLE) $(DOTPLOT_CONFIG_FILE) | $(DOTPLOT_OUT_DIR)
+	python $(ROOT_DIR)/src/dotplot/generate_dotplots.py $^ 'DN_(.*?).h5' 'DN' 
+
+#-------------------------------------------------------------------#
 # Locate super TE-dense genes
 
 SUPER_DENSE_CUTOFF_TABLE_DIR := $(RESULTS_DIR)/density_analysis/cutoff_tables
