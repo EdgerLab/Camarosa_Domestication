@@ -78,8 +78,8 @@ function_run_topgo = function(master_genes, geneID2GO, my_interesting_genes, ont
 	# not necessarily the significant nodes
 	# FUTURE would this be useful information to store?
 
-	#resultFisher_weight = runTest(GOdata, algorithm='weight01', statistic='fisher')
-	resultFisher_classic = runTest(GOdata, algorithm='classic', statistic='fisher')
+	resultFisher_weight = runTest(GOdata, algorithm='weight01', statistic='fisher')
+	#resultFisher_classic = runTest(GOdata, algorithm='classic', statistic='fisher')
 
 	# NB from Nolan:
 		# algorithm="classic" WILL NOT take GO hierarchy into account
@@ -97,11 +97,18 @@ function_run_topgo = function(master_genes, geneID2GO, my_interesting_genes, ont
        		# an FDR.
 
 	# list the top significant GO terms
-    	allRes = GenTable(GOdata, classicFisher=resultFisher_classic, 
+	# This is for the weight option
+    	allRes = GenTable(GOdata, classicFisher=resultFisher_weight, 
 			  orderBy='classicFisher',
 			  ranksOf='classicFisher',
 			  topNodes=num_nodes,
 			  numChar=1000) # NB avoid truncation of string
+	# This is for classic option
+    	# allRes = GenTable(GOdata, classicFisher=resultFisher_classic, 
+	# 		  orderBy='classicFisher',
+	# 		  ranksOf='classicFisher',
+	# 		  topNodes=num_nodes,
+	# 		  numChar=1000) # NB avoid truncation of string
 			      
 			      
 	# MAGIC p-val threshold

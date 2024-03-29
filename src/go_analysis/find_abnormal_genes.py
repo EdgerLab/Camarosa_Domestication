@@ -132,6 +132,8 @@ if __name__ == "__main__":
         help="TODO",
     )
 
+    parser.add_argument("strawberry_ortholog_table", type=str, help="TODO")
+
     parser.add_argument(
         "output_dir",
         type=str,
@@ -143,6 +145,7 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
     args.preprocessed_density_table = os.path.abspath(args.preprocessed_density_table)
+    args.strawberry_ortholog_table = os.path.abspath(args.strawberry_ortholog_table)
     args.output_dir = os.path.abspath(args.output_dir)
 
     log_level = logging.DEBUG if args.verbose else logging.INFO
@@ -152,12 +155,38 @@ if __name__ == "__main__":
 
     # Load in the pre-filtered TE Density data
     base_table = pd.read_csv(args.preprocessed_density_table, header="infer", sep="\t")
-    te_type, window, direction = decode_te_window_direction_str(
-        os.path.basename(args.preprocessed_density_table)
+
+    # Load in the pre-filtered ortholog information
+    ortholog_table = pd.read_csv(
+        args.strawberry_ortholog_table, header="infer", sep="\t"
     )
 
+    # Magic remove the file extension after basename, won't work if multiple
+    # '.' in the filename
+    filename = os.path.splitext(os.path.basename(args.preprocessed_density_table))[0]
+    if "minus" not in filename:
+        if "Total" in filename:
+            genome = filename.split("_")[0]
+            te_type = filename.split("_")[1:4]
+            te_type = "_".join(te_type)
+            window = filename.split("_")[4]
+            direction = filename.split("_")[5]
+        else:
+            pieces = filename.split("_")
+            genome = pieces[0]
+            te_type = pieces[1]
+            window = pieces[2]
+            direction = pieces[3]
+        flag = True  # this is baaaaad to do it this way...
+    else:
+        # We are working with the DN minus RR table
+        te_type, window, direction = decode_te_window_direction_str(
+            os.path.basename(args.preprocessed_density_table)
+        )
+        flag = False
+
     # Create a named tuple that is the cutoff function and its percentile in
-    # integer format
+    # integer format, to avoid needing to retype this all the time
     cutoff_function_w_percentile = namedtuple(
         "cutoff_function_w_percentile",
         ["cutoff_function", "percentile", "upper_or_lower_str"],
@@ -168,57 +197,64 @@ if __name__ == "__main__":
     lower = cutoff_function_w_percentile(
         perform_lower_cutoff_and_subset, args.lower_percentile_cutoff_int, "Lower"
     )
-
-    # This calculates the top X% of the genes for each genome, and then the
-    # top and bottom for the difference.
-    # MAGIC genome names
-    for genome in ["H4", "DN", "RR"]:
+    if flag:
+        # Perform the cutoffs and subset, we are not working with the file that
+        # has the 'Difference' column or the ortholog information
         te_col = f"{genome}_{te_type}_{window}_{direction}"
+        mod_table = upper.cutoff_function(base_table, te_col, upper.percentile, logger)
 
-        # Use the functions as first class objects to iterate over them, and
-        # calculate the upper and lower cutoffs
-        # TODO consider making these a named tuple
-        for i in [upper]:
-            if genome == "H4":
-                # TODO it is possible for H4 to have duplicate gene names before we run
-                # TopGO.
-                # H4 has NaN so we need to remove those before calculations
-                mod_table = base_table.copy(deep=True)
-                mod_table.dropna(axis=0, subset=["H4_Gene"], inplace=True)
-                mod_table = i.cutoff_function(mod_table, te_col, i.percentile, logger)
-            else:
-                # Perform the cutoffs and subset
-                mod_table = i.cutoff_function(base_table, te_col, i.percentile, logger)
+        # Save the original table before we do any subsetting with Arabidopsis
+        # presence
+        out_filename = f"{te_col}_{upper.upper_or_lower_str}_{str(upper.percentile)}_no_Arabidopsis_density_percentile.tsv"
 
-            # Subset the table so that each entry MUST have an Arabidopsis gene
-            mod_table = subset_by_arabidopsis_presence(mod_table)
-            out_filename = f"{te_col}_{i.upper_or_lower_str}_{str(i.percentile)}_density_percentile.tsv"
-            save_table_to_disk(
-                mod_table,
-                args.output_dir,
-                out_filename,
-                logger,
-            )
+        # MAGIC filepath matches with Makefile
+        special_out_dir = os.path.join(args.output_dir, "no_Arabidopsis")
+        save_table_to_disk(
+            mod_table,
+            special_out_dir,
+            out_filename,
+            logger,
+        )
 
-    # ----------------------------------------
-    # Calculate the 'Difference' column
-    column_name = "Difference"
-    col_to_save = f"{column_name}_{te_type}_{window}_{direction}"
-    for genome, i in [("DN", upper), ("RR", lower)]:
-        # We don't have a 'Difference' column for H4, the difference
-        # column is for DN vs RR.
-        # NOTE MAGIC, if positive it is a DEL NORTE biased gene pair
-        # NOTE MAGIC, if negative it is a Royal Royce biased gene pair, hence
-        # we will apply the lower cutoff function to the RR dataset
-
-        # Perform the cutoffs and subset
-        mod_table = i.cutoff_function(base_table, column_name, i.percentile, logger)
-
-        mod_table = subset_by_arabidopsis_presence(mod_table)
-        out_filename = f"{col_to_save}_BiasedTowards_{genome}_{str(i.percentile)}_density_percentile.tsv"
+        # Merge in the ortholog table because the individual genome files do
+        # not have the ortholog information in them
+        # Subset the table so that each entry MUST have an Arabidopsis gene
+        mod_table = mod_table.merge(
+            ortholog_table,
+            left_on=f"{genome}_Gene",
+            right_on=f"{genome}_Gene",
+            how="inner",
+        )
+        out_filename = f"{te_col}_{upper.upper_or_lower_str}_{str(upper.percentile)}_density_percentile.tsv"
         save_table_to_disk(
             mod_table,
             args.output_dir,
             out_filename,
             logger,
         )
+
+    else:
+
+        # ----------------------------------------
+        # Calculate the 'Difference' column
+        column_name = "Difference"
+        col_to_save = f"{column_name}_{te_type}_{window}_{direction}"
+        for genome, i in [("DN", upper), ("RR", lower)]:
+            # We don't have a 'Difference' column for H4, the difference
+            # column is for DN vs RR.
+            # NOTE MAGIC, if positive it is a DEL NORTE biased gene pair
+            # NOTE MAGIC, if negative it is a Royal Royce biased gene pair, hence
+            # we will apply the lower cutoff function to the RR dataset
+
+            # Perform the cutoffs and subset
+            mod_table = i.cutoff_function(base_table, column_name, i.percentile, logger)
+
+            # Subset the table so that each entry MUST have an Arabidopsis gene
+            mod_table = subset_by_arabidopsis_presence(mod_table)
+            out_filename = f"{col_to_save}_Biased_Towards_{genome}_{str(i.percentile)}_density_percentile.tsv"
+            save_table_to_disk(
+                mod_table,
+                args.output_dir,
+                out_filename,
+                logger,
+            )

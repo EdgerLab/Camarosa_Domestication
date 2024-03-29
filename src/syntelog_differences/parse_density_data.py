@@ -16,6 +16,7 @@ import coloredlogs
 
 
 from src.orthologs.pan_orthology_table import read_pan_orthology_table
+from src.syntelog_differences.Extract_Density import Strawberry_Specific_Density
 
 # from src.syntelog_differences.bargraphs import graph_barplot_density_differences
 
@@ -30,111 +31,6 @@ from transposon.density_utils import (
     add_hdf5_indices_to_gene_data,
     info_of_gene,
 )
-
-
-def make_table_for_te_type_and_direction(
-    orthologs,
-    DN_gene_frame_with_indices,
-    RR_gene_frame_with_indices,
-    H4_gene_frame_with_indices,
-    processed_DN_data,
-    processed_RR_data,
-    processed_H4_data,
-    major_group,
-    te_type,
-    direction,
-    window,
-):
-
-    # Add HDF5 indices to a pandas dataframe to enable easier HDF5 TE value
-    # access later
-    # This is used for the special and regular gene set independently
-
-    # TODO refactor this to be outside of the function
-    DN_gene_frame_with_values = add_te_vals_to_gene_info_pandas_from_list_hdf5(
-        DN_gene_frame_with_indices,
-        processed_DN_data,
-        major_group,
-        te_type,
-        direction,
-        window,
-    )
-
-    RR_gene_frame_with_values = add_te_vals_to_gene_info_pandas_from_list_hdf5(
-        RR_gene_frame_with_indices,
-        processed_RR_data,
-        major_group,
-        te_type,
-        direction,
-        window,
-    )
-
-    H4_gene_frame_with_values = add_te_vals_to_gene_info_pandas_from_list_hdf5(
-        H4_gene_frame_with_indices,
-        processed_H4_data,
-        major_group,
-        te_type,
-        direction,
-        window,
-    )
-
-    te_window_direction_str = f"{te_type}_{window}_{direction}"
-
-    DN_gene_frame_with_values.rename(
-        columns={
-            te_window_direction_str: f"DN_{te_window_direction_str}",
-            "Gene_Name": "DN_Gene",
-        },
-        inplace=True,
-    )
-    RR_gene_frame_with_values.rename(
-        columns={
-            te_window_direction_str: f"RR_{te_window_direction_str}",
-            "Gene_Name": "RR_Gene",
-        },
-        inplace=True,
-    )
-
-    H4_gene_frame_with_values.rename(
-        columns={
-            te_window_direction_str: f"H4_{te_window_direction_str}",
-            "Gene_Name": "H4_Gene",
-        },
-        inplace=True,
-    )
-
-    for dataframe in [
-        DN_gene_frame_with_values,
-        RR_gene_frame_with_values,
-        H4_gene_frame_with_values,
-    ]:
-        dataframe.drop(
-            columns=[
-                "Feature",
-                "Start",
-                "Stop",
-                "Strand",
-                "Length",
-                "Index_Val",
-                "Chromosome",
-            ],
-            inplace=True,
-        )
-
-    big_merge = pd.merge(orthologs, RR_gene_frame_with_values, on="RR_Gene")
-    bigga_merge = pd.merge(big_merge, DN_gene_frame_with_values, on="DN_Gene")
-
-    biggest_merge = pd.merge(
-        bigga_merge, H4_gene_frame_with_values, on="H4_Gene", how="left"
-    )
-
-    # MAGIC
-    # NOTE HARD CODED TO HAVE DN MINUS RR
-    biggest_merge["Difference"] = (
-        biggest_merge[f"DN_{te_window_direction_str}"]
-        - biggest_merge[f"RR_{te_window_direction_str}"]
-    )
-    return biggest_merge
 
 
 def get_gene_data_as_list(cleaned_genes):
@@ -243,7 +139,7 @@ if __name__ == "__main__":
     # Manually define our config
     # MAGIC
     orders = ["LTR", "TIR", "Total_TE_Density"]
-    superfamilies = ["Mutator", "Copia", "Gypsy", "hAT", "Tc1-Mariner"]
+    superfamilies = ["Mutator", "Copia", "Gypsy", "hAT"]
     windows = [1000, 2500, 5000, 10000]
     directions = ["Upstream", "Downstream"]
 
@@ -289,49 +185,66 @@ if __name__ == "__main__":
     )
     logger.info("Starting to iterate and create the sub-tables...")
 
+    # Initialize the Strawberry Dataclass to help cut down on duplicate code
     # Start looping to make the tables
-
     for window in windows:
         for direction in directions:
-            for te_type in orders:
-                major_group = "Order"
-                table = make_table_for_te_type_and_direction(
-                    orthologs,
-                    DN_gene_frame_with_indices,
-                    RR_gene_frame_with_indices,
-                    H4_gene_frame_with_indices,
-                    processed_DN_data,
-                    processed_RR_data,
-                    processed_H4_data,
-                    major_group,
-                    te_type,
-                    direction,
-                    window,
-                )
-                file_string = os.path.join(
-                    args.output_dir, f"DN_minus_RR_{te_type}_{window}_{direction}.tsv"
-                )
-                logger.info(f"Writing to file: {file_string}")
-                table.to_csv(file_string, header=True, index=False, sep="\t")
+            for te_list, major_group in [
+                (orders, "Order"),
+                (superfamilies, "Superfamily"),
+            ]:
+                for te_type in te_list:
 
-            # NOTE duplicate code...
-            for te_type in superfamilies:
-                major_group = "Superfamily"
-                table = make_table_for_te_type_and_direction(
-                    orthologs,
-                    DN_gene_frame_with_indices,
-                    RR_gene_frame_with_indices,
-                    H4_gene_frame_with_indices,
-                    processed_DN_data,
-                    processed_RR_data,
-                    processed_H4_data,
-                    major_group,
-                    te_type,
-                    direction,
-                    window,
-                )
-                file_string = os.path.join(
-                    args.output_dir, f"DN_minus_RR_{te_type}_{window}_{direction}.tsv"
-                )
-                logger.info(f"Writing to file: {file_string}")
-                table.to_csv(file_string, header=True, index=False, sep="\t")
+                    H4 = Strawberry_Specific_Density(
+                        H4_gene_frame_with_indices,
+                        processed_H4_data,
+                        "H4",
+                        major_group,
+                        te_type,
+                        direction,
+                        window,
+                    )
+                    DN = Strawberry_Specific_Density(
+                        DN_gene_frame_with_indices,
+                        processed_DN_data,
+                        "DN",
+                        major_group,
+                        te_type,
+                        direction,
+                        window,
+                    )
+                    RR = Strawberry_Specific_Density(
+                        RR_gene_frame_with_indices,
+                        processed_RR_data,
+                        "RR",
+                        major_group,
+                        te_type,
+                        direction,
+                        window,
+                    )
+
+                    for i in [H4, DN, RR]:
+                        i.save_table_to_disk(args.output_dir)
+
+                    # Merge the tables with the ortholog data and subset
+                    big_merge = pd.merge(orthologs, RR.table, on="RR_Gene")
+                    bigga_merge = pd.merge(big_merge, DN.table, on="DN_Gene")
+                    biggest_merge = pd.merge(
+                        bigga_merge, H4.table, on="H4_Gene", how="left"
+                    )
+
+                    # MAGIC
+                    # NOTE HARD CODED TO HAVE DN MINUS RR
+                    te_window_direction_str = f"{te_type}_{window}_{direction}"
+                    biggest_merge["Difference"] = (
+                        biggest_merge[f"DN_{te_window_direction_str}"]
+                        - biggest_merge[f"RR_{te_window_direction_str}"]
+                    )
+
+                    # TODO save the merged table to disk
+                    outfile = os.path.join(
+                        args.output_dir,
+                        f"DN_minus_RR_{te_type}_{window}_{direction}.tsv",
+                    )
+                    logger.info(f"Writing to file: {outfile}")
+                    biggest_merge.to_csv(outfile, header=True, index=False, sep="\t")

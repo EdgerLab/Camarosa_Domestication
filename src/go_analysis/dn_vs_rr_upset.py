@@ -12,35 +12,25 @@ from upsetplot import from_memberships
 from upsetplot import UpSet
 import matplotlib.pyplot as plt
 
+from src.go_analysis.upset_plot import (
+    read_go_enrichment_table,
+    get_nonredundant_terms,
+    decode_te_window_direction_str_go_file,
+)
 
-def read_go_enrichment_table(path):
-    """
-    Read in the preprocessed GO enrichment table
-    """
-    # TODO think about refactoring this to the find_abnormal_genes.py script
-    df = pd.read_csv(path, sep="\t", header="infer")
-    return df
+"""
+Code for generating a DN vs RR UpSet plot, this code takes from upset_plot.py
+because I didn't have time to refactor to remove the H4 code.
 
-
-def get_nonredundant_terms(df):
-    """Return as a set"""
-    x = df.loc[:, ["GO_ID"]]
-
-    # TODO check if we need to change any options in the drop duplicates
-    # function
-    x.drop_duplicates(inplace=True)
-
-    return set(x["GO_ID"].values)
-
-
-def decode_te_window_direction_str_go_file(path):
-    # MAGIC: This is a hacky way to get the name of the TE window direction and
-    # cutoff
-    name = os.path.basename(path).split("_")[2:-2]
-    # name[1] = name[1] + " BP "  # add 'BP' to the window value
-    name.append("Percentile")
-    return name
-
+This code will generate UpSet plots for the DN vs RR DIFFERNCE GO enrichment
+files. That data is the set of DN-RR syntelog pairs that are biased towards one
+genome or the other. So for example the file:
+    'Overrepresented_Difference_Total_TE_Density_1000_Upstream_BiasedTowards_DN_95_density_percentile.tsv'
+    is the file that has all of the genes that have a high TE density for the
+    DN syntelog but almost nothing for the RR syntelog. These are the big TE
+    PAV files.
+    We anticipate that few GO terms will be shared within the UpSet plot
+"""
 
 if __name__ == "__main__":
     path_main = os.path.abspath(__file__)
@@ -49,12 +39,6 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "DN_preprocessed_go_enrichment_table",
-        type=str,
-        help="TODO",
-    )
-
-    parser.add_argument(
-        "H4_preprocessed_go_enrichment_table",
         type=str,
         help="TODO",
     )
@@ -74,6 +58,10 @@ if __name__ == "__main__":
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="set debugging level to DEBUG"
     )
+
+    parser.add_argument(
+        "--syntelog", action="store_true", help="set debugging level to DEBUG"
+    )
     args = parser.parse_args()
     args.DN_preprocessed_go_enrichment_table = os.path.abspath(
         args.DN_preprocessed_go_enrichment_table
@@ -81,23 +69,16 @@ if __name__ == "__main__":
     args.RR_preprocessed_go_enrichment_table = os.path.abspath(
         args.RR_preprocessed_go_enrichment_table
     )
-    args.H4_preprocessed_go_enrichment_table = os.path.abspath(
-        args.H4_preprocessed_go_enrichment_table
-    )
     args.output_dir = os.path.abspath(args.output_dir)
 
     log_level = logging.DEBUG if args.verbose else logging.INFO
     logger = logging.getLogger(__name__)
     coloredlogs.install(level=log_level)
 
-    # TODO implement some sort of check to ensure that the input files have the
-    # same string filename structure
-
     # ---------------------------
     # Read in the data
     DN_table = read_go_enrichment_table(args.DN_preprocessed_go_enrichment_table)
     RR_table = read_go_enrichment_table(args.RR_preprocessed_go_enrichment_table)
-    H4_table = read_go_enrichment_table(args.H4_preprocessed_go_enrichment_table)
 
     # NOTE
     # Plot title is something like "Mutator 2500 Upstream Upper 95 Percentile"
@@ -108,44 +89,55 @@ if __name__ == "__main__":
     name = decode_te_window_direction_str_go_file(
         args.DN_preprocessed_go_enrichment_table
     )
-    plot_title = " ".join(name)
-    filename = "_".join(name)
+    # Shorten the Name because we are performing this code on the DN vs RR
+    # 'difference' files, and the string rule doesn't work out of the box with
+    # those filenames
 
-    # print(args.DN_preprocessed_go_enrichment_table)
-    # print(args.RR_preprocessed_go_enrichment_table)
-    # print(args.H4_preprocessed_go_enrichment_table)
-    # print(filename)
-    # print()
-    # print()
-    # raise ValueError
+    # TODO the DIRECTION IS NOT IN THE FILENAME
 
     # Get the set of terms
     RR_terms = get_nonredundant_terms(RR_table)
     DN_terms = get_nonredundant_terms(DN_table)
-    H4_terms = get_nonredundant_terms(H4_table)
+
+    # Get the shared terms, there should be few, and write them to a file
+    shared_terms = RR_terms.intersection(DN_terms)
+    shared_table_subset = DN_table.loc[DN_table["GO_ID"].isin(shared_terms)]
+    shared_table_subset = shared_table_subset.loc[:, ["GO_ID", "Term"]]
+    shared_table_subset.drop_duplicates(inplace=True)
+
+    if args.syntelog:
+        name = name[:-2]
+        filename = "_".join(name) + "_Syntelog"
+        shared_table_out = os.path.join(
+            args.output_dir,
+            str("Shared_Terms_" + os.path.basename(filename) + ".tsv"),
+        )
+    else:
+        name = name[:-3]
+        filename = "_".join(name) + "_NonSyntelog"
+        shared_table_out = os.path.join(
+            args.output_dir,
+            str("Shared_Terms_" + os.path.basename(filename) + ".tsv"),
+        )
+    filename += ".png"
+    plot_title = " ".join(name)
+    logger.info(f"Saving shared terms to {shared_table_out}")
+    shared_table_subset.to_csv(shared_table_out, sep="\t", index=False)
 
     # Get the count of unique genes in the GO enrichment table
     RR_gene_count = RR_table["RR_Gene"].nunique()
     DN_gene_count = DN_table["DN_Gene"].nunique()
-    H4_gene_count = H4_table["H4_Gene"].nunique()
 
     # Generate the data structure for the UpSet plot
-    data = {"RR": RR_terms, "DN": DN_terms, "H4": H4_terms}
+    data = {"RR": RR_terms, "DN": DN_terms}
     data = from_contents(data)
 
     # Initialize the plot figure object
     fig = plt.figure(figsize=(10, 9))
     upset = UpSet(data, subset_size="count", show_counts=True)
-    upset.style_subsets(present="RR", absent=["DN", "H4"], facecolor="red")
-    upset.style_subsets(present="DN", absent=["RR", "H4"], facecolor="blue")
-    upset.style_subsets(present="H4", absent=["DN", "RR"], facecolor="green")
-    # upset.style_subsets(present="RR", facecolor="red")
-    # upset.style_subsets(present="DN", facecolor="blue")
-    # upset.style_subsets(present="H4", facecolor="green")
-    upset.style_subsets(present=["RR", "DN"], hatch="xx", facecolor="yellow")
-    upset.style_subsets(present=["H4", "DN"], hatch="xx", facecolor="cyan")
-    upset.style_subsets(present=["H4", "RR"], hatch="xx", facecolor="brown")
-    upset.style_subsets(present=["DN", "H4", "RR"], hatch="xx", facecolor="black")
+    upset.style_subsets(present="RR", absent=["DN"], facecolor="red")
+    upset.style_subsets(present="DN", absent=["RR"], facecolor="blue")
+    upset.style_subsets(present=["RR", "DN"], hatch="xx", facecolor="purple")
     upset.plot(fig=fig)
     plt.suptitle(plot_title)
     fig.supxlabel("Number of GO Terms")
@@ -156,7 +148,6 @@ if __name__ == "__main__":
     for i in [
         (RR_gene_count, "red", "RR"),
         (DN_gene_count, "blue", "DN"),
-        (H4_gene_count, "green", "H4"),
     ]:
         gene_count_handles.append(
             plt.Line2D(
