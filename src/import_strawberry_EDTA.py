@@ -33,14 +33,10 @@ def check_nulls(my_df, logger):
         print((my_df[my_df.isnull().any(axis=1)][null_columns].head()))
 
 
-def write_cleaned_transposons(te_pandaframe, output_dir, old_filename, logger):
-    file_name = os.path.join(
-        output_dir,
-        ("Cleaned_" + os.path.splitext(os.path.basename(old_filename))[0]) + ".tsv",
-    )  # MAGIC to get proper extension
-
-    logger.info("Writing cleaned TE file to: %s" % file_name)
-    te_pandaframe.to_csv(file_name, sep="\t", header=True, index=False)
+def write_cleaned_transposons(te_pandaframe, outfile, logger):
+    # outfile = os.path.join(output_dir, outfile)
+    logger.info(f"Writing cleaned TE file to: {outfile}")
+    te_pandaframe.to_csv(outfile, sep="\t", header=True, index=False)
 
 
 def import_transposons(tes_input_path, genome_name, logger):
@@ -228,19 +224,21 @@ if __name__ == "__main__":
     parser.add_argument(
         "TE_input_file", type=str, help="Parent path of TE annotation file"
     )
-    parser.add_argument(
-        "output_dir",
-        type=str,
-        help="Parent directory to output results",
-    )
+    # parser.add_argument(
+    #    "output_dir",
+    #    type=str,
+    #    help="Parent directory to output results",
+    # )
     parser.add_argument("genome_name", type=str)
+    parser.add_argument("cleaned_annotation_file", type=str, help="Name of the output")
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="set debugging level to DEBUG"
     )
 
     args = parser.parse_args()
     args.TE_input_file = os.path.abspath(args.TE_input_file)
-    args.output_dir = os.path.abspath(args.output_dir)
+    args.cleaned_annotation_file = os.path.abspath(args.cleaned_annotation_file)
+    # args.output_dir = os.path.abspath(args.output_dir)
 
     log_level = logging.DEBUG if args.verbose else logging.INFO
     logger = logging.getLogger(__name__)
@@ -253,7 +251,6 @@ if __name__ == "__main__":
     diagnostic_cleaner_helper(cleaned_transposons, args.genome_name, logger)
     write_cleaned_transposons(
         cleaned_transposons,
-        args.output_dir,
-        args.TE_input_file,
+        args.cleaned_annotation_file,
         logger,
     )
