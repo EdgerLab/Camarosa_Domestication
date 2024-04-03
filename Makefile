@@ -379,6 +379,14 @@ test_upset:
 		$(GO_ENRICHMENT_DIR)/Overrepresented_RR_LTR_5000_Upstream_Upper_95_density_percentile.tsv \
 		$(GO_ENRICHMENT_DIR)/Overrepresented_H4_LTR_5000_Upstream_Upper_95_density_percentile.tsv \
 		$(GO_UPSET_PLOT_DIR)
+#-------------------------------------------------------------------#
+# TODO get an outputfilepath variable name
+#
+.PHONY: generate_gene_distance_plots
+generate_gene_distance_plots:
+	python $(ROOT_DIR)/src/gene_distances/gene_distances.py $(DN_CLEAN_GENES) DN $(RESULTS_DIR)/gene_distances
+	python $(ROOT_DIR)/src/gene_distances/gene_distances.py $(RR_CLEAN_GENES) RR $(RESULTS_DIR)/gene_distances
+
 
 
 
