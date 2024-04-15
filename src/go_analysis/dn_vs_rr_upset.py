@@ -32,6 +32,7 @@ genome or the other. So for example the file:
     We anticipate that few GO terms will be shared within the UpSet plot
 """
 
+
 if __name__ == "__main__":
     path_main = os.path.abspath(__file__)
     dir_main = os.path.dirname(path_main)
@@ -105,24 +106,48 @@ if __name__ == "__main__":
     shared_table_subset = shared_table_subset.loc[:, ["GO_ID", "Term"]]
     shared_table_subset.drop_duplicates(inplace=True)
 
+    # Get the non-shared terms
+    RR_unique_terms = RR_table.loc[
+        RR_table["GO_ID"].isin(RR_terms.difference(shared_terms))
+    ]
+    DN_unique_terms = DN_table.loc[
+        DN_table["GO_ID"].isin(DN_terms.difference(shared_terms))
+    ]
+    # print(RR_unique_terms)
+    RR_unique_terms = RR_unique_terms.loc[:, ["GO_ID", "Term"]]
+    RR_unique_terms.drop_duplicates(inplace=True)
+
+    DN_unique_terms = DN_unique_terms.loc[:, ["GO_ID", "Term"]]
+    DN_unique_terms.drop_duplicates(inplace=True)
+
     if args.syntelog:
         name = name[:-2]
         filename = "_".join(name) + "_Syntelog"
-        shared_table_out = os.path.join(
-            args.output_dir,
-            str("Shared_Terms_" + os.path.basename(filename) + ".tsv"),
-        )
     else:
         name = name[:-3]
         filename = "_".join(name) + "_NonSyntelog"
-        shared_table_out = os.path.join(
-            args.output_dir,
-            str("Shared_Terms_" + os.path.basename(filename) + ".tsv"),
-        )
+
+    shared_table_out = os.path.join(
+        args.output_dir,
+        str("Shared_Terms_" + os.path.basename(filename) + ".tsv"),
+    )
+    unique_dn_table_out = os.path.join(
+        args.output_dir,
+        str("Unique_Terms_DN_" + os.path.basename(filename) + ".tsv"),
+    )
+    unique_rr_table_out = os.path.join(
+        args.output_dir,
+        str("Unique_Terms_RR_" + os.path.basename(filename) + ".tsv"),
+    )
     filename += ".png"
     plot_title = " ".join(name)
     logger.info(f"Saving shared terms to {shared_table_out}")
     shared_table_subset.to_csv(shared_table_out, sep="\t", index=False)
+
+    logger.info(f"Saving unique terms to {unique_dn_table_out}")
+    DN_unique_terms.to_csv(unique_dn_table_out, sep="\t", index=False)
+    logger.info(f"Saving unique terms to {unique_rr_table_out}")
+    RR_unique_terms.to_csv(unique_rr_table_out, sep="\t", index=False)
 
     # Get the count of unique genes in the GO enrichment table
     RR_gene_count = RR_table["RR_Gene"].nunique()

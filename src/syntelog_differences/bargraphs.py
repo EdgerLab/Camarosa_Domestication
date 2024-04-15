@@ -212,6 +212,13 @@ if __name__ == "__main__":
     coloredlogs.install(level=log_level)
 
     table = pd.read_csv(args.preprocessed_density_table, header="infer", sep="\t")
+
+    # Ensure that the table is not missing any DN or RR genes
+    table.dropna(axis="rows", how="any", subset=["DN_Gene", "RR_Gene"], inplace=True)
+
+    # Make sure that every entry in the syntelog column is valid, i.e we don't
+    # want any BLAST hits.
+    table = table.loc[table["DN_RR_Syntelog_E_Value"].notna()]
     te_type, window, direction = decode_te_window_direction_str(
         os.path.basename(args.preprocessed_density_table)
     )

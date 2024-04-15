@@ -139,7 +139,7 @@ if __name__ == "__main__":
     # Manually define our config
     # MAGIC
     orders = ["LTR", "TIR", "Total_TE_Density"]
-    superfamilies = ["Mutator", "Copia", "Gypsy", "hAT"]
+    superfamilies = ["Mutator", "Copia", "Gypsy", "hAT", "CACTA"]
     windows = [1000, 2500, 5000, 10000]
     directions = ["Upstream", "Downstream"]
 
@@ -151,6 +151,13 @@ if __name__ == "__main__":
 
     # Read the universal syntelog table
     orthologs = read_pan_orthology_table(args.syntelog_file)
+
+    # NB dropping the these columns now to avoid pandas.merge conflicts later
+    orthologs.drop(
+        labels=["RR_Chromosome", "DN_Chromosome", "H4_Chromosome"],
+        axis=1,
+        inplace=True,
+    )
 
     # Read cleaned genes for the given genome as pandas
     cleaned_RR_genes = import_filtered_genes(args.RR_gene_data, logger)
@@ -222,13 +229,31 @@ if __name__ == "__main__":
                         direction,
                         window,
                     )
+                    for density, name in [(H4, "H4"), (DN, "DN"), (RR, "RR")]:
+                        density.table.rename(
+                            {
+                                "Chromosome": f"{name}_Chromosome",
+                                "Start": f"{name}_Start",
+                                "Stop": f"{name}_Stop",
+                                "Strand": f"{name}_Strand",
+                                "Length": f"{name}_Length",
+                            },
+                            axis=1,
+                            inplace=True,
+                        )
 
+                    # This is the general table for each genome, i.e
+                    # DN_1KB_Upstream_LTR etc...
                     for i in [H4, DN, RR]:
                         i.save_table_to_disk(args.output_dir)
 
-                    # Merge the tables with the ortholog data and subset
-                    big_merge = pd.merge(orthologs, RR.table, on="RR_Gene")
-                    bigga_merge = pd.merge(big_merge, DN.table, on="DN_Gene")
+                    # Merge the tables with the ortholog data and subset,
+                    # because we are interested in the syntelog tables at this
+                    # point... We will keep merging against the ortholog table
+                    big_merge = pd.merge(orthologs, RR.table, on="RR_Gene", how="left")
+                    bigga_merge = pd.merge(
+                        big_merge, DN.table, on="DN_Gene", how="left"
+                    )
                     biggest_merge = pd.merge(
                         bigga_merge, H4.table, on="H4_Gene", how="left"
                     )

@@ -216,6 +216,10 @@ if __name__ == "__main__":
             logger,
         )
 
+        # TODO TUESDAY, get a count of genes and the cutoff value, and get the
+        # count of genes with arabidopsis orthologs, then plot this
+        # information, alternatively save the data to a file and plot it later.
+
         # Merge in the ortholog table because the individual genome files do
         # not have the ortholog information in them
         # Subset the table so that each entry MUST have an Arabidopsis gene
