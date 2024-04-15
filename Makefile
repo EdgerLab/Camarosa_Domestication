@@ -283,7 +283,16 @@ generate_super_dense_gene_tables: $(STRAWBERRY_ORTHOLOG_TABLE) $(SUPER_DENSE_CUT
 .PHONY: test_cutoff
 test_cutoff:
 	python $(ROOT_DIR)/src/go_analysis/find_abnormal_genes.py $(DENSITY_TABLE_DIR)/RR_Total_TE_Density_1000_Downstream.tsv 99 1 $(STRAWBERRY_ORTHOLOG_TABLE) $(SUPER_DENSE_CUTOFF_TABLE_DIR)
-	#python $(ROOT_DIR)/src/go_analysis/find_abnormal_genes.py $(DENSITY_TABLE_DIR)/DN_minus_RR_Copia_1000_Downstream.tsv 99 1 $(SUPER_DENSE_CUTOFF_TABLE_DIR)
+	python $(ROOT_DIR)/src/go_analysis/find_abnormal_genes.py $(DENSITY_TABLE_DIR)/DN_minus_RR_Total_TE_Density_1000_Downstream.tsv 99 1 $(STRAWBERRY_ORTHOLOG_TABLE) $(SUPER_DENSE_CUTOFF_TABLE_DIR)
+
+
+# Define a target to create plots of the COUNTS of genes in the top X percentile, with the cutoff value, and a count of the remaining genes with Arabidopsis orthologs
+# TODO verify that this find command is working as expected.
+.PHONY: generate_super_dense_count_plots
+generate_super_dense_count_plots: $(SUPER_DENSE_CUTOFF_TABLE_DIR)
+	find $(SUPER_DENSE_CUTOFF_TABLE_DIR) -type f -name '*.tsv' | python $(ROOT_DIR)/src/go_analysis/plot_abnormal_genes.py {} $(SUPER_DENSE_CUTOFF_TABLE_DIR)
+	#python $(ROOT_DIR)/src/go_analysis/plot_abnormal_genes.py $(SUPER_DENSE_CUTOFF_TABLE_DIR)/RR_Total_TE_Density_1000_Downstream_Upper_95_density_percentile.tsv $(STRAWBERRY_ORTHOLOG_TABLE) $(ROOT_DIR)/results
+
 
 # Define a target to run TopGO on the super dense gene output files
 .PHONY: generate_go_enrichments
@@ -326,8 +335,8 @@ extract_diff_total_unique_enriched_GO_terms:
 generate_rr_dn_nondiff_upset_plot: | $(GO_UPSET_NONSYNTENIC_PLOT_DIR)
 	cat $(GO_NONDIFF_UPSET_KEY) | xargs -n2 sh -c 'python $(ROOT_DIR)/src/go_analysis/dn_vs_rr_upset.py $$1 $$2 $(GO_UPSET_NONSYNTENIC_PLOT_DIR)' sh
 	
-.PHONY: test_nondiff
-test_nondiff: | $(GO_UPSET_NONSYNTENIC_PLOT_DIR)
+.PHONY: test_nondiff_upset
+test_nondiff_upset: | $(GO_UPSET_NONSYNTENIC_PLOT_DIR)
 	python $(ROOT_DIR)/src/go_analysis/dn_vs_rr_upset.py $(GO_ENRICHMENT_DIR)/Overrepresented_RR_LTR_5000_Upstream_Upper_95_density_percentile.tsv $(GO_ENRICHMENT_DIR)/Overrepresented_DN_LTR_5000_Upstream_Upper_95_density_percentile.tsv $(GO_UPSET_NONSYNTENIC_PLOT_DIR)
 
 # TODO this is untested, need to look at the general command, which was using the `find` command, perhas erroneously.
