@@ -12,6 +12,9 @@ module purge
 module load GCC/11.3.0 STAR/2.7.10b
 
 # Files:
+
+# NOTE MAY need to generate GFFread gene annotation for the analogous Del Norte script.
+# gffread/gffread -E Strawberry_Domestication/data/Genomes/Del_Norte/DN_GeneAnnotation.gff -T -o- > Strawberry_Domestication/data/Genomes/Del_Norte/DN_GeneAnnotation_GFFRead.gtf
 FASTA=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Royal_Royce/RR.fa
 ANNOTATION=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Royal_Royce/RR_GeneAnnotation_GFFRead.gtf
 
