@@ -1,0 +1,45 @@
+#!/bin/bash -login
+#SBATCH -J genome_index_DN
+#SBATCH --time=02:00:00
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=2
+#SBATCH --mem-per-cpu=20G
+#SBATCH -o /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/logs/rna_seq_logs/genome_index_DN.out
+# -------------------------------
+
+# Load Modules
+module purge
+module load GCC/11.3.0 STAR/2.7.10b
+
+# Files:
+
+# NOTE MAY need to generate GFFread gene annotation for the analogous Del Norte script.
+# gffread/gffread -E Strawberry_Domestication/data/Genomes/Del_Norte/DN_GeneAnnotation.gff -T -o- > Strawberry_Domestication/data/Genomes/Del_Norte/DN_GeneAnnotation_GFFRead.gtf
+FASTA=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Del_Norte/DN.fa
+ANNOTATION=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Del_Norte/DN_GeneAnnotation_GFFRead.gtf
+
+# genomeDir is output dir, dir must be clear & created prior
+genome_index_out_dir=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/rna_seq/genome_index_DN
+rm -rf $genome_index_out_dir
+mkdir -p $genome_index_out_dir
+cd $genome_index_out_dir
+
+# Build a Genome Index for STAR
+STAR --runThreadN 2 \
+--runMode genomeGenerate \
+--genomeDir $genome_index_out_dir \
+--genomeFastaFiles $FASTA \
+--sjdbGTFfile $ANNOTATION \
+--genomeSAindexNbases 12 \
+--sjdbOverhang 149
+
+# OLD with GFF
+## Build a Genome Index for STAR
+#STAR --runThreadN 2 \
+#--runMode genomeGenerate \
+#--genomeDir $genome_index_out_dir \
+#--genomeFastaFiles $FASTA \
+#--sjdbGTFfile $ANNOTATION \
+#--genomeSAindexNbases 12 \
+# --sjdbGTFtagExonParentTranscript Parent \
+#--sjdbOverhang 149
