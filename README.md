@@ -25,3 +25,14 @@ https://genomevolution.org/r/1r9uy
 
 DN
 https://genomevolution.org/r/1r9uk
+
+
+# EDTA Install:
+```
+- module purge
+- module load Conda/3
+- conda activate EDTA
+- Install from YML file
+- conda install bedtools
+- conda install samtools
+```
