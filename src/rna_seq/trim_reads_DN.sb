@@ -9,7 +9,7 @@
 module purge
 module load Trimmomatic/0.38-Java-1.8.0_162
 
-echo $HOSTNAME
+echo "My hostname:" $HOSTNAME
 echo "My SLURM_ARRAY_TASK_ID:" $SLURM_ARRAY_TASK_ID
 
 # Define the paths for the output, adapter sequence, and manifest (files) to run trimmomatic.
@@ -25,8 +25,10 @@ LINE_FOR_JOB=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "$GUIDE_FILE")
 R1=$(echo "$LINE_FOR_JOB" | awk -F'\t' '{print $1}')
 R1_BASE=`basename $R1 .fastq.gz`
 echo "My R1:" $R1
+echo ""
 
-echo "Starting Trimmomatic... \n"
+echo "Starting Trimmomatic..."
+echo ""
 cd $OUT_DIR  # cd to output dir to store results
 
 java -jar $EBROOTTRIMMOMATIC/trimmomatic-0.38.jar SE -threads 1 $R1 ${R1_BASE}_trimmed.fq.gz ILLUMINACLIP:${ADAPTER_FILE}:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:20
