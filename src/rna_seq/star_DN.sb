@@ -1,10 +1,10 @@
 #!/bin/bash -login
-#SBATCH -J map_RR
+#SBATCH -J map_DN
 #SBATCH --time=12:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
 #SBATCH --mem-per-cpu=8G
-#SBATCH --output=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/logs/rna_seq_logs/RR_starmap.log
+#SBATCH --output=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/logs/rna_seq_logs/DN_starmap.log
 
 echo $SLURM_JOB_ID
 
@@ -16,8 +16,8 @@ module load GCC/11.3.0 STAR/2.7.10b
 # Define the paths for the output, pre-calculated genome index, and manifest (files) to run STAR.
 ROOT_DIR='/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication'
 OUTPUT_DIR=${ROOT_DIR}/results/rna_seq/mapping/
-GENOME_INDEX_DIR=${ROOT_DIR}/results/rna_seq/genome_index_RR/
-MANIFEST=${ROOT_DIR}/src/rna_seq/starmap_manifest_RR.tsv
+GENOME_INDEX_DIR=${ROOT_DIR}/results/rna_seq/genome_index_DN/
+MANIFEST=${ROOT_DIR}/src/rna_seq/starmap_manifest_DN.tsv
 
 mkdir -p $OUTPUT_DIR
 
