@@ -1,15 +1,3 @@
-/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/untrimmed/RR2_C_R1.fastq.gz	/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/untrimmed/RR2_C_R2.fastq.gz
-/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/untrimmed/RR3_C_R1.fastq.gz	/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/untrimmed/RR3_C_R2.fastq.gz
-/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/untrimmed/RR4_C_R1.fastq.gz	/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/untrimmed/RR4_C_R2.fastq.gz
-
-
-
-/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/untrimmed/DN_C1_S11_L003_R1_001.fastq.gz	/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/untrimmed/DN_C1_S11_L003_R2_001.fastq.gz
-
-/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/untrimmed/DN_C2_S12_L003_R1_001.fastq.gz	/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/untrimmed/DN_C2_S12_L003_R2_001.fastq.gz
-/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/untrimmed/DN_C3_S2_L003_R2_001.fastq.gz	/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/untrimmed/DN_C3_S2_L003_R1_001.fastq.gz
-
-############# TODO remove?
-#/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/untrimmed/RR2_W_R1.fastq.gz	/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/untrimmed/RR2_W_R2.fastq.gz
-#/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/untrimmed/RR3_W_R1.fastq.gz	/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/untrimmed/RR3_W_R2.fastq.gz
-#/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/untrimmed/RR4_W_R1.fastq.gz	/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/untrimmed/RR4_W_R2.fastq.gz
+/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/raw_data/Royal_Royce/R1_S22_L004_R1_001.fastq.gz	/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/raw_data/Royal_Royce/R1_S22_L004_R2_001.fastq.gz
+/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/raw_data/Royal_Royce/R2_S23_L004_R1_001.fastq.gz	/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/raw_data/Royal_Royce/R2_S23_L004_R2_001.fastq.gz
+/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/raw_data/Royal_Royce/R3_S24_L004_R1_001.fastq.gz	/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/raw_data/Royal_Royce/R3_S24_L004_R2_001.fastq.gz

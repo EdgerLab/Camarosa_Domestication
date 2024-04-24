@@ -12,8 +12,8 @@ module load Trimmomatic/0.38-Java-1.8.0_162
 echo $HOSTNAME
 echo "My SLURM_ARRAY_TASK_ID:" $SLURM_ARRAY_TASK_ID
 
-#RAW_READS_DIR='/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/raw_data/Royal_Royce'
 OUT_DIR='/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/trimmed'
+ADAPTER_FILE='/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/Trimmomatic_adapter/TrueSeq3-SE.fa'
 
 GUIDE_FILE='/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/src/rna_seq/RR_PE_trim_manifest.tsv'
 
@@ -33,3 +33,8 @@ echo "My R2:" $R2
 cd $OUT_DIR
 # TODO DOUBLE-CHECK these parameters before doing the complete run
 java -jar $EBROOTTRIMMOMATIC/trimmomatic-0.38.jar PE -threads 1 $R1 $R2 ${R1_BASE}_trimmed_P1.fq.gz ${R1_BASE}_trimmed_U1.fq.gz ${R2_BASE}_trimmed_P2.fq.gz ${R2_BASE}_trimmed_U2.fq.gz ILLUMINACLIP:/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/Trimmomatic_adapter/TruSeq3-PE.fa:2:30:10 HEADCROP:15 AVGQUAL:25 TRAILING:30
+
+
+java -jar $EBROOTTRIMMOMATIC/trimmomatic-0.38.jar SE -phred33 input.fq.gz output.fq.gz ILLUMINACLIP:TruSeq3-SE:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36
+
+
