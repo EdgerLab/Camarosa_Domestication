@@ -13,14 +13,14 @@ module purge
 module load GCC/11.3.0 STAR/2.7.10b
 #SAMtools/1.16.1
 
-# Files:
-MANIFEST=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/src/rna_seq/starmap_manifest.tsv
-GENOME_INDEX_DIR=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/rna_seq/genome_index_RR/
-OUTPUT_DIR=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/rna_seq/mapping/
+# Define the paths for the output, pre-calculated genome index, and manifest (files) to run STAR.
+ROOT_DIR='/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication'
+OUTPUT_DIR=${ROOT_DIR}/results/rna_seq/mapping/
+GENOME_INDEX_DIR=${ROOT_DIR}/results/rna_seq/genome_index_RR/
+MANIFEST=${ROOT_DIR}/src/rna_seq/starmap_manifest.tsv
 
 mkdir -p $OUTPUT_DIR
 
-# New STAR
 STAR --runThreadN 4 \
 --genomeDir $GENOME_INDEX_DIR \
 --readFilesManifest $MANIFEST \
