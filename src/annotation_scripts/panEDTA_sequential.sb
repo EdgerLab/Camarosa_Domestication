@@ -4,7 +4,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
 #SBATCH --mem-per-cpu=8G
-#SBATCH --output=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/logs/PanEDTA_sequential_RR_CDS_ONLY.out
+#SBATCH --output=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/logs/PanEDTA_sequential.out
 #--------------------------------------------------------
 # Define base paths
 EDTA_DIR=/mnt/research/edgerpat_lab/EDTA
