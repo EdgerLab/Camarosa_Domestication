@@ -1,6 +1,6 @@
 #!/bin/bash -login
 #SBATCH -J PanEDTA
-#SBATCH --time=96:00:00
+#SBATCH --time=100:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
 #SBATCH --mem-per-cpu=8G
@@ -32,4 +32,4 @@ GENOME_LIST=${OUT_DIR}/pangenome_only_fastas.txt
 # NOTE you must move the results from the solo annotations to the $OUT_DIR before you execute this script
 # Existing EDTA annotations will be recognized and reused. This script expects that as the time limit and RAM request is lower.
 # If you want to do it all in one shot you need like 800-1000Gb of RAM.
-sh $EDTA_DIR/panEDTA.sh -g $GENOME_LIST -t 16 -a 1 -c /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Fixed_Fastas/Royal_Royce/RR_CDS_NewNames.fa
+sh $EDTA_DIR/panEDTA.sh -g $GENOME_LIST -t 16 -a 1
