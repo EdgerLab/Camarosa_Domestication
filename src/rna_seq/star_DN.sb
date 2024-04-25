@@ -15,7 +15,7 @@ module load GCC/11.3.0 STAR/2.7.10b
 
 # Define the paths for the output, pre-calculated genome index, and manifest (files) to run STAR.
 ROOT_DIR='/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication'
-OUTPUT_DIR=${ROOT_DIR}/results/rna_seq/mapping/
+OUTPUT_DIR=${ROOT_DIR}/results/rna_seq/mapping_DN/
 GENOME_INDEX_DIR=${ROOT_DIR}/results/rna_seq/genome_index_DN/
 MANIFEST=${ROOT_DIR}/src/rna_seq/starmap_manifest_DN.tsv
 
