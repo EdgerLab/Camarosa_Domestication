@@ -1,0 +1,16 @@
+
+The following have been reloaded with a version change:
+  1) ncurses/6.0 => ncurses/6.1
+
+
+The following have been reloaded with a version change:
+  1) ncurses/6.1 => ncurses/6.0
+
+34648339
+	STAR --runThreadN 4 --genomeDir /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/rna_seq/genome_index_RR/ --readFilesManifest /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/src/rna_seq/starmap_manifest_RR.tsv --readFilesCommand gunzip -c --outFilterMultimapNmax 1 --outFileNamePrefix /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/rna_seq/mapping_RR/ --outSAMtype BAM Unsorted
+	STAR version: 2.7.10b   compiled: 2023-09-22T17:53:50-0400 dev-intel18:/tmp/panchyni/EASYBUILD/STAR/2.7.10b/GCC-11.3.0/STAR-2.7.10b/source
+Apr 25 19:17:10 ..... started STAR run
+Apr 25 19:17:10 ..... loading genome
+Apr 25 19:17:15 ..... started mapping
+Apr 25 23:51:34 ..... finished mapping
+Apr 25 23:52:49 ..... finished successfully

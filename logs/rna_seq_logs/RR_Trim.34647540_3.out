@@ -1,0 +1,23 @@
+
+The following have been reloaded with a version change:
+  1) ncurses/6.0 => ncurses/6.1
+
+
+The following have been reloaded with a version change:
+  1) ncurses/6.1 => ncurses/6.0
+
+To execute Trimmomatic run: java -jar $EBROOTTRIMMOMATIC/trimmomatic-0.38.jar
+    My hostname: skl-024
+My SLURM_ARRAY_TASK_ID: 3
+My R1: /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/raw_data/Royal_Royce/R3_S24_L004_R1_001.fastq.gz
+My R2: /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/raw_data/Royal_Royce/R3_S24_L004_R2_001.fastq.gz
+
+Starting Trimmomatic...
+
+TrimmomaticPE: Started with arguments:
+ -threads 1 /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/raw_data/Royal_Royce/R3_S24_L004_R1_001.fastq.gz /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/raw_data/Royal_Royce/R3_S24_L004_R2_001.fastq.gz R3_S24_L004_R1_001_trimmed_P1.fq.gz R3_S24_L004_R1_001_trimmed_U1.fq.gz R3_S24_L004_R2_001_trimmed_P2.fq.gz R3_S24_L004_R2_001_trimmed_U2.fq.gz ILLUMINACLIP:/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/adapter_sequences/Nextera.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:20
+Using Medium Clipping Sequence: 'CTGTCTCTTATACACATCT'
+ILLUMINACLIP: Using 0 prefix pairs, 1 forward/reverse sequences, 0 forward only sequences, 0 reverse only sequences
+Quality encoding detected as phred33
+Input Read Pairs: 81773932 Both Surviving: 81219849 (99.32%) Forward Only Surviving: 416381 (0.51%) Reverse Only Surviving: 116144 (0.14%) Dropped: 21558 (0.03%)
+TrimmomaticPE: Completed successfully

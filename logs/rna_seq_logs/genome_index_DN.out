@@ -1,0 +1,24 @@
+
+The following have been reloaded with a version change:
+  1) ncurses/6.0 => ncurses/6.1
+
+
+The following have been reloaded with a version change:
+  1) ncurses/6.1 => ncurses/6.0
+
+	STAR --runThreadN 2 --runMode genomeGenerate --genomeDir /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/rna_seq/genome_index_DN --genomeFastaFiles /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Del_Norte/DN.fa --sjdbGTFfile /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Del_Norte/DN_GeneAnnotation_GFFRead.gtf --genomeSAindexNbases 12 --sjdbOverhang 149
+	STAR version: 2.7.10b   compiled: 2023-09-22T17:53:50-0400 dev-intel18:/tmp/panchyni/EASYBUILD/STAR/2.7.10b/GCC-11.3.0/STAR-2.7.10b/source
+Apr 24 16:47:21 ..... started STAR run
+Apr 24 16:47:21 ... starting to generate Genome files
+Apr 24 16:47:41 ..... processing annotations GTF
+Apr 24 16:47:51 ... starting to sort Suffix Array. This may take a long time...
+Apr 24 16:47:56 ... sorting Suffix Array chunks and saving them to disk...
+Apr 24 17:05:52 ... loading chunks from disk, packing SA...
+Apr 24 17:06:08 ... finished generating suffix array
+Apr 24 17:06:08 ... generating Suffix Array index
+Apr 24 17:06:31 ... completed Suffix Array index
+Apr 24 17:06:32 ..... inserting junctions into the genome indices
+Apr 24 17:19:22 ... writing Genome to disk ...
+Apr 24 17:19:22 ... writing Suffix Array to disk ...
+Apr 24 17:19:26 ... writing SAindex to disk
+Apr 24 17:19:27 ..... finished successfully

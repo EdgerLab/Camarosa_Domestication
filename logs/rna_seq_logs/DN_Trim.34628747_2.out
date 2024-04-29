@@ -1,0 +1,23 @@
+
+The following have been reloaded with a version change:
+  1) ncurses/6.0 => ncurses/6.1
+
+
+The following have been reloaded with a version change:
+  1) ncurses/6.1 => ncurses/6.0
+
+To execute Trimmomatic run: java -jar $EBROOTTRIMMOMATIC/trimmomatic-0.38.jar
+    My hostname: skl-025
+My SLURM_ARRAY_TASK_ID: 2
+My R1: /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/raw_data/Del_Norte/DN_YL2_S51_L007_R1_001.fastq.gz
+
+Starting Trimmomatic...
+
+TrimmomaticSE: Started with arguments:
+ -threads 1 /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/raw_data/Del_Norte/DN_YL2_S51_L007_R1_001.fastq.gz DN_YL2_S51_L007_R1_001_trimmed.fq.gz ILLUMINACLIP:/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/expression/adapter_sequences/TruSeq3-SE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:20
+Using Long Clipping Sequence: 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTA'
+Using Long Clipping Sequence: 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC'
+ILLUMINACLIP: Using 0 prefix pairs, 2 forward/reverse sequences, 0 forward only sequences, 0 reverse only sequences
+Quality encoding detected as phred33
+Input Reads: 49801917 Surviving: 49765069 (99.93%) Dropped: 36848 (0.07%)
+TrimmomaticSE: Completed successfully
