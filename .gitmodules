@@ -1,3 +1,6 @@
 [submodule "TE_Density"]
 	path = TE_Density
 	url = https://github.com/sjteresi/TE_Density
+[submodule "EDTA"]
+	path = EDTA
+	url = https://github.com/oushujun/EDTA
