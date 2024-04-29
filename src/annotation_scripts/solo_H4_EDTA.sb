@@ -7,7 +7,7 @@
 #SBATCH -o /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/logs/EDTA/solo_EDTA_H4.out
 #--------------------------------------------------------
 
-EDTA_DIR=/mnt/research/edgerpat_lab/EDTA
+EDTA_DIR=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/EDTA
 
 module purge
 module load Conda/3 # GCC/6.4.0-2.28 OpenMPI/2.1.2 SAMtools/1.9 BEDTools/2.27.1
