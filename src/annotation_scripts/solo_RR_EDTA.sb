@@ -2,7 +2,7 @@
 #SBATCH -J EDTA_RR
 #SBATCH --time=96:00:00
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=16
+#SBATCH --cpus-per-task=18
 #SBATCH --mem-per-cpu=8G
 #SBATCH -o /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/logs/EDTA/solo_EDTA_RR.out
 #--------------------------------------------------------
@@ -18,7 +18,7 @@ mkdir -p $OUT_DIR
 cd $OUT_DIR
 
 # Run EDTA
-perl $EDTA_DIR/EDTA.pl --genome /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Fixed_Fastas/Royal_Royce/RR_NewNames.fa --cds /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Fixed_Fastas/Royal_Royce/RR_CDS_NewNames.fa --sensitive 1 --anno 1 --overwrite 1 --threads 16
+perl $EDTA_DIR/EDTA.pl --genome /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Fixed_Fastas/Royal_Royce/RR_NewNames.fa --cds /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Fixed_Fastas/Royal_Royce/RR_CDS_NewNames.fa --sensitive 1 --anno 1 --overwrite 1 --threads 18
 
 # export PYTHONNOUSERSITE=1
 # singularity exec /mnt/research/edgerpat_lab/Scotty/EDTA.sif perl $EDTA_DIR/EDTA.pl --genome /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Fixed_Fastas/Royal_Royce/RR_NewNames.fa --sensitive 1 --anno 1 --overwrite 1 --threads 12
