@@ -11,15 +11,11 @@ EDTA_DIR=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/EDTA
 
 module purge
 module load Conda/3 # GCC/6.4.0-2.28 OpenMPI/2.1.2 SAMtools/1.9 BEDTools/2.27.1
-conda activate EDTA  # activate the conda environment of packages
+conda activate EDTA_Old  # activate the conda environment of packages
 
 OUT_DIR=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/solo_EDTA/solo_DN
 mkdir -p $OUT_DIR
 cd $OUT_DIR
 
-
 # Run EDTA
 perl $EDTA_DIR/EDTA.pl --genome /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Fixed_Fastas/Del_Norte/DN_NewNames.fa --cds /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Fixed_Fastas/Del_Norte/DN_CDS_NewNames.fa --sensitive 1 --anno 1 --overwrite 1 --threads 16
-
-#export PYTHONNOUSERSITE=1
-#singularity exec /mnt/research/edgerpat_lab/Scotty/EDTA.sif perl $EDTA_DIR/EDTA.pl --genome /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Fixed_Fastas/Del_Norte/DN_NewNames.fa --sensitive 1 --anno 1 --overwrite 1 --threads 12
