@@ -277,13 +277,15 @@ $(GO_UPSET_PLOT_DIR):
 .PHONY: generate_super_dense_gene_tables
 generate_super_dense_gene_tables: $(STRAWBERRY_ORTHOLOG_TABLE) $(SUPER_DENSE_CUTOFF_TABLE_DIR)
 	mkdir -p $(SUPER_DENSE_CUTOFF_TABLE_DIR)/no_Arabidopsis
+	mkdir -p $(SUPER_DENSE_CUTOFF_TABLE_DIR)/ortholog_analysis
 	ls $(DENSITY_TABLE_DIR)/*.tsv | parallel python $(ROOT_DIR)/src/go_analysis/find_abnormal_genes.py {} 95 5 $^
 
 # TODO remove in future, DEV testing
 .PHONY: test_cutoff
 test_cutoff:
-	python $(ROOT_DIR)/src/go_analysis/find_abnormal_genes.py $(DENSITY_TABLE_DIR)/RR_Total_TE_Density_1000_Downstream.tsv 99 1 $(STRAWBERRY_ORTHOLOG_TABLE) $(SUPER_DENSE_CUTOFF_TABLE_DIR)
-	python $(ROOT_DIR)/src/go_analysis/find_abnormal_genes.py $(DENSITY_TABLE_DIR)/DN_minus_RR_Total_TE_Density_1000_Downstream.tsv 99 1 $(STRAWBERRY_ORTHOLOG_TABLE) $(SUPER_DENSE_CUTOFF_TABLE_DIR)
+	python $(ROOT_DIR)/src/go_analysis/find_abnormal_genes.py $(DENSITY_TABLE_DIR)/RR_Total_TE_Density_5000_Upstream.tsv 90 10 $(STRAWBERRY_ORTHOLOG_TABLE) $(SUPER_DENSE_CUTOFF_TABLE_DIR)
+	# python $(ROOT_DIR)/src/go_analysis/find_abnormal_genes.py $(DENSITY_TABLE_DIR)/RR_TIR_5000_Upstream.tsv 90 10 $(STRAWBERRY_ORTHOLOG_TABLE) $(SUPER_DENSE_CUTOFF_TABLE_DIR)
+	#python $(ROOT_DIR)/src/go_analysis/find_abnormal_genes.py $(DENSITY_TABLE_DIR)/DN_minus_RR_Total_TE_Density_1000_Downstream.tsv 99 1 $(STRAWBERRY_ORTHOLOG_TABLE) $(SUPER_DENSE_CUTOFF_TABLE_DIR)
 
 
 # Define a target to create plots of the COUNTS of genes in the top X percentile, with the cutoff value, and a count of the remaining genes with Arabidopsis orthologs

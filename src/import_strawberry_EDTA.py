@@ -224,11 +224,6 @@ if __name__ == "__main__":
     parser.add_argument(
         "TE_input_file", type=str, help="Parent path of TE annotation file"
     )
-    # parser.add_argument(
-    #    "output_dir",
-    #    type=str,
-    #    help="Parent directory to output results",
-    # )
     parser.add_argument("genome_name", type=str)
     parser.add_argument("cleaned_annotation_file", type=str, help="Name of the output")
     parser.add_argument(
