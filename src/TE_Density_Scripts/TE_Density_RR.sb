@@ -4,7 +4,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=10
 #SBATCH --mem-per-cpu=40G
-#SBATCH -o /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/logs/RR_Density.out
+#SBATCH -o /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/logs/TE_Density/RR_Density.out
 #--------------------------------------------------------
 TE_DIR=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/TE_Density
 IN_DATA_DIR=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/cleaned_annotations
