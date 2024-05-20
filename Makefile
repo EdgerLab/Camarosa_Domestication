@@ -16,6 +16,37 @@ DATA_DIR := $(ROOT_DIR)/data
 GENOMES_DIR := $(DATA_DIR)/Genomes
 RESULTS_DIR := $(ROOT_DIR)/results
 
+# TEs
+DEV_H4_UNCLEAN_TEs := $(RESULTS_DIR)/Pan_Annotation/H4_NewNames.fa.mod.EDTA.TEanno.gff3
+DEV_DN_UNCLEAN_TEs := $(RESULTS_DIR)/Pan_Annotation/DN_NewNames.fa.mod.EDTA.TEanno.gff3
+DEV_RR_UNCLEAN_TEs := $(RESULTS_DIR)/Pan_Annotation/RR_NewNames.fa.mod.EDTA.TEanno.gff3
+DEV_FVI_UNCLEAN_TEs := $(RESULTS_DIR)/Pan_Annotation/FVI_NewNames.fa.mod.EDTA.TEanno.gff3
+DEV_FNI_UNCLEAN_TEs := $(RESULTS_DIR)/Pan_Annotation/FNI_NewNames.fa.mod.EDTA.TEanno.gff3
+DEV_FII_UNCLEAN_TEs := $(RESULTS_DIR)/Pan_Annotation/FII_NewNames.fa.mod.EDTA.TEanno.gff3
+
+setup:
+	mkdir -p requirements doc results src data logs logs/TE_Density logs/EDTA
+
+sync_hpcc_to_onedrive:
+	# MUST be standing in root folder for project
+	ml Rclone
+	rclone sync . remote:HPCC_Mirror/Strawberry_Domestication/ --exclude=.git/** -P -L
+
+#sync_onedrive_to_hpcc:
+	# MUST be standing in root folder for project
+	#ml Rclone
+	#rclone sync remote:HPCC_Mirror/Strawberry_Domestication/ . --exclude=.git/** -P
+
+filter_TEs:
+	@echo Filtering strawberry TEs into appropriate format for TE Density
+	mkdir -p $(RESULTS_DIR)/cleaned_annotations/
+	python $(ROOT_DIR)/src/import_strawberry_EDTA.py $(DEV_H4_UNCLEAN_TEs) $(RESULTS_DIR)/cleaned_annotations/ H4
+	python $(ROOT_DIR)/src/import_strawberry_EDTA.py $(DEV_DN_UNCLEAN_TEs) $(RESULTS_DIR)/cleaned_annotations/ DN
+	python $(ROOT_DIR)/src/import_strawberry_EDTA.py $(DEV_RR_UNCLEAN_TEs) $(RESULTS_DIR)/cleaned_annotations/ RR
+	python $(ROOT_DIR)/src/import_strawberry_EDTA.py $(DEV_FVI_UNCLEAN_TEs) $(RESULTS_DIR)/cleaned_annotations/ FVI
+	python $(ROOT_DIR)/src/import_strawberry_EDTA.py $(DEV_FNI_UNCLEAN_TEs) $(RESULTS_DIR)/cleaned_annotations/ FNI
+	python $(ROOT_DIR)/src/import_strawberry_EDTA.py $(DEV_FII_UNCLEAN_TEs) $(RESULTS_DIR)/cleaned_annotations/ FII
+
 #-------------------------------------------------------------------#
 # Prepare the gene and TE annotation inputs for TE Density
 
