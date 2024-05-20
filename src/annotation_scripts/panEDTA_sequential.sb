@@ -1,5 +1,5 @@
 #!/bin/bash -login
-#SBATCH -J PanEDTA
+#SBATCH -J 222_PanEDTA
 #SBATCH --time=100:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=10
@@ -7,7 +7,6 @@
 #SBATCH --output=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/logs/EDTA/PanEDTA_sequential.out
 #--------------------------------------------------------
 # Define base paths
-# TODO
 EDTA_DIR=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/EDTA
 
 #--------------------------------------------------------
@@ -24,10 +23,11 @@ cd $OUT_DIR
 
 # NOTE, ATTENTION, the paths in $GENOME_LIST are hard-coded.
 # Must be located in the working directory
-GENOME_LIST=${OUT_DIR}/pangenome_only_fastas.txt
+GENOME_LIST=${OUT_DIR}/pangenome_only_fastas_cds.txt
 
-# NOTE you must move the results from the solo annotations to the $OUT_DIR before you execute this script
+# NOTE you must move the results from the individual annotations to the $OUT_DIR before you execute this script
 # Do this with cp
+
 # Existing EDTA annotations will be recognized and reused. This script expects that as the time limit and RAM request is lower.
 # If you want to do it all in one shot you need like 800-1000Gb of RAM.
-sh $EDTA_DIR/panEDTA.sh -g $GENOME_LIST -t 10 -c /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Fixed_Fastas/Royal_Royce/RR_CDS_NewNames.fa
+sh $EDTA_DIR/panEDTA.sh -g $GENOME_LIST -t 10 -o 1
