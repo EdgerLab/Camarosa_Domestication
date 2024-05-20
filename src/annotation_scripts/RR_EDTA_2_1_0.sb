@@ -16,13 +16,13 @@
 	# Generate an annotation of RR using EDTA 2.1.0, and use that as an input in the PanEDTA 2.2.2+ script
 	# This strategy worked.
 
-EDTA_DIR=/mnt/research/edgerpat_lab/Scotty/Old_EDTA_Install
+EDTA_DIR=/mnt/research/edgerpat_lab/Scotty/Old_EDTA_Install/EDTA
 
 module purge
 module load Conda/3 # GCC/6.4.0-2.28 OpenMPI/2.1.2 SAMtools/1.9 BEDTools/2.27.1
 conda activate EDTA_Old  # activate the conda environment of packages
 
-OUT_DIR=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/solo_EDTA/RR_211
+OUT_DIR=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/individual_EDTA/RR_211
 mkdir -p $OUT_DIR
 cd $OUT_DIR
 

@@ -4,20 +4,18 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=12
 #SBATCH --mem-per-cpu=8G
-#SBATCH -o /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/logs/EDTA/solo_EDTA_H4.out
+#SBATCH -o /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/logs/EDTA/individual_H4.out
 #--------------------------------------------------------
 
 EDTA_DIR=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/EDTA
 
 module purge
 module load Conda/3 # GCC/6.4.0-2.28 OpenMPI/2.1.2 SAMtools/1.9 BEDTools/2.27.1
-conda activate EDTA_Old  # activate the conda environment of packages
+conda activate EDTA  # activate the conda environment of packages
 
-OUT_DIR=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/solo_EDTA/solo_H4
+OUT_DIR=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/individual_EDTA/individual_H4
 mkdir -p $OUT_DIR
 cd $OUT_DIR
 
 # Run EDTA
 perl $EDTA_DIR/EDTA.pl --genome /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Fixed_Fastas/H4/H4_NewNames.fa --cds /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Fixed_Fastas/H4/H4_CDS_NewNames.fa --sensitive 1 --anno 1 --overwrite 1 --threads 12
-# export PYTHONNOUSERSITE=1
-# singularity exec /mnt/research/edgerpat_lab/Scotty/EDTA.sif perl $EDTA_DIR/EDTA.pl --genome /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Fixed_Fastas/H4/H4_NewNames.fa --sensitive 1 --anno 1 --overwrite 1 --threads 12
