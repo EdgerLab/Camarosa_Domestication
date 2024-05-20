@@ -23,7 +23,7 @@ cd $OUT_DIR
 
 # NOTE, ATTENTION, the paths in $GENOME_LIST are hard-coded.
 # Must be located in the working directory
-GENOME_LIST=${OUT_DIR}/pangenome_only_fastas_cds.txt
+GENOME_LIST=${OUT_DIR}/pangenome_fasta_w_cds.txt
 
 # NOTE you must move the results from the individual annotations to the $OUT_DIR before you execute this script
 # Do this with cp
