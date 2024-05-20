@@ -290,19 +290,23 @@ $(GO_UPSET_PLOT_DIR):
 	mkdir -p $@
 #-----------------------------------#
 
-# Define a target to create tables of the top X% of TE-dense genes, and the DN - RR difference
-.PHONY: generate_super_dense_gene_tables
-generate_super_dense_gene_tables: $(STRAWBERRY_ORTHOLOG_TABLE) $(SUPER_DENSE_CUTOFF_TABLE_DIR)
+.PHONY: generate_super_dense_gene_tables_single_genome
+generate_super_dense_gene_tables_single_genome: $(STRAWBERRY_ORTHOLOG_TABLE) $(SUPER_DENSE_CUTOFF_TABLE_DIR)
+	# Lol I made the manifest file with Vim in like 1 minute, I'm not going to automate that
 	mkdir -p $(SUPER_DENSE_CUTOFF_TABLE_DIR)/no_Arabidopsis
 	mkdir -p $(SUPER_DENSE_CUTOFF_TABLE_DIR)/ortholog_analysis
-	ls $(DENSITY_TABLE_DIR)/*.tsv | parallel python $(ROOT_DIR)/src/go_analysis/find_abnormal_genes.py {} 95 5 $^
+	cat $(ROOT_DIR)/src/go_analysis/cutoff_single_genome_manifest.tsv | parallel -a - -C '\t' python $(ROOT_DIR)/src/go_analysis/find_abnormal_genes.py $(DENSITY_TABLE_DIR)/{1} $(RESULTS_DIR)/AED/{2} 95 5 $^
 
-# TODO remove in future, DEV testing
-.PHONY: test_cutoff
-test_cutoff:
-	python $(ROOT_DIR)/src/go_analysis/find_abnormal_genes.py $(DENSITY_TABLE_DIR)/RR_Total_TE_Density_5000_Upstream.tsv 90 10 $(STRAWBERRY_ORTHOLOG_TABLE) $(SUPER_DENSE_CUTOFF_TABLE_DIR)
-	# python $(ROOT_DIR)/src/go_analysis/find_abnormal_genes.py $(DENSITY_TABLE_DIR)/RR_TIR_5000_Upstream.tsv 90 10 $(STRAWBERRY_ORTHOLOG_TABLE) $(SUPER_DENSE_CUTOFF_TABLE_DIR)
-	#python $(ROOT_DIR)/src/go_analysis/find_abnormal_genes.py $(DENSITY_TABLE_DIR)/DN_minus_RR_Total_TE_Density_1000_Downstream.tsv 99 1 $(STRAWBERRY_ORTHOLOG_TABLE) $(SUPER_DENSE_CUTOFF_TABLE_DIR)
+.PHONY: generate_super_dense_gene_tables_differing_syntelogs
+generate_super_dense_gene_tables_differing_syntelogs: $(STRAWBERRY_ORTHOLOG_TABLE) $(SUPER_DENSE_CUTOFF_TABLE_DIR)
+	# Lol I made the manifest file with Vim in like 1 minute, I'm not going to automate that
+	mkdir -p $(SUPER_DENSE_CUTOFF_TABLE_DIR)/no_Arabidopsis
+	mkdir -p $(SUPER_DENSE_CUTOFF_TABLE_DIR)/ortholog_analysis
+	cat $(ROOT_DIR)/src/go_analysis/cutoff_differing_syntelogs_manifest.tsv | parallel -a - -C '\t' python $(ROOT_DIR)/src/go_analysis/find_differing_syntelogs.py $(DENSITY_TABLE_DIR)/{1} $(DN_AED_SCORE) $(RR_AED_SCORE) 95 5 $^
+
+.PHONY: test_differing_syntelogs
+test_differing_syntelogs: $(STRAWBERRY_ORTHOLOG_TABLE) $(SUPER_DENSE_CUTOFF_TABLE_DIR)
+	python $(ROOT_DIR)/src/go_analysis/find_differing_syntelogs.py $(DENSITY_TABLE_DIR)/DN_minus_RR_Total_TE_Density_5000_Upstream.tsv $(DN_AED_SCORE) $(RR_AED_SCORE) 95 5 $^
 
 
 # Define a target to create plots of the COUNTS of genes in the top X percentile, with the cutoff value, and a count of the remaining genes with Arabidopsis orthologs
@@ -387,10 +391,35 @@ generate_gene_distance_plots:
 	python $(ROOT_DIR)/src/gene_distances/gene_distances.py $(DN_CLEAN_GENES) DN $(RESULTS_DIR)/gene_distances
 	python $(ROOT_DIR)/src/gene_distances/gene_distances.py $(RR_CLEAN_GENES) RR $(RESULTS_DIR)/gene_distances
 
+#-------------------------------------------------------------------#
+# Get the AED scores for the genes
+# Define the file paths for the uncleaned gene annotations
+H4_AED_SCORE := $(RESULTS_DIR)/AED/H4_AED.tsv
+DN_AED_SCORE := $(RESULTS_DIR)/AED/DN_AED.tsv
+RR_AED_SCORE := $(RESULTS_DIR)/AED/RR_AED.tsv
+AED_SCORE_DIR := $(RESULTS_DIR)/AED
 
+$(AED_SCORE_DIR):
+	mkdir -p $@
 
+# Define a phony target to generate all AED tables for convenience
+.PHONY: generate_AED_score_tables
+generate_AED_score_tables: $(H4_AED_SCORE) $(DN_AED_SCORE) $(RR_AED_SCORE)
+
+$(H4_AED_SCORE): $(H4_UNCLEAN_GENES) | $(AED_SCORE_DIR)
+	@echo Filtering H4 strawberry genes into appropriate format for TE Density
+	python $(ROOT_DIR)/src/extract_AED_score.py $< H4 $(AED_SCORE_DIR)/H4_AED_distribution.png $@
+
+$(DN_AED_SCORE): $(DN_UNCLEAN_GENES) | $(AED_SCORE_DIR)
+	@echo Filtering DN strawberry genes into appropriate format for TE Density
+	python $(ROOT_DIR)/src/extract_AED_score.py $< DN $(AED_SCORE_DIR)/DN_AED_distribution.png $@
+
+$(RR_AED_SCORE): $(RR_UNCLEAN_GENES) | $(AED_SCORE_DIR)
+	@echo Filtering RR strawberry genes into appropriate format for TE Density
+	python $(ROOT_DIR)/src/extract_AED_score.py $< RR $(AED_SCORE_DIR)/RR_AED_distribution.png $@
 
 #-------------------------------------------------------------------#
+# TODO unfishied
 # TODO this may need to be changed when I start looking at the other genomes
 .PHONY: filter_RR_expression
 filter_RR_expression:

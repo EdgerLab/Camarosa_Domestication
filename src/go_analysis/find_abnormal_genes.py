@@ -1,5 +1,6 @@
 #!/usr/bin/env/python
 
+
 """
 NOTE this script does too much and is a candidate for refactoring
 
@@ -40,6 +41,19 @@ import statsmodels.api as sm
 import matplotlib.patches as mpatches
 
 from src.syntelog_differences.bargraphs import decode_te_window_direction_str
+from src.extract_AED_score import read_aed_output_table
+
+
+def subset_by_aed_score(mod_table, aed_scores, genome, good_aed_score):
+    # Merge mod_table with the AED scores
+    mod_table = mod_table.merge(
+        aed_scores,
+        on=f"{genome}_Gene",
+        how="left",
+    )
+    # Subset mod_table by the good AED scores
+    mod_table = mod_table.loc[mod_table["AED_Score"] <= good_aed_score]
+    return mod_table
 
 
 def plot_count_of_remaining_genes(
@@ -52,6 +66,7 @@ def plot_count_of_remaining_genes(
     logger,
     output_filename,
     te_col,
+    aed_scores,
 ):
     x = 0
     group_labels = ["Randomly Sampled Genes", "TE-Dense Genes"]
@@ -122,12 +137,17 @@ def plot_count_of_remaining_genes(
     return
 
 
-def generate_random_sample(base_table, ortholog_table, genome, n):
+def generate_random_sample(
+    base_table, ortholog_table, genome, aed_scores, good_aed_score, n
+):
     """
     Randomly sample the base table (the table of ALL genes and their
     TE Density values for a specific window, TE type, direction dimension) N
     times and return the count of genes that have an ortholog in the random
     sample.
+
+    Returns a list because we are randomly sampling and doing this 'n' times so
+    we want to be able to average later
 
     Returns 2 things:
         random_strawberry (list of ints): count of genes with strawberry
@@ -146,6 +166,11 @@ def generate_random_sample(base_table, ortholog_table, genome, n):
             right_on=[f"{genome}_Gene", f"{genome}_Chromosome"],
             how="inner",
         )
+
+        random_merged = subset_by_aed_score(
+            random_merged, aed_scores, genome, good_aed_score
+        )
+
         # TODO write a loc command to make sure that the random strawberry is
         # checking for the OTHER genome to have a gene, not the same genome. I
         # think currently it works because the ortholog table is forced to have
@@ -295,6 +320,7 @@ if __name__ == "__main__":
         type=str,
         help="TODO",
     )
+    parser.add_argument("aed_score_table", type=str, help="TODO")
 
     parser.add_argument(
         "upper_percentile_cutoff_int",
@@ -321,6 +347,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     args.preprocessed_density_table = os.path.abspath(args.preprocessed_density_table)
     args.strawberry_ortholog_table = os.path.abspath(args.strawberry_ortholog_table)
+    args.aed_score_table = os.path.abspath(args.aed_score_table)
     args.output_dir = os.path.abspath(args.output_dir)
 
     log_level = logging.DEBUG if args.verbose else logging.INFO
@@ -358,7 +385,16 @@ if __name__ == "__main__":
         te_type, window, direction = decode_te_window_direction_str(
             os.path.basename(args.preprocessed_density_table)
         )
+        # TODO NOTE the AED score stuff doesn't work for the DN minus RR table
+        # because I would need two AED score tables
         flag = False
+
+    # Load in the AED scores
+    aed_scores = read_aed_output_table(args.aed_score_table)
+    aed_scores.drop(columns=["Chromosome"], inplace=True)
+    aed_scores.rename(columns={"Gene_Name": f"{genome}_Gene"}, inplace=True)
+    # MAGIC MAGIC MAGIC, anything below this is a well-supported gene model
+    good_aed_score = 0.75
 
     # Create a named tuple that is the cutoff function and its percentile in
     # integer format, to avoid needing to retype this all the time
@@ -379,6 +415,9 @@ if __name__ == "__main__":
         # has the 'Difference' column or the ortholog information
         te_col = f"{genome}_{te_type}_{window}_{direction}"
         mod_table = upper.cutoff_function(base_table, te_col, upper.percentile, logger)
+
+        # Apply an AED score cutoff to the dense gene table
+        mod_table = subset_by_aed_score(mod_table, aed_scores, genome, good_aed_score)
 
         # Save the original table before we do any subsetting with Arabidopsis
         # presence
@@ -416,7 +455,7 @@ if __name__ == "__main__":
             # samples
             N = 1000  # MAGIC, number of random samples to generate
             ref_surviving_straw, ref_surviving_AT = generate_random_sample(
-                base_table, ortholog_table, genome, N
+                base_table, ortholog_table, genome, aed_scores, good_aed_score, N
             )
             # Define additional reference values
             reference_strawberry_mean = np.mean(ref_surviving_straw)
@@ -464,6 +503,7 @@ if __name__ == "__main__":
                 logger,
                 output_filename,
                 te_col,
+                aed_scores,
             )
 
         out_filename = f"{te_col}_{upper.upper_or_lower_str}_{str(upper.percentile)}_density_percentile.tsv"
