@@ -1,0 +1,100 @@
+
+The following have been reloaded with a version change:
+  1) ncurses/6.0 => ncurses/6.1
+
+
+The following have been reloaded with a version change:
+  1) ncurses/6.1 => ncurses/6.0
+
+
+#########################################################
+##### Extensive de-novo TE Annotator (EDTA) v2.2.1  #####
+##### Shujun Ou (shujun.ou.1@gmail.com)             #####
+#########################################################
+
+
+Parameters: --genome /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Fixed_Fastas/H4/H4_NewNames.fa --cds /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Fixed_Fastas/H4/H4_CDS_NewNames.fa --sensitive 1 --anno 1 --overwrite 1 --threads 12
+
+
+Tue May  7 11:55:13 EDT 2024	Dependency checking:
+				All passed!
+
+	A CDS file /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Fixed_Fastas/H4/H4_CDS_NewNames.fa is provided via --cds. Please make sure this is the DNA sequence of coding regions only.
+
+Tue May  7 11:55:26 EDT 2024	Obtain raw TE libraries using various structure-based programs: 
+Tue May  7 11:55:26 EDT 2024	EDTA_raw: Check dependencies, prepare working directories.
+
+Tue May  7 11:55:29 EDT 2024	Start to find LTR candidates.
+
+Tue May  7 11:55:29 EDT 2024	Identify LTR retrotransposon candidates from scratch.
+
+Tue May  7 12:11:03 EDT 2024	Finish finding LTR candidates.
+
+Tue May  7 12:11:03 EDT 2024	Start to find SINE candidates.
+
+Tue May  7 12:41:40 EDT 2024	Finish finding SINE candidates.
+
+Tue May  7 12:41:40 EDT 2024	Start to find LINE candidates.
+
+Tue May  7 12:41:40 EDT 2024	Identify LINE retrotransposon candidates from scratch.
+
+Wed May  8 02:13:06 EDT 2024	Finish finding LINE candidates.
+
+Wed May  8 02:13:06 EDT 2024	Start to find TIR candidates.
+
+Wed May  8 02:13:06 EDT 2024	Identify TIR candidates from scratch.
+
+Species: others
+Wed May  8 03:52:23 EDT 2024	Finish finding TIR candidates.
+
+Wed May  8 03:52:23 EDT 2024	Start to find Helitron candidates.
+
+Wed May  8 03:52:23 EDT 2024	Identify Helitron candidates from scratch.
+
+Wed May  8 05:08:16 EDT 2024	Finish finding Helitron candidates.
+
+Wed May  8 05:08:16 EDT 2024	Execution of EDTA_raw.pl is finished!
+
+Wed May  8 05:08:16 EDT 2024	Obtain raw TE libraries finished.
+				All intact TEs found by EDTA: 
+					H4_NewNames.fa.mod.EDTA.intact.raw.fa 
+					H4_NewNames.fa.mod.EDTA.intact.raw.gff3
+
+Wed May  8 05:08:16 EDT 2024	Perform EDTA advance filtering for raw TE candidates and generate the stage 1 library: 
+
+Wed May  8 05:19:28 EDT 2024	EDTA advance filtering finished.
+
+Wed May  8 05:19:28 EDT 2024	Perform EDTA final steps to generate a non-redundant comprehensive TE library.
+
+				Filter RepeatModeler results that are ignored in the raw step.
+
+Wed May  8 05:20:10 EDT 2024	Clean up TE-related sequences in the CDS file with TEsorter.
+
+				Remove CDS-related sequences in the EDTA library.
+
+				Remove CDS-related sequences in intact TEs.
+
+Wed May  8 05:38:42 EDT 2024	EDTA final stage finished! You may check out:
+				The final EDTA TE library: H4_NewNames.fa.mod.EDTA.TElib.fa
+Wed May  8 05:38:42 EDT 2024	Perform post-EDTA analysis for whole-genome annotation:
+
+Wed May  8 05:38:42 EDT 2024	Homology-based annotation of TEs using H4_NewNames.fa.mod.EDTA.TElib.fa from scratch.
+
+Wed May  8 05:53:17 EDT 2024	TE annotation using the EDTA library has finished! Check out:
+				Whole-genome TE annotation (total TE: 25.44%): H4_NewNames.fa.mod.EDTA.TEanno.gff3
+				Whole-genome TE annotation summary: H4_NewNames.fa.mod.EDTA.TEanno.sum
+				Whole-genome TE divergence plot: H4_NewNames.fa.mod_divergence_plot.pdf
+				Whole-genome TE density plot: H4_NewNames.fa.mod.EDTA.TEanno.density_plots.pdf
+				Low-threshold TE masking for MAKER gene annotation (masked: 13.00%): H4_NewNames.fa.mod.MAKER.masked
+
+Wed May  8 05:53:17 EDT 2024	Evaluate the level of inconsistency for whole-genome TE annotation:
+
+Wed May  8 06:12:26 EDT 2024	Evaluation of TE annotation finished! Check out these files:
+
+				Overall: H4_NewNames.fa.mod.EDTA.TE.fa.stat.all.sum
+				Nested: H4_NewNames.fa.mod.EDTA.TE.fa.stat.nested.sum
+				Non-nested: H4_NewNames.fa.mod.EDTA.TE.fa.stat.redun.sum
+
+				If you want to learn more about the formatting and information of these files, please visit:
+					https://github.com/oushujun/EDTA/wiki/Making-sense-of-EDTA-usage-and-outputs---Q&A
+
