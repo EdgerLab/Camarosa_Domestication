@@ -1,7 +1,15 @@
 #!/usr/bin/env/python
 
 """
-TODO
+Generate a table of syntelogs that have a large TE density bias towards either
+DN or RR. This script will take in a preprocessed density table and a table of
+AED scores. Perform a secondary cutoff of AED scores to make sure the syntelogs
+are well supported.
+
+Unlike `find_abnormal_genes.py` this script does not calculate the top X% of
+TE-dense genes, it merely identifies the genes that have an absolute difference
+of 0.75 or greater in TE density between DN and RR. This value is hard-coded as
+`good_aed_score`
 """
 
 __author__ = "Scott Teresi"
@@ -24,11 +32,52 @@ from src.go_analysis.find_abnormal_genes import (
     subset_by_aed_score,
 )
 
+
+class SyntelogDifferences:
+    def __init__(self, dn_aed_scores, rr_aed_scores, te_table):
+        self.dn_aed_scores = dn_aed_scores
+        self.rr_aed_scores = rr_aed_scores
+        self.te_table = te_table
+
+        self.biased_towards_dn = None  # initialize to None, b/c set later
+        self.biased_towards_rr = None  # initialize to None, b/c set later
+
+    def subset_by_te_difference(self, cutoff=0.75):
+        """
+        Subset the table so that we only have syntelogs with extreme TE
+        difference
+        """
+        self.biased_towards_dn = self.te_table.loc[
+            self.te_table["Difference"] >= cutoff
+        ]
+        self.biased_towards_rr = self.te_table.loc[
+            self.te_table["Difference"] <= -cutoff
+        ]
+
+    def subset_by_arabidopsis(self):
+        """
+        Subset the table so that each entry MUST have an Arabidopsis gene
+        """
+        self.biased_towards_dn = subset_by_arabidopsis_presence(self.biased_towards_dn)
+        self.biased_towards_rr = subset_by_arabidopsis_presence(self.biased_towards_rr)
+
+    def reorder_columns(self):
+        """
+        Reorder the columns so that the 'Difference' column is towards the front
+        """
+        data.biased_towards_dn.insert(
+            2, "Difference", data.biased_towards_dn.pop("Difference")
+        )
+        data.biased_towards_rr.insert(
+            2, "Difference", data.biased_towards_rr.pop("Difference")
+        )
+
+
 if __name__ == "__main__":
     path_main = os.path.abspath(__file__)
     dir_main = os.path.dirname(path_main)
 
-    parser = argparse.ArgumentParser(description="TODO")
+    parser = argparse.ArgumentParser()
     parser.add_argument(
         "preprocessed_density_table",
         type=str,
@@ -36,16 +85,6 @@ if __name__ == "__main__":
     )
     parser.add_argument("dn_aed_score_table", type=str)
     parser.add_argument("rr_aed_score_table", type=str)
-    parser.add_argument(
-        "upper_percentile_cutoff_int",
-        type=int,
-        help="TODO",
-    )
-    parser.add_argument(
-        "lower_percentile_cutoff_int",
-        type=int,
-        help="TODO",
-    )
     parser.add_argument("strawberry_ortholog_table", type=str)
     parser.add_argument(
         "output_dir",
@@ -71,10 +110,6 @@ if __name__ == "__main__":
     # Load in the pre-filtered TE Density data
     base_table = pd.read_csv(args.preprocessed_density_table, header="infer", sep="\t")
 
-    # print(base_table)
-    # print(base_table.columns)
-    # raise ValueError
-
     # Load in the pre-filtered ortholog information
     ortholog_table = pd.read_csv(
         args.strawberry_ortholog_table, header="infer", sep="\t", low_memory=False
@@ -86,55 +121,53 @@ if __name__ == "__main__":
 
     dn_aed_scores = read_aed_output_table(args.dn_aed_score_table)
     rr_aed_scores = read_aed_output_table(args.rr_aed_score_table)
-    for aed_scores, genome in zip([dn_aed_scores, rr_aed_scores], ["DN", "RR"]):
-        aed_scores.drop(columns=["Chromosome"], inplace=True)
-        aed_scores.rename(columns={"Gene_Name": f"{genome}_Gene"}, inplace=True)
+    for table, name in zip([dn_aed_scores, rr_aed_scores], ["DN", "RR"]):
+        table.drop(columns=["Chromosome"], inplace=True)
+        table.rename(columns={"Gene_Name": f"{name}_Gene"}, inplace=True)
+
+    data = SyntelogDifferences(dn_aed_scores, rr_aed_scores, base_table)
+
     # MAGIC MAGIC MAGIC, anything below this is a well-supported gene model
     good_aed_score = 0.75
-
-    # Create a named tuple that is the cutoff function and its percentile in
-    # integer format, to avoid needing to retype this all the time
-    cutoff_function_w_percentile = namedtuple(
-        "cutoff_function_w_percentile",
-        ["cutoff_function", "percentile", "upper_or_lower_str"],
-    )
-    upper = cutoff_function_w_percentile(
-        perform_upper_cutoff_and_subset, args.upper_percentile_cutoff_int, "Upper"
-    )
-    lower = cutoff_function_w_percentile(
-        perform_lower_cutoff_and_subset, args.lower_percentile_cutoff_int, "Lower"
-    )
 
     # ----------------------------------------
     # Calculate the 'Difference' column
     column_name = "Difference"
     col_to_save = f"{column_name}_{te_type}_{window}_{direction}"
-    for genome, i in [("DN", upper), ("RR", lower)]:
-        # We don't have a 'Difference' column for H4, the difference
-        # column is for DN vs RR.
-        # NOTE MAGIC, if positive it is a DEL NORTE biased gene pair
-        # NOTE MAGIC, if negative it is a Royal Royce biased gene pair, hence
-        # we will apply the lower cutoff function to the RR dataset
 
-        # Perform the cutoffs and subset
-        mod_table = i.cutoff_function(base_table, column_name, i.percentile, logger)
+    # NOTE MAGIC, if positive it is a DEL NORTE biased gene pair
+    # NOTE MAGIC, if negative it is a Royal Royce biased gene pair, hence
+    # we will apply the lower cutoff function to the RR dataset
+    # Perform the cutoffs and subset, MAGIC
+    data.subset_by_te_difference()
 
-        # Apply an AED score cutoff to the dense gene table
-        for aed_scores, genome in zip([dn_aed_scores, rr_aed_scores], ["DN", "RR"]):
-            mod_table = subset_by_aed_score(
-                mod_table, aed_scores, genome, good_aed_score
-            )
-            # Quick and dirty way to avoid trying to add in the column twice,
-            # we don't need it after the subset, would fail on second iteration
-            # otherwise
-            mod_table.drop(columns=["AED_Score"], inplace=True)
+    # Apply an AED score cutoff to the dense gene table
+    # Repeating myself here, bad code.
+    data.biased_towards_dn = subset_by_aed_score(
+        data.biased_towards_dn, data.dn_aed_scores, "DN", good_aed_score
+    )
+    data.biased_towards_rr = subset_by_aed_score(
+        data.biased_towards_rr, data.rr_aed_scores, "RR", good_aed_score
+    )
 
-        # Subset the table so that each entry MUST have an Arabidopsis gene
-        mod_table = subset_by_arabidopsis_presence(mod_table)
-        out_filename = f"{col_to_save}_Biased_Towards_{genome}_{str(i.percentile)}_density_percentile.tsv"
+    # Subset the table so that each entry MUST have an Arabidopsis gene
+    data.subset_by_arabidopsis()
+
+    # Reorder the columns so that the 'Difference' column is
+    # towards the front
+    data.reorder_columns()
+
+    # Save the DN biased table to disk
+    dn_out_filename = f"{col_to_save}_Syntelogs_Biased_Towards_DN.tsv"
+    rr_out_filename = f"{col_to_save}_Syntelogs_Biased_Towards_RR.tsv"
+
+    for filename, table in zip(
+        [dn_out_filename, rr_out_filename],
+        [data.biased_towards_dn, data.biased_towards_rr],
+    ):
         save_table_to_disk(
-            mod_table,
+            table,
             args.output_dir,
-            out_filename,
+            filename,
             logger,
         )
