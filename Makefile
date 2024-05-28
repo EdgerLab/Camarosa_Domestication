@@ -417,6 +417,16 @@ $(DN_AED_SCORE): $(DN_UNCLEAN_GENES) | $(AED_SCORE_DIR)
 $(RR_AED_SCORE): $(RR_UNCLEAN_GENES) | $(AED_SCORE_DIR)
 	@echo Filtering RR strawberry genes into appropriate format for TE Density
 	python $(ROOT_DIR)/src/extract_AED_score.py $< RR $(AED_SCORE_DIR)/RR_AED_distribution.png $@
+#-------------------------------------------------------------------#
+# TODO perform the single copy ortholog analysis
+#
+SSO_TABLE := $(DATA_DIR)/orthologs/single_copy_orthologs/sd01.tsv
+
+.PHONY: single_copy_orthologs
+single_copy_orthologs: $(STRAWBERRY_ORTHOLOG_TABLE) $(SSO_TABLE) $(H4_AED_SCORE) $(RESULTS_DIR)
+	python src/orthologs/single_copy_orthologs.py $(DENSITY_TABLE_DIR)/H4_Total_TE_Density_5000_Upstream.tsv $^ 
+
+
 
 #-------------------------------------------------------------------#
 # TODO unfishied
