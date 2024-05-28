@@ -302,11 +302,11 @@ generate_super_dense_gene_tables_differing_syntelogs: $(STRAWBERRY_ORTHOLOG_TABL
 	# Lol I made the manifest file with Vim in like 1 minute, I'm not going to automate that
 	mkdir -p $(SUPER_DENSE_CUTOFF_TABLE_DIR)/no_Arabidopsis
 	mkdir -p $(SUPER_DENSE_CUTOFF_TABLE_DIR)/ortholog_analysis
-	cat $(ROOT_DIR)/src/go_analysis/cutoff_differing_syntelogs_manifest.tsv | parallel -a - -C '\t' python $(ROOT_DIR)/src/go_analysis/find_differing_syntelogs.py $(DENSITY_TABLE_DIR)/{1} $(DN_AED_SCORE) $(RR_AED_SCORE) 95 5 $^
+	cat $(ROOT_DIR)/src/go_analysis/cutoff_differing_syntelogs_manifest.tsv | parallel -a - -C '\t' python $(ROOT_DIR)/src/go_analysis/find_differing_syntelogs.py $(DENSITY_TABLE_DIR)/{1} $(DN_AED_SCORE) $(RR_AED_SCORE) $^
 
 .PHONY: test_differing_syntelogs
 test_differing_syntelogs: $(STRAWBERRY_ORTHOLOG_TABLE) $(SUPER_DENSE_CUTOFF_TABLE_DIR)
-	python $(ROOT_DIR)/src/go_analysis/find_differing_syntelogs.py $(DENSITY_TABLE_DIR)/DN_minus_RR_Total_TE_Density_5000_Upstream.tsv $(DN_AED_SCORE) $(RR_AED_SCORE) 95 5 $^
+	python $(ROOT_DIR)/src/go_analysis/find_differing_syntelogs.py $(DENSITY_TABLE_DIR)/DN_minus_RR_Total_TE_Density_5000_Upstream.tsv $(DN_AED_SCORE) $(RR_AED_SCORE) $^
 
 
 # Define a target to create plots of the COUNTS of genes in the top X percentile, with the cutoff value, and a count of the remaining genes with Arabidopsis orthologs
@@ -358,10 +358,11 @@ extract_diff_total_unique_enriched_GO_terms:
 generate_rr_dn_nondiff_upset_plot: | $(GO_UPSET_NONSYNTENIC_PLOT_DIR)
 	cat $(GO_NONDIFF_UPSET_KEY) | xargs -n2 sh -c 'python $(ROOT_DIR)/src/go_analysis/dn_vs_rr_upset.py $$1 $$2 $(GO_UPSET_NONSYNTENIC_PLOT_DIR)' sh
 	
-.PHONY: test_nondiff_upset
-test_nondiff_upset: | $(GO_UPSET_NONSYNTENIC_PLOT_DIR)
-	python $(ROOT_DIR)/src/go_analysis/dn_vs_rr_upset.py $(GO_ENRICHMENT_DIR)/Overrepresented_RR_LTR_5000_Upstream_Upper_95_density_percentile.tsv $(GO_ENRICHMENT_DIR)/Overrepresented_DN_LTR_5000_Upstream_Upper_95_density_percentile.tsv $(GO_UPSET_NONSYNTENIC_PLOT_DIR)
-
+# .PHONY: test_nondiff_upset
+# test_nondiff_upset: | $(GO_UPSET_NONSYNTENIC_PLOT_DIR)
+# 	python $(ROOT_DIR)/src/go_analysis/dn_vs_rr_upset.py $(GO_ENRICHMENT_DIR)/Overrepresented_RR_LTR_5000_Upstream_Upper_95_density_percentile.tsv $(GO_ENRICHMENT_DIR)/Overrepresented_DN_LTR_5000_Upstream_Upper_95_density_percentile.tsv $(GO_UPSET_NONSYNTENIC_PLOT_DIR)
+# 
+#
 # TODO this is untested, need to look at the general command, which was using the `find` command, perhas erroneously.
 .PHONY: test_diff
 test_diff: | $(GO_UPSET_NONSYNTENIC_PLOT_DIR)
