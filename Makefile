@@ -17,12 +17,12 @@ GENOMES_DIR := $(DATA_DIR)/Genomes
 RESULTS_DIR := $(ROOT_DIR)/results
 
 # TEs
+# TODO should make these targets for a rule, rather than slaming through a
+# PHONY
 DEV_H4_UNCLEAN_TEs := $(RESULTS_DIR)/Pan_Annotation/H4_NewNames.fa.mod.EDTA.TEanno.gff3
 DEV_DN_UNCLEAN_TEs := $(RESULTS_DIR)/Pan_Annotation/DN_NewNames.fa.mod.EDTA.TEanno.gff3
 DEV_RR_UNCLEAN_TEs := $(RESULTS_DIR)/Pan_Annotation/RR_NewNames.fa.mod.EDTA.TEanno.gff3
-DEV_FVI_UNCLEAN_TEs := $(RESULTS_DIR)/Pan_Annotation/FVI_NewNames.fa.mod.EDTA.TEanno.gff3
-DEV_FNI_UNCLEAN_TEs := $(RESULTS_DIR)/Pan_Annotation/FNI_NewNames.fa.mod.EDTA.TEanno.gff3
-DEV_FII_UNCLEAN_TEs := $(RESULTS_DIR)/Pan_Annotation/FII_NewNames.fa.mod.EDTA.TEanno.gff3
+
 
 setup:
 	mkdir -p requirements doc results src data logs logs/TE_Density logs/EDTA
@@ -36,16 +36,13 @@ sync_hpcc_to_onedrive:
 	# MUST be standing in root folder for project
 	#ml Rclone
 	#rclone sync remote:HPCC_Mirror/Strawberry_Domestication/ . --exclude=.git/** -P
-
+.PHONY:
 filter_TEs:
 	@echo Filtering strawberry TEs into appropriate format for TE Density
 	mkdir -p $(RESULTS_DIR)/cleaned_annotations/
 	python $(ROOT_DIR)/src/import_strawberry_EDTA.py $(DEV_H4_UNCLEAN_TEs) $(RESULTS_DIR)/cleaned_annotations/ H4
 	python $(ROOT_DIR)/src/import_strawberry_EDTA.py $(DEV_DN_UNCLEAN_TEs) $(RESULTS_DIR)/cleaned_annotations/ DN
 	python $(ROOT_DIR)/src/import_strawberry_EDTA.py $(DEV_RR_UNCLEAN_TEs) $(RESULTS_DIR)/cleaned_annotations/ RR
-	python $(ROOT_DIR)/src/import_strawberry_EDTA.py $(DEV_FVI_UNCLEAN_TEs) $(RESULTS_DIR)/cleaned_annotations/ FVI
-	python $(ROOT_DIR)/src/import_strawberry_EDTA.py $(DEV_FNI_UNCLEAN_TEs) $(RESULTS_DIR)/cleaned_annotations/ FNI
-	python $(ROOT_DIR)/src/import_strawberry_EDTA.py $(DEV_FII_UNCLEAN_TEs) $(RESULTS_DIR)/cleaned_annotations/ FII
 
 #-------------------------------------------------------------------#
 # Prepare the gene and TE annotation inputs for TE Density
@@ -58,6 +55,8 @@ $(CLEANED_ANNOTATION_DIR):
 H4_UNCLEAN_GENES := $(DATA_DIR)/Genomes/H4/H4_GeneAnnotation.gff
 DN_UNCLEAN_GENES := $(DATA_DIR)/Genomes/Del_Norte/DN_GeneAnnotation.gff
 RR_UNCLEAN_GENES := $(DATA_DIR)/Genomes/Royal_Royce/RR_GeneAnnotation.gff
+
+# TODO remove the unused diploid strawberries
 FVI_UNCLEAN_GENES := $(DATA_DIR)/Genomes/F_viridis/FVI_GeneAnnotation.gff
 FNI_UNCLEAN_GENES := $(DATA_DIR)/Genomes/F_nipponica/FNI_GeneAnnotation.gff
 FII_UNCLEAN_GENES := $(DATA_DIR)/Genomes/F_iinumae/FII_GeneAnnotation.gff
