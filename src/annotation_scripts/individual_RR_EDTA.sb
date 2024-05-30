@@ -20,7 +20,7 @@ cd $OUT_DIR
 # TODO re-do this once the bona-fide 210 redone.
 # TODO edit this path
 # NOTE, use EDTA 2.1.0 RR's RepeatMasker file because pipeline fails here for 2.2.0+
-RMOUT=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/solo_EDTA_backup_old/solo_RR/RR_NewNames.fa.mod.EDTA.anno/RR_NewNames.fa.mod.EDTA.RM.out
+RMOUT=/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/results/individual_EDTA/RR_211/RR_NewNames.fa.mod.EDTA.anno/RR_NewNames.fa.mod.EDTA.RM.out
 
 # Run EDTA
 perl $EDTA_DIR/EDTA.pl --genome /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Fixed_Fastas/Royal_Royce/RR_NewNames.fa --cds /mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/data/Genomes/Fixed_Fastas/Royal_Royce/RR_CDS_NewNames.fa --sensitive 1 --anno 1 --overwrite 1 --threads 18 --rmout $RMOUT
