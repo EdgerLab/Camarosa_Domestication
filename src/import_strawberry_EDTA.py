@@ -80,7 +80,12 @@ def import_transposons(tes_input_path, genome_name, logger):
     # Create Order and SuperFamily column from Attribute column
     # Because that column contains the detailed TE information
     # Then remove old Attribute column
-    te_data["Attribute"] = te_data["Attribute"].str.extract(r"Classification=(.*?);")
+
+    # Add case-insensitive flag because Shujun has Classifcation and
+    # classification as the strings
+    te_data["Attribute"] = te_data["Attribute"].str.extract(
+        r"(?i)classification=(.*?);"
+    )
     te_data[["Order", "SuperFamily"]] = te_data.Attribute.str.split("/", expand=True)
     te_data.drop(columns=["Attribute"], inplace=True)
     te_data.Order = te_data.Order.astype(str)
@@ -95,10 +100,6 @@ def import_transposons(tes_input_path, genome_name, logger):
 
     if genome_name != "DN":
         te_data = remove_str_from_val(te_data, "Fvb", "Chromosome")
-
-    if genome_name == "FII":
-        te_data = te_data[te_data["Chromosome"] != "Chr0"]
-        te_data["Chromosome"] = te_data["Chromosome"].str.lower()
 
     # Remove the chr prefix from the chr names, particularly in RR, and FII
     te_data = remove_str_from_val(te_data, "chr_", "Chromosome")
@@ -141,7 +142,10 @@ def te_annot_renamer(TE_Data):
         "DHH": "Helitron",
         # Custom changes
         "unknown": U,
-        # "Unknown": U,
+        "Unknown": U,
+        "CMC-EnSpm": "CACTA",
+        "PIF": "PIF-Harbinger",
+        "MULE-MuDR": "Mutator",
         "None": U,
     }
 
@@ -177,6 +181,7 @@ def te_annot_renamer(TE_Data):
         (TE_Data["Order"] == "TIR") & (TE_Data["SuperFamily"] == "Helitron"),
         ["Order", "SuperFamily"],
     ] = "Helitron"
+
     # If the Order is Helitron and the SuperFamily is unknown make the
     # superfamily 'Helitron'
     TE_Data.loc[
@@ -184,6 +189,13 @@ def te_annot_renamer(TE_Data):
         & (TE_Data["SuperFamily"] == "Unknown_Superfam"),
         "SuperFamily",
     ] = "Helitron"
+
+    # If the Order is SINE and the SuperFamily is unknown make the
+    # superfamily 'Helitron'
+    TE_Data.loc[
+        (TE_Data["Order"] == "SINE") & (TE_Data["SuperFamily"] == "Unknown_Superfam"),
+        "SuperFamily",
+    ] = "Unknown_SINE_Superfam"
 
     # For TEs that are unknown for both Order AND SuperFamily we will call
     # those 'Completely_Unknown'
@@ -193,12 +205,12 @@ def te_annot_renamer(TE_Data):
         ["Order", "SuperFamily"],
     ] = "Completely_Unknown"
 
-    # NOTE, upon manual inspection, there are only 21 entries for
-    # "Simple_repeat" in (H4), and they all seem to be at the edges of the chromosomes.
-    # I suppose these are the centromeric repeats?
-    # I am not as much interested in them. Perhaps remove?
+    # Remove entries I don't want as inputs for TE Density
     TE_Data = TE_Data.loc[(TE_Data["Order"] != "Simple_repeat")]
     TE_Data = TE_Data.loc[(TE_Data["Order"] != "Low_complexity")]
+    TE_Data = TE_Data.loc[(TE_Data["Order"] != "rRNA")]
+    TE_Data = TE_Data.loc[(TE_Data["Order"] != "tRNA")]
+    TE_Data = TE_Data.loc[(TE_Data["SuperFamily"] != "Caulimovirus")]
 
     return TE_Data
 
@@ -206,12 +218,12 @@ def te_annot_renamer(TE_Data):
 def diagnostic_cleaner_helper(te_data, genome_name, logger):
     logger.info(f"Genome Name: {genome_name}")
     logger.info(f"Number of unique TE Orders: {te_data['Order'].nunique()}")
-    logger.info(f"Unique TE Orders: {te_data['Order'].unique()}")
+    logger.info(f"Unique TE Orders: {sorted(te_data['Order'].unique())}")
     print()
     logger.info(
         f"Number of unique TE Superfamilies: {te_data['SuperFamily'].nunique()}"
     )
-    logger.info(f"Unique TE Superfamilies: {te_data['SuperFamily'].unique()}")
+    logger.info(f"Unique TE Superfamilies: {sorted(te_data['SuperFamily'].unique())}")
 
     # To see unique for a given type:
     # print(TE_Data.loc[TE_Data['Order'] == 'LINE'].SuperFamily.unique())

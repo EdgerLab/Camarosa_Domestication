@@ -1,6 +1,6 @@
 #!/bin/bash -login
 #SBATCH -J H4_TE_Density
-#SBATCH --time=7:00:00
+#SBATCH --time=5:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=7
 #SBATCH --mem-per-cpu=30G
@@ -25,4 +25,4 @@ cd $OUT_DATA_DIR
 
 
 # Run the code
-python $TE_DIR/process_genome.py $IN_DATA_DIR/Cleaned_H4_GeneAnnotation.tsv $IN_DATA_DIR/Cleaned_H4_NewNames.fa.mod.EDTA.TEanno.tsv $GENOME -c $TE_DIR/config/production_run_config.ini  -n 10 -o $OUT_DATA_DIR
+python $TE_DIR/process_genome.py $IN_DATA_DIR/Cleaned_H4_GeneAnnotation.tsv $IN_DATA_DIR/Cleaned_H4_NewNames.fa.mod.EDTA.TEanno.tsv $GENOME -c $TE_DIR/config/production_run_config.ini  -n 7 -o $OUT_DATA_DIR
