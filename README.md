@@ -36,3 +36,15 @@ https://genomevolution.org/r/1r9uk
 - conda install bedtools
 - conda install samtools
 ```
+
+# EDTA Running:
+I was having issues running EDTA v2.2.1 on RR (Royal Royce) genome.
+It was crashing part way through because it was encountering a TE type not in some sort of internal EDTA whitelist.
+However, v2.2.1 had a better panEDTA script, so it was desirable to use the latest version.
+I was also having trouble with my annotation quality, because I did not originally provide CDS of each genome to EDTA.
+This resulted in my genomes having a lot of genes annotated as TEs.
+So my objective was to improve the annotation quality and make RR work with EDTA v2.2.1.
+
+The solution I centered on was running RR through EDTA v2.1.1 to get the `RepeatMasker.out` file, and then run EDTA v2.2.1 on RR with the RepeatMasker as an additional argument.
+This worked, and I was able to avoid the whitelist error.
+I ran DN and H4 from the get-go with EDTA v2.2.1 (with CDSs) and then ran panEDTA on everything.
