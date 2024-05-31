@@ -56,39 +56,25 @@ H4_UNCLEAN_GENES := $(DATA_DIR)/Genomes/H4/H4_GeneAnnotation.gff
 DN_UNCLEAN_GENES := $(DATA_DIR)/Genomes/Del_Norte/DN_GeneAnnotation.gff
 RR_UNCLEAN_GENES := $(DATA_DIR)/Genomes/Royal_Royce/RR_GeneAnnotation.gff
 
-# TODO remove the unused diploid strawberries
-FVI_UNCLEAN_GENES := $(DATA_DIR)/Genomes/F_viridis/FVI_GeneAnnotation.gff
-FNI_UNCLEAN_GENES := $(DATA_DIR)/Genomes/F_nipponica/FNI_GeneAnnotation.gff
-FII_UNCLEAN_GENES := $(DATA_DIR)/Genomes/F_iinumae/FII_GeneAnnotation.gff
-
 # Define the file paths for the cleaned gene annotations
 H4_CLEAN_GENES := $(CLEANED_ANNOTATION_DIR)/Cleaned_H4_GeneAnnotation.tsv
 DN_CLEAN_GENES := $(CLEANED_ANNOTATION_DIR)/Cleaned_DN_GeneAnnotation.tsv
 RR_CLEAN_GENES := $(CLEANED_ANNOTATION_DIR)/Cleaned_RR_GeneAnnotation.tsv
-FVI_CLEAN_GENES := $(CLEANED_ANNOTATION_DIR)/Cleaned_FVI_GeneAnnotation.tsv
-FNI_CLEAN_GENES := $(CLEANED_ANNOTATION_DIR)/Cleaned_FNI_GeneAnnotation.tsv
-FII_CLEAN_GENES := $(CLEANED_ANNOTATION_DIR)/Cleaned_FII_GeneAnnotation.tsv
 
 # Define the file paths for the uncleaned TE annotations
 H4_UNCLEAN_TEs := $(RESULTS_DIR)/Pan_Annotation/H4_NewNames.fa.mod.EDTA.TEanno.gff3
 DN_UNCLEAN_TEs := $(RESULTS_DIR)/Pan_Annotation/DN_NewNames.fa.mod.EDTA.TEanno.gff3
 RR_UNCLEAN_TEs := $(RESULTS_DIR)/Pan_Annotation/RR_NewNames.fa.mod.EDTA.TEanno.gff3
-FVI_UNCLEAN_TEs := $(RESULTS_DIR)/Pan_Annotation/FVI_NewNames.fa.mod.EDTA.TEanno.gff3
-FNI_UNCLEAN_TEs := $(RESULTS_DIR)/Pan_Annotation/FNI_NewNames.fa.mod.EDTA.TEanno.gff3
-FII_UNCLEAN_TEs := $(RESULTS_DIR)/Pan_Annotation/FII_NewNames.fa.mod.EDTA.TEanno.gff3
 
 # Define the file paths for the cleaned TE annotations
 H4_CLEAN_TEs := $(CLEANED_ANNOTATION_DIR)/Cleaned_H4_NewNames.fa.mod.EDTA.TEanno.gff3
 DN_CLEAN_TEs := $(CLEANED_ANNOTATION_DIR)/Cleaned_DN_NewNames.fa.mod.EDTA.TEanno.gff3
 RR_CLEAN_TEs := $(CLEANED_ANNOTATION_DIR)/Cleaned_RR_NewNames.fa.mod.EDTA.TEanno.gff3
-FVI_CLEAN_TEs := $(CLEANED_ANNOTATION_DIR)/Cleaned_FVI_NewNames.fa.mod.EDTA.TEanno.gff3
-FNI_CLEAN_TEs := $(CLEANED_ANNOTATION_DIR)/Cleaned_FNI_NewNames.fa.mod.EDTA.TEanno.gff3
-FII_CLEAN_TEs := $(CLEANED_ANNOTATION_DIR)/Cleaned_FII_NewNames.fa.mod.EDTA.TEanno.gff3
 
 
 # Define a phony target to filter all gene annotations for convenience
 .PHONY: filter_all_genes
-filter_all_genes: $(H4_CLEAN_GENES) $(DN_CLEAN_GENES) $(RR_CLEAN_GENES) $(FII_CLEAN_GENES) $(FNI_CLEAN_GENES) $(FVI_CLEAN_GENES)
+filter_all_genes: $(H4_CLEAN_GENES) $(DN_CLEAN_GENES) $(RR_CLEAN_GENES)
 
 $(H4_CLEAN_GENES): $(H4_UNCLEAN_GENES) | $(CLEANED_ANNOTATION_DIR)
 	@echo Filtering H4 strawberry genes into appropriate format for TE Density
@@ -102,21 +88,12 @@ $(RR_CLEAN_GENES): $(RR_UNCLEAN_GENES) | $(CLEANED_ANNOTATION_DIR)
 	@echo Filtering RR strawberry genes into appropriate format for TE Density
 	python $(ROOT_DIR)/src/import_strawberry_gene_anno.py $< RR $@
 
-$(FII_CLEAN_GENES): $(FII_UNCLEAN_GENES) | $(CLEANED_ANNOTATION_DIR)
-	@echo Filtering FII strawberry genes into appropriate format for TE Density
-	python $(ROOT_DIR)/src/import_strawberry_gene_anno.py $< FII $@
+# Define a phony target to run a singular gene filtering for convenience
+# FUTURE if you want more individually type the phonies out
+# TODO DEV REMOVE FUTURE
+.PHONY: filter_H4_genes
+filter_H4_genes: $(DN_CLEAN_GENES)
 
-$(FNI_CLEAN_GENES): $(FNI_UNCLEAN_GENES) | $(CLEANED_ANNOTATION_DIR)
-	@echo Filtering FNI strawberry genes into appropriate format for TE Density
-	python $(ROOT_DIR)/src/import_strawberry_gene_anno.py $< FNI $@
-
-$(FVI_CLEAN_GENES): $(FVI_UNCLEAN_GENES) | $(CLEANED_ANNOTATION_DIR)
-	@echo Filtering FVI strawberry genes into appropriate format for TE Density
-	python $(ROOT_DIR)/src/import_strawberry_gene_anno.py $< FVI $@
-
-# Define a phony target to filter all TE annotations for convenience
-.PHONY: filter_all_transposons
-filter_all_transposons: $(H4_CLEAN_TEs) $(DN_CLEAN_TEs) $(RR_CLEAN_TEs) $(FII_CLEAN_TEs) $(FNI_CLEAN_TEs) $(FVI_CLEAN_TEs)
 
 $(H4_CLEAN_TEs): $(H4_UNCLEAN_TEs) | $(CLEANED_ANNOTATION_DIR)
 	@echo Filtering H4 strawberry TEs into appropriate format for TE Density
@@ -130,17 +107,9 @@ $(RR_CLEAN_TEs): $(RR_UNCLEAN_TEs) | $(CLEANED_ANNOTATION_DIR)
 	@echo Filtering RR strawberry TEs into appropriate format for TE Density
 	python $(ROOT_DIR)/src/import_strawberry_EDTA.py $< RR $@
 
-$(FII_CLEAN_TEs): $(FII_UNCLEAN_TEs) | $(CLEANED_ANNOTATION_DIR)
-	@echo Filtering FII strawberry TEs into appropriate format for TE Density
-	python $(ROOT_DIR)/src/import_strawberry_EDTA.py $< FII $@
-
-$(FNI_CLEAN_TEs): $(FNI_UNCLEAN_TEs) | $(CLEANED_ANNOTATION_DIR)
-	@echo Filtering FNI strawberry TEs into appropriate format for TE Density
-	python $(ROOT_DIR)/src/import_strawberry_EDTA.py $< FNI $@
-
-$(FVI_CLEAN_TEs): $(FVI_UNCLEAN_TEs) | $(CLEANED_ANNOTATION_DIR)
-	@echo Filtering FVI strawberry TEs into appropriate format for TE Density
-	python $(ROOT_DIR)/src/import_strawberry_EDTA.py $< FVI $@
+# Define a phony target to filter all TE annotations for convenience
+.PHONY: filter_all_transposons
+filter_all_transposons: $(H4_CLEAN_TEs) $(DN_CLEAN_TEs) $(RR_CLEAN_TEs)
 
 #-------------------------------------------------------------------#
 # Orthology Analysis:
