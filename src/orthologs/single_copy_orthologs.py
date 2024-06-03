@@ -2,8 +2,8 @@
 
 """
 - SCO stands for Single Copy Orthologs
-- Calculate the TE density average of SCO genes...
-- TODO
+- Calculate the TE density average of SCO genes, and compare to non-SCO genes
+- Perform a Mann-Whitney U test to determine a significant difference in TE density
 """
 
 __author__ = "Scott Teresi"
@@ -17,8 +17,6 @@ import coloredlogs
 from scipy.stats import mannwhitneyu
 
 from src.syntelog_differences.bargraphs import decode_te_window_direction_str
-from src.extract_AED_score import read_aed_output_table
-from src.go_analysis.find_abnormal_genes import subset_by_aed_score
 
 
 def import_SCO_table(filepath):
@@ -49,9 +47,6 @@ def tag_sco_genes(strawberry_ortholog_table, SCO_table):
 
 
 def subset_strawberry_orthologs_by_SCO_status(strawberry_ortholog_table):
-    """
-    TODO
-    """
     return strawberry_ortholog_table.loc[strawberry_ortholog_table["SCO_Status"] == "Y"]
 
 
@@ -64,53 +59,78 @@ def merge_merged_SCO_table_w_TE_table(merged_orthologs, TE_table, common_gene_co
     return data
 
 
-def filter_merged_SCO_table():
-    """
-    Sanity check the merger of the merged strawberry|SCO table, there might be
-    some genes were we have duplicates
-
-    TODO checkpoint this step with Pat.
-    """
-    raise NotImplementedError("Function not implemented yet")
-
-
-def calc_genome_wide_average_density():
-    raise NotImplementedError("Function not implemented yet")
-
-
-def identify_genes_not_in_SCO():
-    """
-    Return a table of form merged strawberry|SCO but only genes that are NOT in
-    the single copy ortholog state
-
-    TODO edit this docstring, I expect it to change
-    """
-    raise NotImplementedError("Function not implemented yet")
-
-
-def identify_genes_in_SCO():
-    """
-    Return a table of form merged strawberry|SCO but only genes that are only
-    in the single copy ortholog state
-    """
-    raise NotImplementedError("Function not implemented yet")
-
-
 def calc_test_statistic(sco_array, not_sco_array):
     """
     Test that the means of the SCO and non-SCO genes are different
-
-    TODO consider using the Welch's approximate t-test if the variances are
-    unequal
-
-    TODO we may also want to consider comparing the variances with an F-test
-    but that is really sensitive to departures from normality
-
-    TODO consider using a non-parametric test like the Mann-Whitney U test
     """
     # One-sided test, we want to know if the SCO genes have a lower TE density
     statistic = mannwhitneyu(sco_array, not_sco_array, alternative="less")
     return statistic
+
+
+def identify_h4_scos(strawberry_ortholog_table, SCO_table, logger):
+    """
+    Return the set of "TRUE" SCO genes. Merge the vanilla SCO table with my
+    H4-AT gene table and remove any duplicates.
+    """
+    data = strawberry_ortholog_table.copy(deep=True)
+    sco_filter = strawberry_ortholog_table["Arabidopsis_Gene"].isin(
+        SCO_table["Arabidopsis_Gene"]
+    )
+    data.loc[sco_filter, ["SCO_Status"]] = "Y"
+    data.loc[~sco_filter, ["SCO_Status"]] = "N"
+
+    data.drop(columns=["RR_Gene"], inplace=True)
+    data.drop_duplicates(subset=["Arabidopsis_Gene", "H4_Gene"], inplace=True)
+    data = data.loc[data["SCO_Status"] == "Y"]
+    logger.info(f"Identified {len(data)} SCO AT genes in the H4 genome")
+
+    # Remove any AT genes in my SCO-Strawberry table if those AT genes repeat,
+    # we want to be consistent with the SCO definition
+    # TODO have Pat check this one more time
+    data.drop_duplicates(subset=["Arabidopsis_Gene"], keep=False, inplace=True)
+    logger.info(
+        f"""
+        Removing duplicate AT genes (rows) to comply with the SCO
+        definition, {len(data)} remaining unique SCO AT genes
+        """
+    )
+    return data
+
+
+def merge_w_TE_and_calc(
+    scos,
+    not_scos,
+    te_table,
+    te_col,
+    genome_name,
+    logger,
+):
+
+    scos = merge_merged_SCO_table_w_TE_table(scos, te_table, f"{genome_name}_Gene")
+    not_scos = merge_merged_SCO_table_w_TE_table(
+        not_scos, te_table, f"{genome_name}_Gene"
+    )
+
+    te_col = f"{genome_name}_{te_col}"
+    avg_sco = scos[te_col].mean()
+    std_sco = scos[te_col].std()
+    avg_not_sco = not_scos[te_col].mean()
+    std_not_sco = not_scos[te_col].std()
+
+    # Print out the effect size and standard deviation
+    logger.info(f"SCO average: {avg_sco}, transformed: {avg_sco*5000:0.2f} BP")
+    logger.info(
+        f"Non-SCO average: {avg_not_sco}, transformed: {avg_not_sco*5000:0.2f} BP"
+    )
+    logger.info(f"BP difference: {avg_sco*5000 - avg_not_sco*5000:0.2f}")
+    logger.info(f"SCO Standard Deviation: {std_sco}")
+    logger.info(f"Non-SCO Standard Deviation: {std_not_sco}")
+
+    statistic = calc_test_statistic(
+        scos[te_col].to_numpy(), not_scos[te_col].to_numpy()
+    )
+    logger.info(f"My test statistic is {statistic}")
 
 
 if __name__ == "__main__":
@@ -120,13 +140,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
-        "preprocessed_density_table",
+        "h4_preprocessed_density_table",
         type=str,
-        help="TODO",
     )
-    parser.add_argument("strawberry_ortholog_table", type=str, help="TODO")
-    parser.add_argument("sco_table", type=str, help="TODO")
-    parser.add_argument("aed_score_table", type=str, help="TODO")
+    parser.add_argument(
+        "rr_preprocessed_density_table",
+        type=str,
+    )
+    parser.add_argument("strawberry_ortholog_table", type=str)
+    parser.add_argument("sco_table", type=str)
     parser.add_argument(
         "output_dir",
         type=str,
@@ -138,22 +160,28 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    args.preprocessed_density_table = os.path.abspath(args.preprocessed_density_table)
+    args.h4_preprocessed_density_table = os.path.abspath(
+        args.h4_preprocessed_density_table
+    )
+    args.rr_preprocessed_density_table = os.path.abspath(
+        args.rr_preprocessed_density_table
+    )
     args.strawberry_ortholog_table = os.path.abspath(args.strawberry_ortholog_table)
     args.sco_table = os.path.abspath(args.sco_table)
-    args.aed_score_table = os.path.abspath(args.aed_score_table)
     args.output_dir = os.path.abspath(args.output_dir)
 
     log_level = logging.DEBUG if args.verbose else logging.INFO
     logger = logging.getLogger(__name__)
     coloredlogs.install(level=log_level)
     # -----------------------------------------------------------
-    print()  # TODO remove
+    print()
     # Load in the pre-filtered TE Density data
-    te_table = pd.read_csv(args.preprocessed_density_table, header="infer", sep="\t")
-
-    # Load in the AED scores
-    aed_scores = read_aed_output_table(args.aed_score_table)
+    h4_te_table = pd.read_csv(
+        args.h4_preprocessed_density_table, header="infer", sep="\t"
+    )
+    rr_te_table = pd.read_csv(
+        args.rr_preprocessed_density_table, header="infer", sep="\t"
+    )
 
     # Load in the pre-filtered strawberry_ortholog information
     strawberry_ortholog_table = pd.read_csv(
@@ -179,7 +207,8 @@ if __name__ == "__main__":
     # TODO clean up
     # Magic remove the file extension after basename, won't work if multiple
     # '.' in the filename
-    filename = os.path.splitext(os.path.basename(args.preprocessed_density_table))[0]
+    # NOTE THIS MUST BE THE SAME FOR H4 AND RR
+    filename = os.path.splitext(os.path.basename(args.h4_preprocessed_density_table))[0]
     if "minus" not in filename:
         if "Total" in filename:
             genome = filename.split("_")[0]
@@ -197,13 +226,11 @@ if __name__ == "__main__":
     te_col = f"{te_type}_{window}_{direction}"
 
     # -----------------------------------------------------------
-    strawberry_ortholog_table = tag_sco_genes(strawberry_ortholog_table, SCO_table)
     strawberry_ortholog_table.sort_values(by="Arabidopsis_Gene", inplace=True)
 
     # Drop columns we don't need
     strawberry_ortholog_table.drop(
         columns=[
-            "RR_Gene",
             "DN_Gene",
             "DN_Chromosome",
             "RR_Chromosome",
@@ -220,61 +247,54 @@ if __name__ == "__main__":
         inplace=True,
     )
 
-    # NOTE TODO REVIEW THE FOLLOWING CODE is heavily dependent on the order of
-    # things being executed, clarify and do a code review with Pat.
+    genome_name = "H4"  # MAGIC
+    H4_AT_scos = identify_h4_scos(strawberry_ortholog_table, SCO_table, logger)
+    true_AT_scos = H4_AT_scos["Arabidopsis_Gene"].tolist()
 
-    # H4 analysis
-    # First drop duplicate gene pairs that are from when we merged with the
-    # other strawberry genomes
-    strawberry_ortholog_table.drop_duplicates(
-        subset=["Arabidopsis_Gene", "H4_Gene"], inplace=True
+    # Identify genes that are not in the SCO table
+    H4_not_sco = strawberry_ortholog_table.copy(deep=True)
+    H4_not_sco = H4_not_sco.drop(columns=["RR_Gene"])
+    H4_not_sco.drop_duplicates(subset=["Arabidopsis_Gene", "H4_Gene"], inplace=True)
+    H4_not_sco = H4_not_sco.loc[~H4_not_sco["Arabidopsis_Gene"].isin(true_AT_scos)]
+    H4_not_sco.loc[:, "SCO_Status"] = "N"
+
+    logger.info("H4 SCO Analysis")
+    merge_w_TE_and_calc(
+        H4_AT_scos,
+        H4_not_sco,
+        h4_te_table,
+        te_col,
+        "H4",
+        logger,
     )
+    print()
 
-    # Merge the TE and merged ortholog table
-    h4_merged = merge_merged_SCO_table_w_TE_table(
-        strawberry_ortholog_table, te_table, "H4_Gene"
+    # Now do the RR genes that Pat requested
+    RR_not_sco = strawberry_ortholog_table.copy(deep=True)
+    RR_not_sco = RR_not_sco.drop(columns=["H4_Gene"])
+    RR_not_sco.drop_duplicates(subset=["Arabidopsis_Gene", "RR_Gene"], inplace=True)
+    RR_not_sco = RR_not_sco.loc[~RR_not_sco["Arabidopsis_Gene"].isin(true_AT_scos)]
+    RR_not_sco.loc[:, "SCO_Status"] = "N"
+    # Find the RR SCO genes, don't remove duplicates
+    RR_sco = strawberry_ortholog_table.copy(deep=True)
+    RR_sco = RR_sco.drop(columns=["H4_Gene"])
+    RR_sco.drop_duplicates(subset=["Arabidopsis_Gene", "RR_Gene"], inplace=True)
+    RR_sco = RR_sco.loc[RR_sco["Arabidopsis_Gene"].isin(true_AT_scos)]
+
+    # Count the number of times an "Arabidopsis_Gene" only appears once
+    gene_counts = RR_sco["Arabidopsis_Gene"].value_counts()
+    only_once = gene_counts[gene_counts == 1].index
+    only_four_times = gene_counts[gene_counts == 4].index
+    rr_4 = RR_sco.loc[RR_sco["Arabidopsis_Gene"].isin(only_four_times)]
+    rr_1 = RR_sco.loc[RR_sco["Arabidopsis_Gene"].isin(only_once)]
+
+    logger.info("RR SCO Analysis")
+    merge_w_TE_and_calc(
+        RR_sco,
+        RR_not_sco,
+        rr_te_table,
+        te_col,
+        "RR",
+        logger,
     )
-
-    # TODO check this step with Pat
-    scos = h4_merged.loc[h4_merged["SCO_Status"] == "Y"]
-    scos = scos.copy(deep=True)
-    logger.info(f"Identified {len(scos)} SCO AT genes in the H4 genome")
-    # Remove any AT genes in my SCO-Strawberry table if those AT genes repeat
-    scos.drop_duplicates(subset=["Arabidopsis_Gene"], keep=False, inplace=True)
-    logger.info(
-        f"""
-        Removing duplicate AT genes to comply with the SCO
-        definition, {len(scos)} remaining unique SCO AT genes
-        """
-    )
-
-    # Create a table of AT-Strawberry genes where the AT gene is not a SCO
-    # AT genes may repeat in this table
-    not_scos = h4_merged.loc[h4_merged["SCO_Status"] == "N"]
-    good_aed_score = 0.75  # MAGIC TODO make this a parameter
-
-    # NOTE hard-coded value, will break when we get to RR
-    aed_scores.rename(columns={"Gene_Name": "H4_Gene"}, inplace=True)
-    not_scos = subset_by_aed_score(not_scos, aed_scores, "H4", good_aed_score)
-
-    # TODO redefine this with a genome name, parametrize
-    # NOTE the effect size ....
-    te_col = f"H4_{te_col}"
-    avg_sco = scos[te_col].mean()
-    std_sco = scos[te_col].std()
-    avg_not_sco = not_scos[te_col].mean()
-    std_not_sco = not_scos[te_col].std()
-
-    # Print out the effect size and standard deviation
-    logger.info(f"SCO average: {avg_sco}, transformed: {avg_sco*5000:0.2f} BP")
-    logger.info(
-        f"Non-SCO average: {avg_not_sco}, transformed: {avg_not_sco*5000:0.2f} BP"
-    )
-    logger.info(f"BP difference: {avg_sco*5000 - avg_not_sco*5000:0.2f}")
-    logger.info(f"SCO Standard Deviation: {std_sco}")
-    logger.info(f"Non-SCO Standard Deviation: {std_not_sco}")
-
-    statistic = calc_test_statistic(
-        scos[te_col].to_numpy(), not_scos[te_col].to_numpy()
-    )
-    logger.info(f"My test statistic is {statistic}")
+    print()

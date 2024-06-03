@@ -211,9 +211,9 @@ $(STRAWBERRY_ORTHOLOG_TABLE): $(CLEANED_RR_H4_SYNTELOGS) $(RR_H4_BLAST_RENAMED) 
 #-------------------------------------------------------------------#
 # TE Density analysis of Syntelogs
 # Define the file paths for the density data
-DN_DENSITY_DIR := $(RESULTS_DIR)/density/DN
-RR_DENSITY_DIR := $(RESULTS_DIR)/density/RR
-H4_DENSITY_DIR := $(RESULTS_DIR)/density/H4
+DN_DENSITY_DIR := $(RESULTS_DIR)/density/DN/output_data
+RR_DENSITY_DIR := $(RESULTS_DIR)/density/RR/output_data
+H4_DENSITY_DIR := $(RESULTS_DIR)/density/H4/output_data
 DENSITY_TABLE_DIR := $(RESULTS_DIR)/density_analysis/tables
 SYNTELOG_PLOT_DIR := $(RESULTS_DIR)/density_analysis/figures
 
@@ -418,14 +418,14 @@ $(RR_AED_SCORE): $(RR_UNCLEAN_GENES) | $(AED_SCORE_DIR)
 	@echo Filtering RR strawberry genes into appropriate format for TE Density
 	python $(ROOT_DIR)/src/extract_AED_score.py $< RR $(AED_SCORE_DIR)/RR_AED_distribution.png $@
 #-------------------------------------------------------------------#
-# TODO perform the single copy ortholog analysis
-#
+# Single Copy Ortholog Analaysis
+# Do genes that are single copy orthologs have lower TE densities than other genes?
+
 SSO_TABLE := $(DATA_DIR)/orthologs/single_copy_orthologs/sd01.tsv
 
 .PHONY: single_copy_orthologs
-single_copy_orthologs: $(STRAWBERRY_ORTHOLOG_TABLE) $(SSO_TABLE) $(H4_AED_SCORE) $(RESULTS_DIR)
-	python src/orthologs/single_copy_orthologs.py $(DENSITY_TABLE_DIR)/H4_Total_TE_Density_5000_Upstream.tsv $^ 
-
+single_copy_orthologs: $(STRAWBERRY_ORTHOLOG_TABLE) $(SSO_TABLE) $(RESULTS_DIR)
+	python src/orthologs/single_copy_orthologs.py $(DENSITY_TABLE_DIR)/H4_Total_TE_Density_5000_Upstream.tsv $(DENSITY_TABLE_DIR)/RR_Total_TE_Density_5000_Upstream.tsv $^ 
 
 
 #-------------------------------------------------------------------#
