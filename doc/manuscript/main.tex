@@ -1,0 +1,355 @@
+% using 'oldplainarticle' for one-col draft, see comment below 'NOTE DOCCLASS'
+% comment this line out (and others) and replace w/ IEEEtran
+\documentclass[fleqn,10pt]{olplainarticle}
+
+
+% using 'IEEEtran' for a two-col draft, closer to expected journal, see comments below 'NOTE DOCCLASS'
+% comment this line out (and others) and replace w/ oldplainarticel
+%\documentclass[journal,draftcls]{IEEEtran}
+% SEE https://ctan.mirrors.hoobly.com/macros/latex/contrib/IEEEtran/IEEEtran_HOWTO.pdf
+
+\frenchspacing
+\usepackage{xr-hyper}
+\usepackage{hyperref}                   % links
+\usepackage{xcolor}
+\usepackage{amsmath}                    % math symbols
+\usepackage{lineno}
+\usepackage{multirow}
+%\usepackage[ruled,vlined,noend]{algorithm2e}  % pseudo-code; NOTE do not use float env provided by package w/ IEEE
+%\usepackage{xargs}                      % Use more than one optional parameter in a new commands
+%\usepackage{todonotes}                  % notes in sidebar
+%\usepackage{authblk}                    % support footnote style author / affiliation
+%\usepackage[htt]{hyphenat}              % used to allow linebreaks for teletype (\texttt)
+%\usepackage[acronym]{glossaries}        % acronymns: \newacronym
+%\loadglsentries{glossary}
+
+% BUG including paralist causes errors?
+%\usepackage{paralist}                   % adds: inparaenum env for inline lists
+
+\hypersetup{urlcolor=cyan,colorlinks=true,linkcolor=blue}
+
+
+%\newcommandx{\todoScott}[2][1=]{\todo[linecolor=cyan,backgroundcolor=cyan!25,bordercolor=cyan,#1]{#2}}
+%\newcommandx{\todoMike}[2][1=]{\todo[linecolor=magenta,backgroundcolor=magenta!25,bordercolor=magenta,#1]{#2}}
+%\newcommandx{\todoPat}[2][1=]{\todo[linecolor=yellow,backgroundcolor=yellow!25,bordercolor=yellow,#1]{#2}}
+
+
+\makeatletter
+%\newcommand*{\addFileDependency}[1]{% argument=file name and extension
+%  \typeout{(#1)}
+%  \@addtofilelist{#1}
+%  \IfFileExists{#1}{}{\typeout{No file #1.}}
+%}
+%\makeatother
+
+%\newcommand*{\myexternaldocument}[1]{%
+%    \externaldocument{#1}%
+%    \addFileDependency{#1.tex}%
+%    \addFileDependency{#1.aux}%
+%}
+%\myexternaldocument{Supplement}
+
+\usepackage{setspace}
+\doublespacing  % NOTE comment out to use single spacing
+
+
+%\RequirePackage{listings}
+
+
+
+
+\linenumbers
+
+\begin{document}
+%\newacronym{te}{TE}{Transposable Element}
+
+% NOTE DOCCLASS used w/ oldplainarticle
+\keywords{Transposable Elements, Genomics, Genome Evolution, Bioinformatics, Python}
+% NOTE DOCCLASS used w/ IEEE
+%\begin{IEEEkeywords}
+%    Transposable Elements, TE, Syntelog
+% \end{IEEEkeywords}
+
+
+% Use option lineno for line numbers 
+\title{The Phenotypic Consequences of Transposable Elements in Cultivated Strawberry}
+
+\author[1,2]{Scott J. Teresi}
+\author[1]{Ning Jiang}
+% \author[1]{Maria Magallanes-Lundback}
+% \author[3]{Mackenzie Jacobs}
+\author[1,2]{Patrick P. Edger}
+\affil[1]{Department of Horticulture, Michigan State University, East Lansing, MI}
+\affil[2]{Genetics and Genome Sciences Program, Michigan State University, East Lansing, MI}
+% \affil[3]{Biomolecular Science, Michigan State University, East Lansing, MI}
+
+\begin{abstract}
+\textbf{Background:}
+The cultivated strawberry (\textit{Fragaria x ananassa}), unlike most crops, is unique because it is a recent domesticate, formed by the interspecific hybridization of wild octoploid species.
+Here, armed with the availability of a wide-array of genomic and phylogentic resources that include wild diploid, wild octploid, and a high-quality reference genome for \textit{Fragaria x ananassa} we examined the genome for signatures of domestication.
+While previous research has shown that the dominant subgenome possesses the least amount of transposable elements (TEs) and that they are important contributors to genotypic and phenotypic variation, the potential influence of TEs on the domestication of strawberry has been relatively understudied.
+%Transposable elements (TEs) are major forces of genetic mutation and phenotypic diversity.
+%A wide-range of traits in a variety of crop species have been shown to be influenced by transposable elements.
+%This is driven by the capacity of TEs to act as alternative promoters, shuffle gene sequences, or influence methylation and chromatin accessibility dynamics near genes.
+\newline
+\textbf{Results:}
+Here we constructed a TE-pangenome for strawberry and show that although the relative TE content between the wild and domesticated strawberry genomes is quite similar, there are large TE differences around genes that suggest their role in the domestication process.
+We show large transposon dynamics around positionally conserved genes suggesting rapid evolution.
+Additionally, we show that a number of defense, biosynthesis, and development genes are enriched for transposon presence and have high expression, suggesting the co-opting or domestication of TEs during the domestication of strawberry. % (TODO verify this!!!)
+\newline
+\textbf{Conclusions:}
+Together, this study describes the TE-gene dynamics of strawberry, showing the potential influence of TEs, and suggests a ...
+\end{abstract}
+
+\flushbottom
+\maketitle
+\thispagestyle{empty}
+
+\newpage
+\section{Background:}
+% Do I want to start with transposable elements or strawberry? I guess strawberry because this paper is focused on that.
+\paragraph{Strawberry is Both a Major Crop and Model System:}
+The cultivated garden strawberry (\textit{Fragaria x ananassa} is the hybrid product of two allo-octoploid species \textit{Fragaria virginiana} and \textit{Fragaria chiloensis}.
+While the parents are native to North and South America, garden strawberry was first generated in the Royal Gardens of Versailles during the 18th century (TODO check).
+Unlike most domesticated crops, strawberry has not undergone thousands of years of selection and domestication.
+In fact, genomic diversity is actually quite high, both in the wild founder and domesticated populations; the genome also has a high degree of karyotypic stability and absence of chromosome restructuring \cite{Hardigan2020, Hardigan2021}.
+
+However the success of agricultural strawberry as a crop is not fully understood, as there is high similarity to the wild progenitor and little quantitative evidence of heterosis \cite{Stegmeir2010, Rho2012, Hardigan2020}, and \cite{Hardigan2020} suggest that ``interspecific complementation, a broader pool of potentially adaptive alleles, and the masking of deleterious mutations could be more important than fixed heterosis'' in the polyploid crop.
+In this study we examine transposable elements as a potential answer.
+
+\paragraph{Transposons as Agents of Change:}
+Transposable elements (transposons, TEs) are selfish, mobile, repetitive DNA sequences that constitute a major component of most eukaryotic genomes.
+Some genomes have a relatively high transposon load, for example, B73, a \textit{Zea mays} line and key component of the Nested Association Mapping (NAM) panel, is $\sim$82.9\% TE \cite{Hufford2021}.
+% Wheat, another \texit{Poaeceae} similarly is $\sim$85\% TE \cite{Appels2018}.
+
+TEs can be divided into two classes.
+Class I TEs, also known as retrotransposons, mobilize through an RNA intermediate and behave in a ``copy-and-paste'' manner.
+Generally LTR elements, an order of Class I elements, are the most common TE type in plants.
+Class II elements utilize a DNA intermediate and are ``cut-and-paste''.
+Class II elements are less common, and generally not quite as large as LTR elements.
+
+TEs can influence the expression of genes in a multitude of ways.
+TEs can pick up and shuffle gene fragments, duplicate nearby sequences, act as novel regulatory features, or completely alter a gene's normal transcription through insertional mutagenesis.
+They also have a strong influence on genome structure and chromatin accessibility.
+Because of their inherent selfish, mutagenic nature, TEs are frequently targeted with repressive methylation to prevent their transcription.
+These repressive marks can sometimes ``spill-over'' to sequences adjacent to the TE due to the self-reinforcing nature of RdDM, influencing the surrounding landscape: woe to any gene nearby.
+
+While most TEs create negative fitness consequences and are typically kept under transcription lock-down, there are a number of example of TEs influencing plants in neutral or positive manners.
+For example, TEs have influenced grape color, apple color, pepper disease resistance, metabolite variation, the domestication of maize, and may have a role in subgenome dominance in strawberry (TODO, this part was really close in structure to my paper).
+Although previous research has unearthed TEs interacting with genes, or in some cases acting as genes themselves, the systematic investigation of TEs interacting with genes in strawberry remains to be performed.
+
+
+
+
+% They comprise a major component of eukaryotic genomes, especially in plants.
+% For example, the \textit{Zea mays} B73 reference genome is $\sim$80\% TE.
+
+% \paragraph{}
+
+\section{Results:}
+\subsection{Genome Annotations:}
+To investigate differences in TEs between the strawberry genomes we generated a TE-pangenome annotation.
+In the pangenome library we identified a total of 7,294 consensus sequences.
+Overall, the annotations of each genome are not all that different, differing by a total of only 2.2\%.
+Del Norte has 45.73\% genome repeat content, and Royal Royce has 43.53\% genome repeat content.
+%Table \ref{} shows additional information
+The Del Norte genome is slightly larger... (TODO)
+
+\subsection{Domesticated Strawberry is More Gene-Dense and Less TE-Dense}
+Prior to calculating TE Density, we first calculated the average distance between each genes in order to better inform the choice of window parameters.
+Royal Royce has a mean distance ($\mu$) and standard deviation ($\sigma$) of 5.01 and 8.08 KB.
+Del Norte was greater in both respects,  $\mu = 5.20$ KB, $\sigma = 8.64$ KB.
+This suggests that Royal Royce has shrunk (TODO)...
+%Thus, we decided to utilize 5KB as the prime reference window of reference for TE Density.
+(TODO can put these graphs in the supplement).
+
+Although the two genomes differ only by about 2.2\%, genes are generally more TE-dense in Del Norte.
+Figure 
+
+
+\paragraph{Dotplots:}
+\paragraph{Dotplots:}
+
+% \begin{figure}[ht]
+% \centering
+% \includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{Figures/DN_Dotplot_Strawberry_AllGenes_Order.png}
+% \caption{TODO}
+% \label{fig:dn_order_dotplot}
+% \end{figure}
+
+
+
+\paragraph{Syntelog Barplots:}
+We examined the difference in TE Density of positionally conserved genes (syntelogs) between wild and domesticated strawberry in order to further explore the subtle TE differences reported in our genome annotations.
+We would expect that the syntelog pairs would have similar levels of TE presence, but referencing Figure \ref{fig:syntelog_5000_total} we see rather large differences, and show that the Del Norte syntelog is generally more TE-dense. Here we plotted the difference in TE Density values of syntelog pairs, subtracting the Royal Royce value from the Del Norte value.
+The TE Density values reported in Figure \ref{fig:syntelog_5000_total} were derived from a 5 KB measurement window upstream of genes, and display the total TE Density --- the sum of all TE occupied base-pairs for the window.
+To statistically investigate this relationship we first plotted the quantile-quantile (QQ) plot to assess the normality of the distribution (TODO supplement).
+This showed that the data likely does not come from a normal distribution, and suggests that the data contains more extreme values than a normal distribution.
+Thus, we decided to move forward with a nonparametric test.
+We performed a Wilcoxon signed-rank test to test the null hypothesis ($H_{0}$) that TE Density values of the syntelog pairs come from the same distribution, and decided on a one-sided alternative hypothesis ($H_{a}$) positing that the Del Norte values are consistently greater than Royal Royce.
+Our resulting p-value of 5.497e-113 allows us to reject the null hypothesis in favor of the alternative.
+We repeated this analysis for all TE types, over all windows, for both upstream and downstream, and found that there is no combination in which Royal Royce is more TE-dense (TODO supplement).
+We also observed that the mean is always positive and the absolute value of the percentile cutoffs is consistently larger for the Del Norte-biased portion of the graphs.
+
+% \begin{figure}[ht]
+% \centering
+% \includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{Figures/Total_TE_Density_5000_Upstream_DensityDifferences.png}
+% \caption{Histogram of non-zero differences in TE Density values of syntelogs between Del Norte and Royal Royce. Negative values reflect a higher TE value for the Royal Royce syntelog, and positive values reflect a higher TE value for the Del Norte syntelog. Values were binned into groupings reflecting 10\% increases or decreases in TE Density. All but the last (most positive) bin is half-open. For example, the leftmost bin reflects an interval of $[-1.0, -0.9)$  The cutoff values for the 95th percentile of positive values, and the 5th percentile of negative values were calculated from the array of non-zero differences.}
+% \label{fig:syntelog_5000_total}
+% \end{figure}
+
+
+\subsection{}
+
+\paragraph{Few GO Terms are Shared Between the TE-Dense Genes of Both Genomes}
+We were interested in the functional annotations of the TE-dense genes.
+Here, we examined the 95th percentile of TE Density, for the 5 KB upstream and downstream window of all genes in Royal Royce.
+The cutoff value for the 95th percentile was 0.607 and 0.617 respectively.
+Applying this cutoff to our dataset yielded 1593 genes, and 1672 genes respectively.
+After identifying the ``super-dense'' genes, we then subsetted our ortholog table to identify their \textit{Arabidopsis} orthologs and GO terms.
+This yielded a dataset of 635 and 579 remaining upstream and downstream strawberry genes.
+We then repeated this process for the Del Norte dataset, the numbers of both analyses are replicated in Table \ref{tab:go_compare_TIR_5K}
+
+\begin{table}[h]
+\begin{tabular}{lcccc}
+\textbf{Genome}                  & \multicolumn{1}{l}{\textbf{Direction}} & \multicolumn{1}{l}{\textbf{Cutoff Value}} & \multicolumn{1}{l}{\textbf{Genes Meeting Cutoff}} & \multicolumn{1}{l}{\textbf{Genes w/ AT Ortholog \& GO Term}} \\
+\multicolumn{1}{l|}{Royal Royce} & \multirow{2}{*}{Upstream}              & 0.607                                     & 1593                                              & 635                                                          \\
+\multicolumn{1}{l|}{Del Norte}   &                                        & 0.633                                     & 1380                                              & 448                                                          \\ \hline
+\multicolumn{1}{l|}{Royal Royce} & \multirow{2}{*}{Downstream}            & 0.617                                     & 1672                                              & 579                                                          \\
+\multicolumn{1}{l|}{Del Norte}   &                                        & 0.640                                     & 1370                                              & 588                                                         
+\end{tabular}
+\caption{Test}
+\label{tab:go_compare_TIR_5K}
+\end{table}
+
+% TODO talk about the figures.
+% \begin{figure}[ht]
+% \centering
+% \includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{Figures/TIR_5000_Upstream_NonSyntelog.png}
+% \caption{Test}
+% \label{fig:new}
+% \end{figure}
+
+
+
+%\subsection{GO Annotations of the Syntelogs Greatly Differing in TE-Density Suggest that... }
+%Next, we investigated the tails of Figure \ref{fig:syntelog_2500_total}, and its sister datasets to examine what kinds of functional enrichments exist for the syntelogs that greatly differ in TE density.
+%We asked ourselves, ``What kinds of genes would have high TE density in the domesticated genome but hardly any in the wild genome?'' and vice-versa.
+%First
+
+%\subsection{Gene Comparisons TODO RETITLE:}
+%\paragraph{Domesticated and Wild Strawberry Share Few GO Terms Among Their TE-Dense genes:}
+%Next, we performed a GO enrichment on the TE-dense genes of each genome, regardless of whether or not that gene had a corresponding syntelog or large TE difference between the genomes (TODO most do because we had to get AT orthologs).
+%Here we sought to compare and contrast the GO terms of the TE-dense genes to see if there were gene ontologies that are unique or shared between the genomes.
+
+\section{Discussion:}
+\paragraph{Limitations of our TE Annotations:}
+Sans manual annotation, software generated TE annotations are ultimately a hypothesis of the identification and classification of TEs in a genome.
+The structural diversity of TEs, the quality of input genomes, the availability of reference data sets such as TE models and consensus sequences, the performance of \textit{de novo} annotation software, and the difficulty in manually verifying individual TE models comes together to limit the interpretation and tractability of TE annotations. 
+For example, Helitron elements are notoriously difficult to analyze due to their structural assymetry, a lack of TSD upon integration and high sequence heterogeneity (TODO cite Helitron book chapter), for this reason they were left unanalyzed.
+
+\paragraph{Limitations of TE Density:}
+TODO?
+
+\paragraph{Limitations of GO:}
+The ability to infer gene function in strawberry is ultimately limited by our ability to infer orthology to \textit{Arabidopsis thaliana}.
+Futhermore, not every \textit{Arabidopsis} gene is associated with a GO term.
+Thus, it is entirely possible we are missing functional annotations more pertinent to strawberry domestication and agriculture, because the strawberry genes have diverged and/or acquired new functions not in the \textit{Arabidopsis} data set.
+
+
+\section{Methods:} \label{sec:methods}
+All code used to conduct this study is located within the GitHub repository at \url{https://github.com/sjteresi/Strawberry_Domestication}.
+The Makefile, located within the root directory, is the primary reference for recreating the bioinformatic analyses.
+Unless otherwise specified, analyses were conducted using Python v3.10.10.
+Please see the requirements directory within the repository for a complete list of minor packages.
+
+\subsection{Plant Treatments:}
+Plants were grown with under a 16:8 photoperiod.
+Young leaf tissue was collected 5-6 hours after first light.
+Plants were subjected to 3 different temperature and humidity treatments.
+Plants were grown for a minimum of 14 days in each treatment prior to sampling.
+The warm treatment was set at 28 C and 80\% humidity.
+The neutral treatment was set at 20 C and 40\% humidity.
+The cold treatment was set at 12 C and 40\% humidity.
+New plants were used for each treatment.
+% TODO but the neutral Del Norte that Maria has is being used for the cold treatment.
+
+\subsection{RNA Extraction:}
+TODO check with Maria
+
+\subsection{RNA Sequencing:}
+TODO check with Maria
+
+\subsection{TE Annotation:}
+TE annotations were generated using a pangenome approach and EDTA v2.1.1.
+First each strawberry genome was individually annotated with EDTA, using the \verb|--sensitive 1| and \verb|--anno 1| flags.
+Second a pangenome repeat library was created by calling \verb|panEDTA.sh| on a directory containing the results from the individual annotations.
+PanEDTA works by carefully combining the individual repeat libraries into one; this provides the advantage of consistent annotation and makes it easier to annotate TE fragments via homology (CITE). 
+Finally, the pangenome library is used to re-annotate the individual genomes.
+Here, the Royal Royce coding sequences FASTA file was provided to minimize the annotation of gene sequences in the strawberry genomes.
+
+
+
+\subsection{Ortholog Identification:} \label{sec:methods_orthologs}
+Genome-wide analyses using a combination of synteny- and reciprocal BLASTp- based approaches, were performed to identify orthologs amongst the strawberry genomes.
+Ortholog pairs were excluded if they did not reside on homologous (TODO check term) chromosomes, i.e a gene pair from chromosome 1-4 in the Royal Royce genome was excluded from having a Del Norte ortholog on chromosome 2-3.
+Data from Hardigan (CITE) was used to establish the chromosome relationships between Del Norte and Royal Royce.
+Ortholog pairs with E-values greater than or equal to 0.05 were excluded from both datasets.
+In the event that SynMap or BLASTp returned multiple genes for a single gene, the ortholog pair with the best (lowest) E-value score was kept, and the other pairs discarded.
+In the event that a gene had an ortholog identified through both BLASTp and SynMap, we gave priority to the SynMap synteny results, preferentially keeping that ortholog pair. 
+
+Orthologs between H4 and Arabidopsis, similarly identified using a combination of synteny and BLASTp approaches, were used to establish Arabidopsis orthology.
+GO terms were acquired from TAIR and the GOSLIM data set, versioned to March 1st, 2023 (cite).
+TopGO v2.50.0 was used within R v4.2.2 to generate the GO enrichments.
+
+
+\paragraph{Syntelog Identification with SynMap:} \label{sec:methods_syntelogs}
+First, \href{https://genomevolution.org/CoGe/SynMap.pl}{SynMap} was run between the Del Norte and Royal Royce genome to identify syntelogs.
+Then SynMap was run between the Royal Royce and H4 genomes.
+In both cases SynMap was run with all default options, except for the fact that `Merge Syntenic Blocks` was set to `Quota Align Merge`.
+
+The analysis of Royal Royce vs. Del Norte can be retrieved with the following \href{ https://genomevolution.org/r/1r9uk}{link}.
+The analysis of Royal Royce vs. H4 can be retrieved with the following \href{https://genomevolution.org/r/1r9uy}{link}.
+% TODO the genomes are private on CoGe currently, is this an issue?
+
+\paragraph{Homolog Identification with BLASTp} \label{sec:methods_homologs}
+BLAST v2.2.26 was used to identify homologs that may have been missed using a synteny-based approach.
+Specifically, we used `blastall -p blastp` to perform the search. 
+
+\subsection{TE Density Analyses:}
+TE Density (CITE) v2.0.0+ (TODO was using experimental version) was used to generate TE Density data.
+
+\section{Conclusion:}
+
+\section{Declarations:}
+\subsection{Ethics approval and consent to participate:}
+Not applicable
+
+\subsection{Consent for publication:}
+Not applicable
+
+\subsection{Availability of data and materials:}
+All code used to conduct this study is located within the GitHub repository at \url{https://github.com/sjteresi/Strawberry_Domestication}.
+Sequencing data is located at TODO.
+The genome annotations, repeat library, TE Density data, and ortholog table is located on Dryad at TODO.
+
+\subsection{Competing Interests:}
+The authors declare that they have no competing interests
+
+\subsection{Funding:}
+
+\subsection{Authors' Contributions:}
+S.J.T. and P.P.E. conceived and designed the project.
+S.J.T wrote the code and performed analyses.
+S.J.T. wrote the manuscript draft, and all authors reviewed and revised the manuscripts.
+% M.J maintained the strawberry plants used for tissue collection.
+S.J.T and M.ML collected tissue and sequenced the RNA.
+
+\subsection{Acknowlegements:}
+We thank Michael Teresi for software optimization advice, Ning Jiang for TE advice, Adrian Platts for TE visualization \& general coding advice, Nicholas Panchy for computing cluster help.
+% Claudia Miranda Cekalovic for donating plants, 
+
+\newpage
+\bibliography{references}
+
+\end{document}
