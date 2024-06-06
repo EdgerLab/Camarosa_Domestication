@@ -72,7 +72,7 @@ def generate_go_id_and_term_table(go_master_file):
     return data
 
 
-def read_master_GO_table(go_master_file):
+def transform_to_TopGO_format(go_master_file):
     """
     Take a master GO table from TAIR and preprocess to remove gene IDs we do
     not want. The output is in a format that TopGO desires
@@ -137,7 +137,10 @@ def read_master_GO_table(go_master_file):
     # MAGIC, regex to get AT (1-5) G genes. Don't want mitochondrial or
     # chloroplast or uniquely named genes.
     # I also don't want stuff like YI and XTC...
+    # TODO Check with Pat
+    print(data)
     data = data[data["gene_name"].str.contains("^AT[1-5]G", regex=True)]
+    print(data)
     data = data.sort_values(by=["gene_name"])
 
     return data
@@ -159,9 +162,9 @@ if __name__ == "__main__":
     coloredlogs.install(level=log_level)
     # -----------------------------------------------------------------
 
-    data = read_master_GO_table(args.go_master_file)
-
-    # NOTE this is for TOPGO
+    # NOTE this is for TopGO
+    # This is the gene universe that TopGO wants
+    data = transform_to_TopGO_format(args.go_master_file)
     file_out = os.path.join(args.go_output_path, "ArabidopsisGene_w_GO.tsv")
     logger.info(f"Writing TopGO reference file to: {file_out}")
     data.to_csv(
