@@ -48,3 +48,12 @@ So my objective was to improve the annotation quality and make RR work with EDTA
 The solution I centered on was running RR through EDTA v2.1.1 to get the `RepeatMasker.out` file, and then run EDTA v2.2.1 on RR with the RepeatMasker as an additional argument.
 This worked, and I was able to avoid the whitelist error.
 I ran DN and H4 from the get-go with EDTA v2.2.1 (with CDSs) and then ran panEDTA on everything.
+
+# Ortholog Analysis:
+Generate the orthologs for the strawberries, and generate an ortholog table
+
+	# 1. Filter the syntelogs that were generated from SynMap on CoGe
+	# 2. Run the BLAST scripts so that we have a dataset supplemental to the CoGe results
+	# 3. Filter the BLAST results
+	# 4. Generate the master orthology table
+

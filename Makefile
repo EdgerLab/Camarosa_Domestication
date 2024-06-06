@@ -16,34 +16,6 @@ DATA_DIR := $(ROOT_DIR)/data
 GENOMES_DIR := $(DATA_DIR)/Genomes
 RESULTS_DIR := $(ROOT_DIR)/results
 
-# TEs
-# TODO should make these targets for a rule, rather than slaming through a
-# PHONY
-DEV_H4_UNCLEAN_TEs := $(RESULTS_DIR)/Pan_Annotation/H4_NewNames.fa.mod.EDTA.TEanno.gff3
-DEV_DN_UNCLEAN_TEs := $(RESULTS_DIR)/Pan_Annotation/DN_NewNames.fa.mod.EDTA.TEanno.gff3
-DEV_RR_UNCLEAN_TEs := $(RESULTS_DIR)/Pan_Annotation/RR_NewNames.fa.mod.EDTA.TEanno.gff3
-
-
-setup:
-	mkdir -p requirements doc results src data logs logs/TE_Density logs/EDTA
-
-sync_hpcc_to_onedrive:
-	# MUST be standing in root folder for project
-	ml Rclone
-	rclone sync . remote:HPCC_Mirror/Strawberry_Domestication/ --exclude=.git/** -P -L
-
-#sync_onedrive_to_hpcc:
-	# MUST be standing in root folder for project
-	#ml Rclone
-	#rclone sync remote:HPCC_Mirror/Strawberry_Domestication/ . --exclude=.git/** -P
-.PHONY:
-filter_TEs:
-	@echo Filtering strawberry TEs into appropriate format for TE Density
-	mkdir -p $(RESULTS_DIR)/cleaned_annotations/
-	python $(ROOT_DIR)/src/import_strawberry_EDTA.py $(DEV_H4_UNCLEAN_TEs) $(RESULTS_DIR)/cleaned_annotations/ H4
-	python $(ROOT_DIR)/src/import_strawberry_EDTA.py $(DEV_DN_UNCLEAN_TEs) $(RESULTS_DIR)/cleaned_annotations/ DN
-	python $(ROOT_DIR)/src/import_strawberry_EDTA.py $(DEV_RR_UNCLEAN_TEs) $(RESULTS_DIR)/cleaned_annotations/ RR
-
 #-------------------------------------------------------------------#
 # Prepare the gene and TE annotation inputs for TE Density
 
@@ -71,11 +43,6 @@ H4_CLEAN_TEs := $(CLEANED_ANNOTATION_DIR)/Cleaned_H4_NewNames.fa.mod.EDTA.TEanno
 DN_CLEAN_TEs := $(CLEANED_ANNOTATION_DIR)/Cleaned_DN_NewNames.fa.mod.EDTA.TEanno.gff3
 RR_CLEAN_TEs := $(CLEANED_ANNOTATION_DIR)/Cleaned_RR_NewNames.fa.mod.EDTA.TEanno.gff3
 
-
-# Define a phony target to filter all gene annotations for convenience
-.PHONY: filter_all_genes
-filter_all_genes: $(H4_CLEAN_GENES) $(DN_CLEAN_GENES) $(RR_CLEAN_GENES)
-
 $(H4_CLEAN_GENES): $(H4_UNCLEAN_GENES) | $(CLEANED_ANNOTATION_DIR)
 	@echo Filtering H4 strawberry genes into appropriate format for TE Density
 	python $(ROOT_DIR)/src/import_strawberry_gene_anno.py $< H4 $@
@@ -87,13 +54,6 @@ $(DN_CLEAN_GENES): $(DN_UNCLEAN_GENES) | $(CLEANED_ANNOTATION_DIR)
 $(RR_CLEAN_GENES): $(RR_UNCLEAN_GENES) | $(CLEANED_ANNOTATION_DIR)
 	@echo Filtering RR strawberry genes into appropriate format for TE Density
 	python $(ROOT_DIR)/src/import_strawberry_gene_anno.py $< RR $@
-
-# Define a phony target to run a singular gene filtering for convenience
-# FUTURE if you want more individually type the phonies out
-# TODO DEV REMOVE FUTURE
-.PHONY: filter_H4_genes
-filter_H4_genes: $(DN_CLEAN_GENES)
-
 
 $(H4_CLEAN_TEs): $(H4_UNCLEAN_TEs) | $(CLEANED_ANNOTATION_DIR)
 	@echo Filtering H4 strawberry TEs into appropriate format for TE Density
@@ -107,38 +67,38 @@ $(RR_CLEAN_TEs): $(RR_UNCLEAN_TEs) | $(CLEANED_ANNOTATION_DIR)
 	@echo Filtering RR strawberry TEs into appropriate format for TE Density
 	python $(ROOT_DIR)/src/import_strawberry_EDTA.py $< RR $@
 
+# Define a phony target to filter all gene annotations for convenience
+.PHONY: filter_all_genes
+filter_all_genes: $(H4_CLEAN_GENES) $(DN_CLEAN_GENES) $(RR_CLEAN_GENES)
+
 # Define a phony target to filter all TE annotations for convenience
 .PHONY: filter_all_transposons
 filter_all_transposons: $(H4_CLEAN_TEs) $(DN_CLEAN_TEs) $(RR_CLEAN_TEs)
 
 #-------------------------------------------------------------------#
-# Orthology Analysis:
-# Generate the orthologs for the strawberries, and generate an ortholog table
+# Prepare the syntelog and BLAST results to generate the ortholog table
 
-	# 1. Filter the syntelogs that were generated from SynMap on CoGe
-	# 2. Run the BLAST scripts so that we have a dataset supplemental to the CoGe results
-	# 3. Filter the BLAST results
-	# 4. Generate the master orthology table
-
-# Define the file paths for the regular and cleaned syntelogs files
+# Define the file paths for the unclean syntelog files
 RR_DN_SYNTELOG_REGULAR := $(DATA_DIR)/orthologs/RR_DN_SynMap.txt
 RR_H4_SYNTELOG_REGULAR := $(DATA_DIR)/orthologs/RR_H4_SynMap.txt
-CLEANED_RR_DN_SYNTELOGS := $(DATA_DIR)/orthologs/filtered/Cleaned_RR_DN_Syntelogs.tsv
-CLEANED_RR_H4_SYNTELOGS := $(DATA_DIR)/orthologs/filtered/Cleaned_RR_H4_Syntelogs.tsv
-
-# Define the file paths for the renamed BLAST results
+# Define the file paths for the unclean BLAST results
 RR_H4_BLAST_REGULAR := $(DATA_DIR)/orthologs/RR_H4.blast
 RR_DN_BLAST_REGULAR := $(DATA_DIR)/orthologs/RR_DN.blast
+
+# Define the file paths for the clean syntelog files
+CLEANED_RR_DN_SYNTELOGS := $(DATA_DIR)/orthologs/filtered/Cleaned_RR_DN_Syntelogs.tsv
+CLEANED_RR_H4_SYNTELOGS := $(DATA_DIR)/orthologs/filtered/Cleaned_RR_H4_Syntelogs.tsv
+# Define the file paths for the cleaned BLAST results
 RR_H4_BLAST_RENAMED := $(DATA_DIR)/orthologs/filtered/RR_H4_BLAST_renamed.tsv
 RR_DN_BLAST_RENAMED := $(DATA_DIR)/orthologs/filtered/RR_DN_BLAST_renamed.tsv
 
-# Define some basic file paths for processing the basic GO terms
+# Define the file paths for processing the GO terms
 UNCLEAN_GO_FILE := $(DATA_DIR)/GO/ATH_GOSLIM.txt
 CLEANED_GO_FILE := $(RESULTS_DIR)/go_analysis/GO_ID_w_Term.tsv
 TOP_GO_REFERENCE_FILE := $(RESULTS_DIR)/go_analysis/ArabidopsisGene_w_GO.tsv
 GO_OUT_DIR := $(RESULTS_DIR)/go_analysis
 
-# Define the file paths for the master orthology table that is the final product
+# Define the file paths for the master orthology table --- this is the final product
 STRAWBERRY_ORTHOLOG_TABLE := $(RESULTS_DIR)/orthologs/Strawberry_Arabidopsis_Ortholog_Table.tsv
 
 # Define a target to create the directory if it doesn't exist
@@ -161,9 +121,6 @@ filter_RR_H4_syntelogs: $(CLEANED_RR_H4_SYNTELOGS)
 $(CLEANED_RR_H4_SYNTELOGS): $(RR_H4_SYNTELOG_REGULAR) | $(DATA_DIR)/orthologs/filtered
 	python $(ROOT_DIR)/src/orthologs/syntelogs.py $< H4 $@
 
-# Define a target to generate the vanilla BLAST results, must be run on cluster.
-.PHONY: generate_BLAST
-generate_BLAST: $(RR_H4_BLAST_REGULAR) $(RR_DN_BLAST_REGULAR)
 
 $(RR_H4_BLAST_REGULAR):
 	@echo  BLASTING RR and H4, must be run on the cluster
@@ -173,12 +130,10 @@ $(RR_DN_BLAST_REGULAR):
 	@echo  BLASTING RR and DN, must be run on the cluster
 	sbatch $(ROOT_DIR)/src/orthologs/rr_dn_blastall.sb
 
-# Define a target to rename the BLAST results
-.PHONY: rename_RR_H4_BLAST
-rename_RR_H4_BLAST: $(RR_H4_BLAST_RENAMED)
+# Define a target to generate the vanilla BLAST results, must be run on cluster.
+.PHONY: generate_BLAST
+generate_BLAST: $(RR_H4_BLAST_REGULAR) $(RR_DN_BLAST_REGULAR)
 
-.PHONY: rename_RR_DN_BLAST
-rename_RR_DN_BLAST: $(RR_DN_BLAST_RENAMED)
 
 $(RR_H4_BLAST_RENAMED): $(RR_H4_BLAST_REGULAR) $(RR_CLEAN_GENES) $(H4_CLEAN_GENES) | $(DATA_DIR)/orthologs/filtered
 	python $(ROOT_DIR)/src/orthologs/reformat_RR_H4_BLAST_results.py $^ $@
@@ -186,6 +141,13 @@ $(RR_H4_BLAST_RENAMED): $(RR_H4_BLAST_REGULAR) $(RR_CLEAN_GENES) $(H4_CLEAN_GENE
 # NOTE there is a gene renaming step in this particular script
 $(RR_DN_BLAST_RENAMED): $(RR_DN_BLAST_REGULAR) $(DATA_DIR)/orthologs/DN_salt.translation $(RR_CLEAN_GENES) $(DN_CLEAN_GENES) | $(DATA_DIR)/orthologs/filtered
 	python $(ROOT_DIR)/src/orthologs/replace_and_reformat_DN_RR_BLAST_results.py $^ $@
+
+# Define a target to rename the BLAST results
+.PHONY: rename_RR_H4_BLAST
+rename_RR_H4_BLAST: $(RR_H4_BLAST_RENAMED)
+
+.PHONY: rename_RR_DN_BLAST
+rename_RR_DN_BLAST: $(RR_DN_BLAST_RENAMED)
 
 # Define a target to clean the GO file
 .PHONY: filter_go_slim
@@ -259,6 +221,33 @@ generate_DN_dotplot: $(DN_DENSITY_DIR) $(DN_CLEAN_GENES) $(DOTPLOT_OUT_DIR) $(ST
 	python $(ROOT_DIR)/src/dotplot/generate_dotplots.py $^ 'DN_(.*?).h5' 'DN' 
 
 #-------------------------------------------------------------------#
+# Get the AED scores for the genes
+# Define the file paths for the uncleaned gene annotations
+H4_AED_SCORE := $(RESULTS_DIR)/AED/H4_AED.tsv
+DN_AED_SCORE := $(RESULTS_DIR)/AED/DN_AED.tsv
+RR_AED_SCORE := $(RESULTS_DIR)/AED/RR_AED.tsv
+AED_SCORE_DIR := $(RESULTS_DIR)/AED
+
+$(AED_SCORE_DIR):
+	mkdir -p $@
+
+# Define a phony target to generate all AED tables for convenience
+.PHONY: generate_AED_score_tables
+generate_AED_score_tables: $(H4_AED_SCORE) $(DN_AED_SCORE) $(RR_AED_SCORE)
+
+$(H4_AED_SCORE): $(H4_UNCLEAN_GENES) | $(AED_SCORE_DIR)
+	@echo Filtering H4 strawberry genes into appropriate format for TE Density
+	python $(ROOT_DIR)/src/extract_AED_score.py $< H4 $(AED_SCORE_DIR)/H4_AED_distribution.png $@
+
+$(DN_AED_SCORE): $(DN_UNCLEAN_GENES) | $(AED_SCORE_DIR)
+	@echo Filtering DN strawberry genes into appropriate format for TE Density
+	python $(ROOT_DIR)/src/extract_AED_score.py $< DN $(AED_SCORE_DIR)/DN_AED_distribution.png $@
+
+$(RR_AED_SCORE): $(RR_UNCLEAN_GENES) | $(AED_SCORE_DIR)
+	@echo Filtering RR strawberry genes into appropriate format for TE Density
+	python $(ROOT_DIR)/src/extract_AED_score.py $< RR $(AED_SCORE_DIR)/RR_AED_distribution.png $@
+
+#-------------------------------------------------------------------#
 # Locate super TE-dense genes
 
 SUPER_DENSE_CUTOFF_TABLE_DIR := $(RESULTS_DIR)/density_analysis/cutoff_tables
@@ -289,6 +278,13 @@ $(GO_UPSET_PLOT_DIR):
 	mkdir -p $@
 #-----------------------------------#
 
+# NOTE takes a long time to run
+# NOTE be careful interpreting the ortholog survival rate plots, as at large window sizes,
+# the 95th percentile can have a low TE value that you need to beat, this especially matters for the
+# uncommon TE superfamilies. For example the TE value to beat for the 95th percentile for the 10B window for 
+# CACTA might be ~0.3 which isn't a lot of TE
+# Total TE category might be most informative and easiest to interpret because of high cutoff value
+# NOTE unused because I don't want all the different TE types
 .PHONY: generate_super_dense_gene_tables_single_genome
 generate_super_dense_gene_tables_single_genome: $(STRAWBERRY_ORTHOLOG_TABLE) $(SUPER_DENSE_CUTOFF_TABLE_DIR)
 	# Lol I made the manifest file with Vim in like 1 minute, I'm not going to automate that
@@ -296,6 +292,25 @@ generate_super_dense_gene_tables_single_genome: $(STRAWBERRY_ORTHOLOG_TABLE) $(S
 	mkdir -p $(SUPER_DENSE_CUTOFF_TABLE_DIR)/ortholog_analysis
 	cat $(ROOT_DIR)/src/go_analysis/cutoff_single_genome_manifest.tsv | parallel -a - -C '\t' python $(ROOT_DIR)/src/go_analysis/find_abnormal_genes.py $(DENSITY_TABLE_DIR)/{1} $(RESULTS_DIR)/AED/{2} 95 5 $^
 
+prefixes := RR DN H4
+types := Total_TE_Density_5000_Upstream TIR_5000_Upstream LTR_5000_Upstream
+# Loop over a specific set
+super_dense_single_genome_specific: $(STRAWBERRY_ORTHOLOG_TABLE) $(SUPER_DENSE_CUTOFF_TABLE_DIR)
+	mkdir -p $(SUPER_DENSE_CUTOFF_TABLE_DIR)/no_Arabidopsis
+	mkdir -p $(SUPER_DENSE_CUTOFF_TABLE_DIR)/ortholog_analysis
+	$(foreach prefix,$(prefixes), \
+		$(foreach type,$(types), \
+			python $(ROOT_DIR)/src/go_analysis/find_abnormal_genes.py \
+				$(DENSITY_TABLE_DIR)/$(prefix)_$(type).tsv \
+				$(RESULTS_DIR)/AED/$(prefix)_AED.tsv \
+				95 \
+				5 \
+				$^ ; \
+		) \
+	)
+
+
+# NOTE unused because I don't want all the different TE types
 .PHONY: generate_super_dense_gene_tables_differing_syntelogs
 generate_super_dense_gene_tables_differing_syntelogs: $(STRAWBERRY_ORTHOLOG_TABLE) $(SUPER_DENSE_CUTOFF_TABLE_DIR)
 	# Lol I made the manifest file with Vim in like 1 minute, I'm not going to automate that
@@ -303,18 +318,17 @@ generate_super_dense_gene_tables_differing_syntelogs: $(STRAWBERRY_ORTHOLOG_TABL
 	mkdir -p $(SUPER_DENSE_CUTOFF_TABLE_DIR)/ortholog_analysis
 	cat $(ROOT_DIR)/src/go_analysis/cutoff_differing_syntelogs_manifest.tsv | parallel -a - -C '\t' python $(ROOT_DIR)/src/go_analysis/find_differing_syntelogs.py $(DENSITY_TABLE_DIR)/{1} $(DN_AED_SCORE) $(RR_AED_SCORE) $^
 
-.PHONY: test_differing_syntelogs
-test_differing_syntelogs: $(STRAWBERRY_ORTHOLOG_TABLE) $(SUPER_DENSE_CUTOFF_TABLE_DIR)
-	python $(ROOT_DIR)/src/go_analysis/find_differing_syntelogs.py $(DENSITY_TABLE_DIR)/DN_minus_RR_Total_TE_Density_5000_Upstream.tsv $(DN_AED_SCORE) $(RR_AED_SCORE) $^
-
-
-# Define a target to create plots of the COUNTS of genes in the top X percentile, with the cutoff value, and a count of the remaining genes with Arabidopsis orthologs
-# TODO verify that this find command is working as expected.
-.PHONY: generate_super_dense_count_plots
-generate_super_dense_count_plots: $(SUPER_DENSE_CUTOFF_TABLE_DIR)
-	find $(SUPER_DENSE_CUTOFF_TABLE_DIR) -type f -name '*.tsv' | python $(ROOT_DIR)/src/go_analysis/plot_abnormal_genes.py {} $(SUPER_DENSE_CUTOFF_TABLE_DIR)
-	#python $(ROOT_DIR)/src/go_analysis/plot_abnormal_genes.py $(SUPER_DENSE_CUTOFF_TABLE_DIR)/RR_Total_TE_Density_1000_Downstream_Upper_95_density_percentile.tsv $(STRAWBERRY_ORTHOLOG_TABLE) $(ROOT_DIR)/results
-
+double_prefixes := DN_minus_RR
+.PHONY: super_dense_two_genome_specific
+super_dense_two_genome_specific: $(DN_AED_SCORE) $(RR_AED_SCORE) $(STRAWBERRY_ORTHOLOG_TABLE) $(SUPER_DENSE_CUTOFF_TABLE_DIR)
+	mkdir -p $(SUPER_DENSE_CUTOFF_TABLE_DIR)/no_Arabidopsis
+	mkdir -p $(SUPER_DENSE_CUTOFF_TABLE_DIR)/ortholog_analysis
+	$(foreach prefix,$(double_prefixes), \
+		$(foreach type,$(types), \
+			python $(ROOT_DIR)/src/go_analysis/find_differing_syntelogs.py \
+	       			$(DENSITY_TABLE_DIR)/$(prefix)_$(type).tsv $^ ; \
+		) \
+	)
 
 # Define a target to run TopGO on the super dense gene output files
 .PHONY: generate_go_enrichments
@@ -391,32 +405,6 @@ generate_gene_distance_plots:
 	python $(ROOT_DIR)/src/gene_distances/gene_distances.py $(DN_CLEAN_GENES) DN $(RESULTS_DIR)/gene_distances
 	python $(ROOT_DIR)/src/gene_distances/gene_distances.py $(RR_CLEAN_GENES) RR $(RESULTS_DIR)/gene_distances
 
-#-------------------------------------------------------------------#
-# Get the AED scores for the genes
-# Define the file paths for the uncleaned gene annotations
-H4_AED_SCORE := $(RESULTS_DIR)/AED/H4_AED.tsv
-DN_AED_SCORE := $(RESULTS_DIR)/AED/DN_AED.tsv
-RR_AED_SCORE := $(RESULTS_DIR)/AED/RR_AED.tsv
-AED_SCORE_DIR := $(RESULTS_DIR)/AED
-
-$(AED_SCORE_DIR):
-	mkdir -p $@
-
-# Define a phony target to generate all AED tables for convenience
-.PHONY: generate_AED_score_tables
-generate_AED_score_tables: $(H4_AED_SCORE) $(DN_AED_SCORE) $(RR_AED_SCORE)
-
-$(H4_AED_SCORE): $(H4_UNCLEAN_GENES) | $(AED_SCORE_DIR)
-	@echo Filtering H4 strawberry genes into appropriate format for TE Density
-	python $(ROOT_DIR)/src/extract_AED_score.py $< H4 $(AED_SCORE_DIR)/H4_AED_distribution.png $@
-
-$(DN_AED_SCORE): $(DN_UNCLEAN_GENES) | $(AED_SCORE_DIR)
-	@echo Filtering DN strawberry genes into appropriate format for TE Density
-	python $(ROOT_DIR)/src/extract_AED_score.py $< DN $(AED_SCORE_DIR)/DN_AED_distribution.png $@
-
-$(RR_AED_SCORE): $(RR_UNCLEAN_GENES) | $(AED_SCORE_DIR)
-	@echo Filtering RR strawberry genes into appropriate format for TE Density
-	python $(ROOT_DIR)/src/extract_AED_score.py $< RR $(AED_SCORE_DIR)/RR_AED_distribution.png $@
 #-------------------------------------------------------------------#
 # Single Copy Ortholog Analaysis
 # Do genes that are single copy orthologs have lower TE densities than other genes?
