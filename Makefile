@@ -254,12 +254,14 @@ SUPER_DENSE_CUTOFF_TABLE_DIR := $(RESULTS_DIR)/density_analysis/cutoff_tables
 GO_ENRICHMENT_DIR := $(GO_OUT_DIR)/enrichment
 GO_UPSET_PLOT_DIR := $(RESULTS_DIR)/go_analysis/enrichment/upset_plots
 GO_UPSET_NONSYNTENIC_PLOT_DIR := $(RESULTS_DIR)/go_analysis/enrichment/upset_plots/nonsyntenic
+GO_UPSET_SYNTENIC_PLOT_DIR := $(RESULTS_DIR)/go_analysis/enrichment/upset_plots/syntenic
 INTERMEDIATE_OUTPUT_DIFF_UNIQ := $(GO_ENRICHMENT_DIR)/difference_intermediate.tsv
 FINAL_OUTPUT_DIFF_UNIQ := $(GO_ENRICHMENT_DIR)/Total_Diff_1K_unique_GO_terms.tsv
 GO_UNIQ_ENRICHMENT_DIR := $(GO_ENRICHMENT_DIR)/unique_GO_terms
 
 # NOTE this was made manually with a vim macro
-GO_NONDIFF_UPSET_KEY := $(ROOT_DIR)/src/go_analysis/go_nondiff_upset_key.txt
+GO_NONSYNTENIC_UPSET_KEY := $(ROOT_DIR)/src/go_analysis/go_nonsyntenic_upset_key.tsv
+GO_SYNTENIC_UPSET_KEY := $(ROOT_DIR)/src/go_analysis/go_syntenic_upset_key.tsv
 
 # Define a target to create the directory if it doesn't exist
 $(SUPER_DENSE_CUTOFF_TABLE_DIR):
@@ -272,6 +274,9 @@ $(GO_UNIQ_ENRICHMENT_DIR):
 	mkdir -p $@
 
 $(GO_UPSET_NONSYNTENIC_PLOT_DIR):
+	mkdir -p $@
+
+$(GO_UPSET_SYNTENIC_PLOT_DIR):
 	mkdir -p $@
 
 $(GO_UPSET_PLOT_DIR):
@@ -355,36 +360,36 @@ extract_diff_total_unique_enriched_GO_terms:
 	#cut -d$$'\t' -f 1,2 $(INTERMEDIATE_OUTPUT_DIFF_UNIQ) | sort | uniq > $(FINAL_OUTPUT_DIFF_UNIQ)
 
 
-# grep -nr "stress" . --exclude="*Tc1*" | cut -f1,20-24
-#
-#
-# TODO the find command might be buggy
-#.PHONY: generate_rr_dn_diff_upset_plot
-#generate_rr_dn_diff_upset_plot: | $(GO_UPSET_PLOT_DIR)
-#	find $(GO_ENRICHMENT_DIR)/ -maxdepth 1 -type f -name "*Difference*" | sort | xargs -n2 sh -c 'python $(ROOT_DIR)/src/go_analysis/dn_vs_rr_upset.py $$1 $$2 $(GO_UPSET_PLOT_DIR) --syntelog' sh
 
-# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-# TODO this is what I am working on this Monday 
-# NOTE the find command did not work as I wanted, check all other find commands
-# I needed to make a custom file with a vim macro to get an appropriate list of files
-.PHONY: generate_rr_dn_nondiff_upset_plot
-generate_rr_dn_nondiff_upset_plot: | $(GO_UPSET_NONSYNTENIC_PLOT_DIR)
-	cat $(GO_NONDIFF_UPSET_KEY) | xargs -n2 sh -c 'python $(ROOT_DIR)/src/go_analysis/dn_vs_rr_upset.py $$1 $$2 $(GO_UPSET_NONSYNTENIC_PLOT_DIR)' sh
+.PHONY: generate_dn_rr_nonsyntenic_upset_plot
+generate_dn_rr_nonsyntenic_upset_plot: | $(GO_UPSET_NONSYNTENIC_PLOT_DIR)
+	cat $(GO_NONSYNTENIC_UPSET_KEY) | while IFS=$$'\t' read -r dn_data rr_data; do \
+		python $(ROOT_DIR)/src/go_analysis/dn_vs_rr_upset.py $(GO_ENRICHMENT_DIR)/$$dn_data $(GO_ENRICHMENT_DIR)/$$rr_data $(GO_UPSET_NONSYNTENIC_PLOT_DIR); \
+	done
+
+.PHONY: generate_dn_rr_syntenic_upset_plot
+generate_dn_rr_syntenic_upset_plot: | $(GO_UPSET_SYNTENIC_PLOT_DIR)
+	cat $(GO_SYNTENIC_UPSET_KEY) | while IFS=$$'\t' read -r dn_data rr_data; do \
+		python $(ROOT_DIR)/src/go_analysis/dn_vs_rr_upset.py $(GO_ENRICHMENT_DIR)/$$dn_data $(GO_ENRICHMENT_DIR)/$$rr_data $(GO_UPSET_SYNTENIC_PLOT_DIR) --syntelog; \
+	done
 	
-# .PHONY: test_nondiff_upset
-# test_nondiff_upset: | $(GO_UPSET_NONSYNTENIC_PLOT_DIR)
-# 	python $(ROOT_DIR)/src/go_analysis/dn_vs_rr_upset.py $(GO_ENRICHMENT_DIR)/Overrepresented_RR_LTR_5000_Upstream_Upper_95_density_percentile.tsv $(GO_ENRICHMENT_DIR)/Overrepresented_DN_LTR_5000_Upstream_Upper_95_density_percentile.tsv $(GO_UPSET_NONSYNTENIC_PLOT_DIR)
+	
+.PHONY: test_nonsyntenic_upset
+test_nonsyntenic_upset: | $(GO_UPSET_NONSYNTENIC_PLOT_DIR)
+	python $(ROOT_DIR)/src/go_analysis/dn_vs_rr_upset.py $(GO_ENRICHMENT_DIR)/Overrepresented_DN_Total_TE_Density_5000_Upstream_Upper_95_density_percentile.tsv $(GO_ENRICHMENT_DIR)/Overrepresented_RR_Total_TE_Density_5000_Upstream_Upper_95_density_percentile.tsv $(GO_UPSET_NONSYNTENIC_PLOT_DIR)
+
+# grep -nr "flower development" Overrepresented_RR_Total_TE_Density_5000_Upstream_Upper_95_density_percentile.tsv | awk -F'\t' '{print $1, $2, $8}'
 # 
-#
-# TODO this is untested, need to look at the general command, which was using the `find` command, perhas erroneously.
-.PHONY: test_diff
-test_diff: | $(GO_UPSET_NONSYNTENIC_PLOT_DIR)
-	python $(ROOT_DIR)/src/go_analysis/dn_vs_rr_upset.py $(GO_ENRICHMENT_DIR)/Overrepresented_Difference_Copia_1000_Upstream_Biased_Towards_RR_5_density_percentile.tsv $(GO_ENRICHMENT_DIR)/Overrepresented_Difference_Copia_1000_Upstream_Biased_Towards_DN_95_density_percentile.tsv $(GO_UPSET_NONSYNTENIC_PLOT_DIR) --syntelog
+
+.PHONY: test_syntenic
+test_syntenic: | $(GO_UPSET_SYNTENIC_PLOT_DIR)
+	python $(ROOT_DIR)/src/go_analysis/dn_vs_rr_upset.py $(GO_ENRICHMENT_DIR)/Overrepresented_Difference_Total_TE_Density_5000_Upstream_Syntelogs_Biased_Towards_DN.tsv $(GO_ENRICHMENT_DIR)/Overrepresented_Difference_Total_TE_Density_5000_Upstream_Syntelogs_Biased_Towards_RR.tsv $(GO_UPSET_SYNTENIC_PLOT_DIR) --syntelog
 
 # Define a target to generate an UpSet plot for the GO enrichment results
 # TODO verify one more time that the files are being provided in the correct order
 # NOTE THIS DOES NOT WORK FOR THE 'DIFFERENCE' FILES
 # TODO this is untested
+# # TODO MAKE SURE THE ORDER OF INPUTS IS RIGHT
 .PHONY: generate_all_upset_plot
 generate_all_upset_plot: | $(GO_UPSET_PLOT_DIR)
 	find $(GO_ENRICHMENT_DIR)/ -maxdepth 1 -type f -not -name "*Difference*" | sort | xargs -n3 sh -c 'python $(ROOT_DIR)/src/go_analysis/upset_plot.py $$1 $$2 $$3 $(GO_UPSET_PLOT_DIR)' sh
