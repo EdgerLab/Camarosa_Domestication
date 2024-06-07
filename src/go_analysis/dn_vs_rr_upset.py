@@ -1,5 +1,11 @@
 __author__ = "Scott Teresi"
 
+"""
+- Generates an UpSet plot comparing the unique GO terms between DN and RR
+- Generates a Venn diagram comparing the unique GO terms between DN and RR
+
+"""
+
 import argparse
 import os
 import logging
@@ -11,26 +17,13 @@ from upsetplot import from_contents
 from upsetplot import from_memberships
 from upsetplot import UpSet
 import matplotlib.pyplot as plt
+from matplotlib_venn import venn2, venn2_circles
 
 from src.go_analysis.upset_plot import (
     read_go_enrichment_table,
     get_nonredundant_terms,
     decode_te_window_direction_str_go_file,
 )
-
-"""
-Code for generating a DN vs RR UpSet plot, this code takes from upset_plot.py
-because I didn't have time to refactor to remove the H4 code.
-
-This code will generate UpSet plots for the DN vs RR DIFFERNCE GO enrichment
-files. That data is the set of DN-RR syntelog pairs that are biased towards one
-genome or the other. So for example the file:
-    'Overrepresented_Difference_Total_TE_Density_1000_Upstream_BiasedTowards_DN_95_density_percentile.tsv'
-    is the file that has all of the genes that have a high TE density for the
-    DN syntelog but almost nothing for the RR syntelog. These are the big TE
-    PAV files.
-    We anticipate that few GO terms will be shared within the UpSet plot
-"""
 
 
 if __name__ == "__main__":
@@ -90,11 +83,6 @@ if __name__ == "__main__":
     name = decode_te_window_direction_str_go_file(
         args.DN_preprocessed_go_enrichment_table
     )
-    # Shorten the Name because we are performing this code on the DN vs RR
-    # 'difference' files, and the string rule doesn't work out of the box with
-    # those filenames
-
-    # TODO the DIRECTION IS NOT IN THE FILENAME
 
     # Get the set of terms
     RR_terms = get_nonredundant_terms(RR_table)
@@ -113,7 +101,6 @@ if __name__ == "__main__":
     DN_unique_terms = DN_table.loc[
         DN_table["GO_ID"].isin(DN_terms.difference(shared_terms))
     ]
-    # print(RR_unique_terms)
     RR_unique_terms = RR_unique_terms.loc[:, ["GO_ID", "Term"]]
     RR_unique_terms.drop_duplicates(inplace=True)
 
@@ -122,6 +109,7 @@ if __name__ == "__main__":
 
     if args.syntelog:
         name = name[:-2]
+        name.remove("Syntelogs")
         filename = "_".join(name) + "_Syntelog"
     else:
         name = name[:-3]
@@ -153,6 +141,31 @@ if __name__ == "__main__":
     RR_gene_count = RR_table["RR_Gene"].nunique()
     DN_gene_count = DN_table["DN_Gene"].nunique()
 
+    # ------------------------------------------------------------------
+    # Generate the Venn Diagram
+    plt.figure(figsize=(8, 8))
+    venn2(
+        subsets=(len(RR_unique_terms), len(DN_unique_terms), len(shared_terms)),
+        set_colors=("r", "b"),
+        set_labels=("RR", "DN"),
+    )
+    # Add anoter plot to make the edges bold, purely cosmetic
+    venn2_circles(
+        subsets=(len(RR_unique_terms), len(DN_unique_terms), len(shared_terms)),
+    )
+    plt.title(
+        os.path.basename(filename)
+        .replace("_", " ")
+        .replace(".png", "")
+        .replace("Syntelog", "Syntenic")
+    )
+    plot_filename = "Venn_" + filename
+    outfile = os.path.join(args.output_dir, plot_filename)
+    logger.info(f"Saving plot to {outfile}")
+    plt.savefig(outfile, bbox_inches="tight")
+    plt.clf()
+
+    # ------------------------------------------------------------------
     # Generate the data structure for the UpSet plot
     data = {"RR": RR_terms, "DN": DN_terms}
     data = from_contents(data)
@@ -193,7 +206,8 @@ if __name__ == "__main__":
 
     # plt.show()
     # plt.tight_layout()
-    outfile = os.path.join(args.output_dir, filename)
+    plot_filename = "UpSet_" + filename
+    outfile = os.path.join(args.output_dir, plot_filename)
     logger.info(f"Saving plot to {outfile}")
     plt.savefig(outfile, bbox_inches="tight")
     plt.clf()
