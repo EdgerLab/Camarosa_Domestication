@@ -108,6 +108,7 @@ def get_AED(genes_input_path, genome_name, logger):
     # Remove anything that doesn't end with '.1'
 
     if genome_name != "DN":
+        # Only take the primary gene model
         gene_pandaframe = gene_pandaframe[
             gene_pandaframe["Gene_Name"].str.endswith(".1")
         ]
@@ -118,6 +119,7 @@ def get_AED(genes_input_path, genome_name, logger):
         )
 
     else:
+        # Only take the primary gene model
         gene_pandaframe = gene_pandaframe[
             gene_pandaframe["Gene_Name"].str.endswith("-mRNA-1")
         ]

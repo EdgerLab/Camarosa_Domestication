@@ -50,7 +50,6 @@ def map_names(dataframe, chromosome_col, mapper=dn_chromosome_dict()):
     Returns:
         dataframe (pd.DataFrame): With updated values
     """
-    # dataframe[chromosome_col] = dataframe[chromosome_col].map(mapper)
     dataframe[chromosome_col] = dataframe[chromosome_col].replace(mapper)
     return dataframe
 
@@ -95,6 +94,8 @@ def drop_rows_with_bad_val_in_col(dataframe, bad_val, col):
 
 def remove_str_from_val(dataframe, str_val, col):
     """
+    DO NOT USE THIS TO FILTER NUMERIC "STRINGS" FROM A COLUMN
+
     Helper function to remove a string from each value in a column in a dataframe
     This is done by replacing the string with an empty string "".
 

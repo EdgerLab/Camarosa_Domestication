@@ -431,6 +431,28 @@ $(SCO_GO_OUTPUT): $(SCO_TABLE) $(TOP_GO_REFERENCE_FILE)
 .PHONY: generate_sco_go_enrichments
 generate_sco_go_enrichments: $(SCO_GO_OUTPUT)
 
+#-------------------------------------------------------------------#
+# KA/KS Analysis
+# 1A: What are the KA/KS values for the SCO genes?
+# 1B: What are the KA/KS values for a random subset of eqivalent size to the
+# SCO genes?
+#
+UNCLEAN_H4_DN_KA_KS := $(DATA_DIR)/ka_ks/H4_DN_Ks_Kn_Rates.tsv
+UNCLEAN_H4_RR_KA_KS := $(DATA_DIR)/ka_ks/H4_RR_Ks_Kn_Rates.tsv
+
+KA_KS_OUT_DIR := $(RESULTS_DIR)/ka_ks
+CLEAN_H4_DN_KA_KS := $(KA_KS_OUT_DIR)/Clean_H4_DN_KA_KS.tsv
+CLEAN_H4_RR_KA_KS := $(KA_KS_OUT_DIR)/Clean_H4_RR_KA_KS.tsv
+
+$(KA_KS_OUT_DIR):
+	mkdir -p $@
+
+$(CLEAN_H4_RR_KA_KS) $(CLEAN_H4_DN_KA_KS): $(UNCLEAN_H4_RR_KA_KS) $(UNCLEAN_H4_DN_KA_KS) $(DATA_DIR)/orthologs/DN_salt.translation | $(KA_KS_OUT_DIR)
+	python $(ROOT_DIR)/src/parse_ka_ks.py $(UNCLEAN_H4_RR_KA_KS) $(UNCLEAN_H4_DN_KA_KS) $(DATA_DIR)/orthologs/DN_salt.translation $(CLEAN_H4_RR_KA_KS) $(CLEAN_H4_DN_KA_KS)
+
+.PHONY: generate_ka_ks
+generate_ka_ks: $(CLEAN_H4_RR_KA_KS) $(CLEAN_H4_DN_KA_KS)
+
 
 #-------------------------------------------------------------------#
 # TODO unfishied
@@ -450,9 +472,6 @@ translate_CDS_to_protein:
 	@echo Converting H4 files
 	python $(ROOT_DIR)/src/orthologs/translate_cds_fasta_to_protein.py $(DATA_DIR)/Genomes/H4/H4_CDS.fa $(DATA_DIR)/orthologs/H4_CDS_as_Proteins.fa
 
-.PHONY: format_protein_database
-format_protein_database:
-	# TODO this is an sbatch script
 
 # NOTE DEPRECATED
 # TODO clean up the paths

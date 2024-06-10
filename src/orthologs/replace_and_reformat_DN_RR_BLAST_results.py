@@ -100,9 +100,9 @@ def import_decoder_ring(decoder_ring_input_file):
     return decoder_ring
 
 
-def blacklist_if_no_new_name(homolog_pd, decoder_ring):
+def blacklist_if_no_new_name(homolog_pd, decoder_ring, column="Del_Norte"):
     # Remove a Del Norte gene if it is not within the decoder ring
-    homolog_pd = homolog_pd.loc[~homolog_pd["Del_Norte"].isin(decoder_ring)]
+    homolog_pd = homolog_pd.loc[~homolog_pd[column].isin(decoder_ring)]
     return homolog_pd
 
 
