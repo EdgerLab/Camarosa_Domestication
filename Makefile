@@ -411,27 +411,6 @@ generate_gene_distance_plots:
 	python $(ROOT_DIR)/src/gene_distances/gene_distances.py $(RR_CLEAN_GENES) RR $(RESULTS_DIR)/gene_distances
 
 #-------------------------------------------------------------------#
-# Single Copy Ortholog Analaysis
-# Do genes that are single copy orthologs have lower TE densities than other genes?
-# What are the GO terms associated with single copy ortholog genes?
-
-SCO_TABLE := $(DATA_DIR)/orthologs/single_copy_orthologs/sd01.tsv
-SCO_GO_OUTPUT := $(GO_ENRICHMENT_DIR)/Overrepresented_SCO_GO_terms.tsv
-
-.PHONY: single_copy_orthologs
-single_copy_orthologs: $(STRAWBERRY_ORTHOLOG_TABLE) $(SCO_TABLE) $(RESULTS_DIR)
-	python src/orthologs/single_copy_orthologs.py $(DENSITY_TABLE_DIR)/H4_Total_TE_Density_5000_Upstream.tsv $(DENSITY_TABLE_DIR)/RR_Total_TE_Density_5000_Upstream.tsv $^ 
-
-
-# Define a target to run TopGO on the super dense gene output files
-$(SCO_GO_OUTPUT): $(SCO_TABLE) $(TOP_GO_REFERENCE_FILE) 
-	@echo "Running TopGO on single copy orthologs"
-	Rscript $(ROOT_DIR)/src/go_analysis/sco_go.R $(SCO_TABLE) $(TOP_GO_REFERENCE_FILE) $@
-
-.PHONY: generate_sco_go_enrichments
-generate_sco_go_enrichments: $(SCO_GO_OUTPUT)
-
-#-------------------------------------------------------------------#
 # KA/KS Analysis
 # 1A: What are the KA/KS values for the SCO genes?
 # 1B: What are the KA/KS values for a random subset of eqivalent size to the
@@ -452,6 +431,28 @@ $(CLEAN_H4_RR_KA_KS) $(CLEAN_H4_DN_KA_KS): $(UNCLEAN_H4_RR_KA_KS) $(UNCLEAN_H4_D
 
 .PHONY: generate_ka_ks
 generate_ka_ks: $(CLEAN_H4_RR_KA_KS) $(CLEAN_H4_DN_KA_KS)
+
+#-------------------------------------------------------------------#
+# Single Copy Ortholog Analaysis
+# Do genes that are single copy orthologs have lower TE densities than other genes?
+# What are the GO terms associated with single copy ortholog genes?
+
+SCO_TABLE := $(DATA_DIR)/orthologs/single_copy_orthologs/sd01.tsv
+SCO_GO_OUTPUT := $(GO_ENRICHMENT_DIR)/Overrepresented_SCO_GO_terms.tsv
+
+.PHONY: single_copy_orthologs
+single_copy_orthologs: $(STRAWBERRY_ORTHOLOG_TABLE) $(SCO_TABLE) $(RESULTS_DIR) $(CLEAN_H4_RR_KA_KS)
+	python src/orthologs/single_copy_orthologs.py $(DENSITY_TABLE_DIR)/H4_Total_TE_Density_5000_Upstream.tsv $(DENSITY_TABLE_DIR)/RR_Total_TE_Density_5000_Upstream.tsv $^ 
+
+
+# Define a target to run TopGO on the super dense gene output files
+$(SCO_GO_OUTPUT): $(SCO_TABLE) $(TOP_GO_REFERENCE_FILE) 
+	@echo "Running TopGO on single copy orthologs"
+	Rscript $(ROOT_DIR)/src/go_analysis/sco_go.R $(SCO_TABLE) $(TOP_GO_REFERENCE_FILE) $@
+
+.PHONY: generate_sco_go_enrichments
+generate_sco_go_enrichments: $(SCO_GO_OUTPUT)
+
 
 
 #-------------------------------------------------------------------#

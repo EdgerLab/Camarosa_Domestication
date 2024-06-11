@@ -17,6 +17,7 @@ import coloredlogs
 from scipy.stats import mannwhitneyu
 
 from src.syntelog_differences.bargraphs import decode_te_window_direction_str
+from src.parse_ka_ks import read_filtered_ka_ks_table
 
 
 def import_SCO_table(filepath):
@@ -98,7 +99,7 @@ def identify_h4_scos(strawberry_ortholog_table, SCO_table, logger):
     return data
 
 
-def merge_w_TE_and_calc(
+def calc_and_compare_sco_TE_density(
     scos,
     not_scos,
     te_table,
@@ -154,6 +155,7 @@ if __name__ == "__main__":
         type=str,
         help="parent directory to output results",
     )
+    parser.add_argument("ka_ks_table", type=str)
 
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="set debugging level to DEBUG"
@@ -169,6 +171,7 @@ if __name__ == "__main__":
     args.strawberry_ortholog_table = os.path.abspath(args.strawberry_ortholog_table)
     args.sco_table = os.path.abspath(args.sco_table)
     args.output_dir = os.path.abspath(args.output_dir)
+    args.ka_ks_table = os.path.abspath(args.ka_ks_table)
 
     log_level = logging.DEBUG if args.verbose else logging.INFO
     logger = logging.getLogger(__name__)
@@ -182,6 +185,9 @@ if __name__ == "__main__":
     rr_te_table = pd.read_csv(
         args.rr_preprocessed_density_table, header="infer", sep="\t"
     )
+
+    # Load in the pre-filtered ka_ks data
+    ka_ks_table = read_filtered_ka_ks_table(args.ka_ks_table, "RR")
 
     # Load in the pre-filtered strawberry_ortholog information
     strawberry_ortholog_table = pd.read_csv(
@@ -259,7 +265,7 @@ if __name__ == "__main__":
     H4_not_sco.loc[:, "SCO_Status"] = "N"
 
     logger.info("H4 SCO Analysis")
-    merge_w_TE_and_calc(
+    calc_and_compare_sco_TE_density(
         H4_AT_scos,
         H4_not_sco,
         h4_te_table,
@@ -272,9 +278,14 @@ if __name__ == "__main__":
     # Now do the RR genes that Pat requested
     RR_not_sco = strawberry_ortholog_table.copy(deep=True)
     RR_not_sco = RR_not_sco.drop(columns=["H4_Gene"])
+
+    # TODO check this usage of drop duplicates, do we want to drop all duplicates?
     RR_not_sco.drop_duplicates(subset=["Arabidopsis_Gene", "RR_Gene"], inplace=True)
     RR_not_sco = RR_not_sco.loc[~RR_not_sco["Arabidopsis_Gene"].isin(true_AT_scos)]
     RR_not_sco.loc[:, "SCO_Status"] = "N"
+    print(RR_not_sco)
+    raise ValueError("STOP")
+
     # Find the RR SCO genes, don't remove duplicates
     RR_sco = strawberry_ortholog_table.copy(deep=True)
     RR_sco = RR_sco.drop(columns=["H4_Gene"])
@@ -289,7 +300,7 @@ if __name__ == "__main__":
     rr_1 = RR_sco.loc[RR_sco["Arabidopsis_Gene"].isin(only_once)]
 
     logger.info("RR SCO Analysis")
-    merge_w_TE_and_calc(
+    calc_and_compare_sco_TE_density(
         RR_sco,
         RR_not_sco,
         rr_te_table,
@@ -297,4 +308,17 @@ if __name__ == "__main__":
         "RR",
         logger,
     )
-    print()
+
+    merged_RR_sco = RR_sco.merge(ka_ks_table, on="RR_Gene", how="inner")
+
+    # Merging ~10K gene list from KA_KS analysis with 64K gene list from
+    # ortholog table
+    merged_RR_nonsco = RR_not_sco.merge(ka_ks_table, on="RR_Gene", how="inner")
+
+    # NOTE well this is good, KA_KS is basically 1 for the SCO genes
+    print(merged_RR_sco)
+    print(merged_RR_sco["KA_KS"].mean())
+
+    # NOTE KA_KS for the non-SCO genes
+    print(merged_RR_nonsco)
+    print(merged_RR_nonsco["KA_KS"].mean())

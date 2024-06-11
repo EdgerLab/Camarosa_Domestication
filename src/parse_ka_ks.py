@@ -48,6 +48,8 @@ def read_raw_ka_ks_table(filepath, other_species=None):
     )
     table.dropna(subset=["KS", "KA"], inplace=True)
     table["KA_KS"] = table["KA"] / table["KS"]
+    table.replace([np.inf, -np.inf], np.nan, inplace=True)
+    table.dropna(subset=["KA_KS"], inplace=True)
 
     # Reorder columns for easier reading
     table = table.reindex(
@@ -94,6 +96,9 @@ def filter_table(table):
     # Remove non primary H4 transcripts
     table = table.loc[table["H4_Gene"].str.endswith(".1")]
     table.loc[:, "H4_Gene"] = table.loc[:, "H4_Gene"].str[:-2]
+
+    # Remove anything that is NaN (0/0) or other causes
+    table = table.loc[~table["KA_KS"].isna()]
     return table
 
 
