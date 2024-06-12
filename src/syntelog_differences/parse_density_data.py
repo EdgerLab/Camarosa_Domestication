@@ -140,7 +140,7 @@ if __name__ == "__main__":
     # MAGIC
     orders = ["LTR", "TIR", "Total_TE_Density"]
     superfamilies = ["Mutator", "Copia", "Gypsy", "hAT", "CACTA"]
-    windows = [1000, 2500, 5000, 10000]
+    windows = [1000, 2500, 5000, 7500, 10000]
     directions = ["Upstream", "Downstream"]
 
     # -----------------------------------------------------------------------
