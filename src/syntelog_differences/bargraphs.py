@@ -55,45 +55,65 @@ def graph_barplot_density_differences(
     # for the xticks on the xaxis
     tick_bins = [
         -1.0,
-        -0.9,
-        -0.8,
-        -0.7,
-        -0.6,
-        -0.5,
-        -0.4,
-        -0.3,
-        -0.2,
-        -0.1,
-        0,
-        0.1,
-        0.2,
-        0.3,
-        0.4,
-        0.5,
-        0.6,
-        0.7,
-        0.8,
-        0.9,
-        1.0,
+        -0.95,
+        -0.90,
+        -0.85,
+        -0.80,
+        -0.75,
+        -0.70,
+        -0.65,
+        -0.60,
+        -0.55,
+        -0.50,
+        -0.45,
+        -0.40,
+        -0.35,
+        -0.30,
+        -0.25,
+        -0.20,
+        -0.15,
+        -0.10,
+        -0.05,
+        0.0,
+        0.05,
+        0.10,
+        0.15,
+        0.20,
+        0.25,
+        0.30,
+        0.35,
+        0.40,
+        0.45,
+        0.50,
+        0.55,
+        0.60,
+        0.65,
+        0.70,
+        0.75,
+        0.80,
+        0.85,
+        0.90,
+        0.95,
+        1.00,
     ]
     plt.figure(figsize=(8, 6))
     n, bins, patches = plt.hist(
-        values, bins=tick_bins, facecolor="blue", ec="black", alpha=0.5
+        values, bins=tick_bins, facecolor="blue", ec="black", alpha=0.5, log=True
     )
     plt.rcParams["xtick.labelsize"] = 5  # MAGIC set size of axis ticks
     plt.ylabel("Number of Genes")
     plt.xlabel("Difference in TE Density Values")
     plt.title("Del Norte vs Royal Royce")  # MAGIC genome name order here
     N = mpatches.Patch(
-        label="Total Plotted Genes: %s \nTE type: %s \nWindow: %s \nDirection: %s \nNo. 0 Differences: %s"
+        label="Total Plotted Genes: %s \nTE type: %s \nWindow: %s, Direction: %s \nNo. 0 Differences: %s"
         % (len(values), te_type, window_val, direction, str(number_of_zeros))
     )
     # -----------------------------------------
     # Cutoffs
     upper_cutoff_val = np.percentile(values, upper_and_lower_cutoff_int[0])
     lower_cutoff_val = np.percentile(values, upper_and_lower_cutoff_int[1])
-    plt.axvline(upper_cutoff_val, color="g", linestyle="dashed", linewidth=2)
-    plt.axvline(lower_cutoff_val, color="g", linestyle="dashed", linewidth=2)
+    plt.axvline(upper_cutoff_val, color="g", linestyle="dashed", linewidth=1.5)
+    plt.axvline(lower_cutoff_val, color="g", linestyle="dashed", linewidth=1.5)
 
     upper_label = plt.Line2D(
         [],
@@ -101,15 +121,20 @@ def graph_barplot_density_differences(
         color="g",
         marker="",
         linestyle="--",
-        label=f"Upper {upper_and_lower_cutoff_int[0]} Percentile Cutoff: {upper_cutoff_val:.2f}",
+        label=f"{upper_and_lower_cutoff_int[0]}th Percentile Cutoff Towards DN: {upper_cutoff_val:.2f}",
     )
+
+    # MAGIC the lower label is the 5th percentile,
+    # But they are both actually the respective 95th percentile for each
+    # dataset, so for clarity in the graph we will report it as the 95th, and
+    # tell the reader what genome it is pointing towards
     lower_label = plt.Line2D(
         [],
         [],
         color="g",
         marker="",
         linestyle="--",
-        label=f"Bottom {upper_and_lower_cutoff_int[1]} Percentile Cutoff: {lower_cutoff_val:.2f}",
+        label=f"{upper_and_lower_cutoff_int[0]}th Percentile Cutoff Towards RR: {lower_cutoff_val:.2f}",
     )
     # -----------------------------------------
     # Wilcoxon signed-rank test
@@ -139,15 +164,46 @@ def graph_barplot_density_differences(
     # -----------------------------------------
     # Get the mean and plot as red line, create object for legend
     diff_mean = np.mean(values)
+    diff_mean_absolute = diff_mean * window_val
     mean_label = plt.Line2D(
-        [], [], color="r", marker="", linestyle="--", label=f"Mean: {diff_mean:.3f}"
+        [],
+        [],
+        color="r",
+        marker="",
+        linestyle="--",
+        label=f"Mean: {diff_mean:.3f}, BP Difference: {diff_mean_absolute:.1f}",
     )
     plt.axvline(diff_mean, color="r", linestyle="dashed", linewidth=2)
+    plt.axvline(0, color="black", linestyle="dashed", linewidth=2)
 
-    plt.xticks(tick_bins, rotation=45)
+    tick_bins_for_labels = [
+        -1.0,
+        -0.9,
+        -0.8,
+        -0.7,
+        -0.6,
+        -0.5,
+        -0.4,
+        -0.3,
+        -0.2,
+        -0.1,
+        0,
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        0.5,
+        0.6,
+        0.7,
+        0.8,
+        0.9,
+        1.0,
+    ]
+    plt.xticks(tick_bins_for_labels, rotation=45)
     plt.legend(
         handles=[N, mean_label, lower_label, upper_label, significance],
         loc="upper left",
+        fontsize="small",
     )
     path = os.path.join(
         output_dir,
@@ -252,7 +308,7 @@ if __name__ == "__main__":
     graph_barplot_density_differences(
         table_sans_zeros["Difference"],
         te_type,
-        window,
+        int(window),
         direction,
         num_zero,
         args.output_dir,

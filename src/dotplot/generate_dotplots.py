@@ -154,8 +154,8 @@ def plot_dotplot(plotting_dict, plot_name, output_dir, logger):
         output_dir: string, the directory to save the plot
         logger: logging object
     """
-    # Make a figure with 3 subplots, subplot 1 is upstream, 2 intra, 3 downstream
-    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey="col")
+    # Make a figure with 2 subplots, subplot 1 is upstream, 2 downstream
+    fig, (ax1, ax2) = plt.subplots(1, 2, sharey="col")
     fig.set_size_inches(16, 9.5)  # MAGIC, we want the figure to be big
 
     # Plot the data
@@ -168,38 +168,42 @@ def plot_dotplot(plotting_dict, plot_name, output_dir, logger):
                 linestyle=(0, (3, 1, 1, 1)),
                 marker="o",
             )
+
+        # NOTE, a little hacky, using the downstream plot for our legend,
+        # so I am going to modify the string to remove the direction
         if "Downstream" in key:
-            ax3.plot(
+            shortened_label = key.replace("_Downstream", "")
+            shortened_label = shortened_label.replace("_", " ")
+            ax2.plot(
                 windows,
                 val,
-                label=key,
+                label=shortened_label,
                 linestyle=(0, (3, 1, 1, 1)),
                 marker="o",
             )
-        # TODO do an intra plot
 
     # Set the y-axis to be a percentage
-    for ax in [ax1, ax2, ax3]:
+    for ax in [ax1, ax2]:
         ax.yaxis.set_major_formatter(mtick.PercentFormatter(1.0))
 
     # Set the labels for the upstream and downstream subplots
     ax1.set(
+        yticks=np.arange(0, 0.375, 0.025),  # MAGIC
         xlabel="BP Upstream",
         ylabel="TE Density",
         xlim=[max(windows), min(windows)],
-        # yticks=np.arange(0, 0.51, 0.025), # MAGIC
         xticks=range(min(windows), (max(windows) + 1), 1000),
-        ylim=[0.0, 0.45],  # MAGIC
+        ylim=[0.0, 0.35],  # MAGIC
     )
-    ax3.set(
+    ax2.set(
+        yticks=np.arange(0, 0.375, 0.025),  # MAGIC
         xlabel="BP Downstream",
-        # yticks=np.arange(0, 0.51, 0.025),  # MAGIC
         xlim=[min(windows), max(windows)],
         xticks=range(min(windows), (max(windows) + 1), 1000),
-        ylim=[0.0, 0.45],  # MAGIC
+        ylim=[0.0, 0.35],  # MAGIC
     )
-    ax3.yaxis.tick_right()  # MAGIC put ticks on the right hand side
-    ax3.legend(loc="upper right")
+    ax2.yaxis.tick_right()  # MAGIC put ticks on the right hand side
+    ax2.legend(loc="upper right")
     fig.suptitle(
         "Average TE Density of All Genes as a Function of Window Size and Location"
     )
@@ -207,7 +211,6 @@ def plot_dotplot(plotting_dict, plot_name, output_dir, logger):
     file_out = os.path.join(args.output_dir, plot_name)
     logger.info(f"Saving graphic to: {file_out}")
     plt.savefig(file_out)
-    # plt.show()
     plt.close()
 
 
@@ -280,11 +283,9 @@ if __name__ == "__main__":
         cleaned_genes, processed_data
     )
 
-    # TODO remove this when done testing
-    # gene_frame_with_indices = gene_frame_with_indices.head(1000)
-
     # Set our paramaters for the dotplot from the config file
     dotplot_parameters = parse_dotplot_config(args.config_file)
+
     # Redefine some of the parameters as a namedtuple to make it easier to keep
     # track of which ones are Orders and Superfamilies, makes references easier
     TE_Set = namedtuple("TE_Set", ["te_list", "te_type"])
@@ -294,7 +295,9 @@ if __name__ == "__main__":
     directions = dotplot_parameters["directions"]
     # -----------------------------------------------------------------------
 
-    for tes in [orders, superfamilies]:
+    # Add superfamilies to this list if wanted
+    for tes in [orders]:
+        logger.info("Generating plotting table...")
         table_to_plot = generate_plotting_table(
             tes.te_list,
             windows,
@@ -303,15 +306,22 @@ if __name__ == "__main__":
             gene_frame_with_indices,
             tes.te_type,
         )
+        logger.info("Generating plotting dictionary...")
         plotting_dict = generate_plotting_dict(
             table_to_plot, tes.te_list, windows, directions
         )
         plot_name = f"{args.genome}_Dotplot_Strawberry_AllGenes_{tes.te_type}.png"
+
+        # Print the last entry in the values of the plotting dict
+        logger.info("All genes plotting dict:")
+        for key, val in plotting_dict.items():
+            logger.info(f"\tLast value of {key}: {val[-1]}")
         plot_dotplot(plotting_dict, plot_name, args.output_dir, logger)
 
         # -----------------------------------------------------------------------
         # Plot the dotplot, but this time only include genes that have an AT
         # ortholog
+        logger.info("Starting to plot the dotplot for genes with orthologs...")
         orthologs_to_plot = table_to_plot.merge(
             orthologs, left_on="Gene_Name", right_on=f"{args.genome}_Gene", how="inner"
         )
@@ -324,5 +334,8 @@ if __name__ == "__main__":
         plotting_dict = generate_plotting_dict(
             orthologs_to_plot, tes.te_list, windows, directions
         )
+        logger.info("Ortholog plotting dict:")
+        for key, val in plotting_dict.items():
+            logger.info(f"\tLast value of {key}: {val[-1]}")
         plot_name = f"{args.genome}_Dotplot_Strawberry_Orthologs_{tes.te_type}.png"
         plot_dotplot(plotting_dict, plot_name, args.output_dir, logger)
