@@ -120,6 +120,7 @@ def calc_and_compare_sco_TE_density(
     std_not_sco = not_scos[te_col].std()
 
     # Print out the effect size and standard deviation
+    # MAGIC 5000 is the window size, hard-coded
     logger.info(f"SCO average: {avg_sco}, transformed: {avg_sco*5000:0.2f} BP")
     logger.info(
         f"Non-SCO average: {avg_not_sco}, transformed: {avg_not_sco*5000:0.2f} BP"
@@ -273,7 +274,9 @@ if __name__ == "__main__":
         "H4",
         logger,
     )
-    print()
+
+    # ----------------------------------------------------------------------
+    # Royal Royce analysis
 
     # Now do the RR genes that Pat requested
     RR_not_sco = strawberry_ortholog_table.copy(deep=True)
@@ -283,7 +286,6 @@ if __name__ == "__main__":
     RR_not_sco.drop_duplicates(subset=["Arabidopsis_Gene", "RR_Gene"], inplace=True)
     RR_not_sco = RR_not_sco.loc[~RR_not_sco["Arabidopsis_Gene"].isin(true_AT_scos)]
     RR_not_sco.loc[:, "SCO_Status"] = "N"
-    print(RR_not_sco)
 
     # Find the RR SCO genes, don't remove duplicates
     RR_sco = strawberry_ortholog_table.copy(deep=True)
@@ -308,17 +310,12 @@ if __name__ == "__main__":
         logger,
     )
 
+    print()
+
     merged_RR_sco = RR_sco.merge(ka_ks_table, on="RR_Gene", how="inner")
+    print(f'My SCO KA/KS values:\n{merged_RR_sco["KA_KS"].describe()}')
 
     # Merging ~10K gene list from KA_KS analysis with 64K gene list from
     # ortholog table
     merged_RR_nonsco = RR_not_sco.merge(ka_ks_table, on="RR_Gene", how="inner")
-
-    # NOTE well this is good, KA_KS is basically 1 for the SCO genes
-    print(merged_RR_sco)
-    print()
-    print(merged_RR_sco["KA_KS"].describe())
-
-    # NOTE KA_KS for the non-SCO genes
-    print(merged_RR_nonsco)
-    print(merged_RR_nonsco["KA_KS"].describe())
+    print(f'My Non-SCO KA/KS values:\n{merged_RR_nonsco["KA_KS"].describe()}')

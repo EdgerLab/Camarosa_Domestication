@@ -38,14 +38,28 @@ def read_raw_ka_ks_table(filepath, other_species=None):
             f"{other_species}_Chromosome",
             f"{other_species}_Gene",
         ],
-        usecols=["KS", "KA", "H4_Gene", f"{other_species}_Gene"],
+        usecols=[
+            "KS",
+            "KA",
+            "H4_Gene",
+            "H4_Chromosome",
+            f"{other_species}_Gene",
+            f"{other_species}_Chromosome",
+        ],
         dtype={
             "KS": np.float64,
             "KA": np.float64,
             "H4_Gene": str,
+            "H4_Chromosome": str,
             f"{other_species}_Gene": str,
+            f"{other_species}_Chromosome": str,
         },
     )
+
+    # Drop non-main chromosomes
+    table = table.loc[~table["H4_Chromosome"].str.contains("contig")]
+    table = table.loc[~table[f"{other_species}_Chromosome"].str.contains("contig")]
+
     table.dropna(subset=["KS", "KA"], inplace=True)
     table["KA_KS"] = table["KA"] / table["KS"]
     table.replace([np.inf, -np.inf], np.nan, inplace=True)
@@ -58,7 +72,9 @@ def read_raw_ka_ks_table(filepath, other_species=None):
             "KA",
             "KS",
             "H4_Gene",
+            "H4_Chromosome",
             f"{other_species}_Gene",
+            f"{other_species}_Chromosome",
         ],
         copy=True,
     )
@@ -83,8 +99,8 @@ def filter_h4_dn_more(h4_dn):
 
     # Replace the old names because Pat used an annotation that contains some
     # of the old names
-    h4_dn = map_names(h4_dn, "DN_Gene", decoder_ring)
-    h4_dn = blacklist_if_no_new_name(h4_dn, decoder_ring, column="DN_Gene")
+    # h4_dn = map_names(h4_dn, "DN_Gene", decoder_ring)
+    # h4_dn = blacklist_if_no_new_name(h4_dn, decoder_ring, column="DN_Gene")
 
     return h4_dn
 
@@ -114,14 +130,18 @@ def read_filtered_ka_ks_table(filepath, other_species=None):
             "KS",
             "KA",
             "H4_Gene",
+            "H4_Chromosome",
             f"{other_species}_Gene",
+            f"{other_species}_Chromosome",
         ],
         dtype={
             "KA_KS": np.float64,
             "KS": np.float64,
             "KA": np.float64,
             "H4_Gene": str,
+            "H4_Chromosome": str,
             f"{other_species}_Gene": str,
+            f"{other_species}_Chromosome": str,
         },
     )
     return table
@@ -156,7 +176,7 @@ if __name__ == "__main__":
     logger = logging.getLogger(__name__)
     coloredlogs.install(level=log_level)
     # ------------------------------------------------------------------
-    decoder_ring = import_decoder_ring(args.decoder_ring_input_file)
+    # decoder_ring = import_decoder_ring(args.decoder_ring_input_file)
 
     h4_rr = read_raw_ka_ks_table(args.h4_rr_raw_ka_ks, other_species="RR")
     h4_rr = filter_h4_rr_more(h4_rr)
@@ -164,18 +184,28 @@ if __name__ == "__main__":
     h4_dn = read_raw_ka_ks_table(args.h4_dn_raw_ka_ks, other_species="DN")
     h4_dn = filter_h4_dn_more(h4_dn)
 
-    print(h4_dn["KA_KS"].describe())
-    print(h4_rr["KA_KS"].describe())
+    # Filter by standard deviation to remove these insane outliers,
+    # MAGIC NUMBER: 5, just want to filter stuff 5 standard devations away
+    # which isn't super restrictive
+    h4_dn_std_dev = h4_dn["KA_KS"].std()
+    h4_dn_mean = h4_dn["KA_KS"].mean()
+    h4_dn = h4_dn.loc[h4_dn["KA_KS"] < ((h4_dn_std_dev * 5) + h4_dn_mean)]
+
+    h4_rr_std_dev = h4_rr["KA_KS"].std()
+    h4_rr_mean = h4_rr["KA_KS"].mean()
+    h4_rr = h4_rr.loc[h4_rr["KA_KS"] < ((h4_rr_std_dev * 5) + h4_rr_mean)]
 
     # print(h4_dn.loc[h4_dn["DN_Gene"].str.contains("RagTag")])
     # print()
     # print(h4_dn.loc[h4_dn["DN_Gene"].str.contains("pilon")])
     # print()
     # print(h4_dn.loc[h4_dn["DN_Gene"].str.contains("genemark")])
+    # raise ValueError
 
     # TODO resolve this issue later
-    h4_dn = h4_dn.loc[~h4_dn["DN_Gene"].str.contains("RagTag")]
-    h4_dn = h4_dn.loc[~h4_dn["DN_Gene"].str.contains("pilon")]
+    # TODO resolved?
+    # h4_dn = h4_dn.loc[~h4_dn["DN_Gene"].str.contains("RagTag")]
+    # h4_dn = h4_dn.loc[~h4_dn["DN_Gene"].str.contains("pilon")]
 
     h4_dn.to_csv(args.h4_dn_filtered_ka_ks, sep="\t", index=False)
     h4_rr.to_csv(args.h4_rr_filtered_ka_ks, sep="\t", index=False)

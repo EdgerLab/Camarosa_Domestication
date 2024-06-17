@@ -415,8 +415,8 @@ generate_gene_distance_plots:
 # 1A: What are the KA/KS values for the SCO genes?
 # 1B: What are the KA/KS values for a random subset of eqivalent size to the
 # SCO genes?
-#
-UNCLEAN_H4_DN_KA_KS := $(DATA_DIR)/ka_ks/H4_DN_Ks_Kn_Rates.tsv
+# TODO figure out what to do with the old file
+UNCLEAN_H4_DN_KA_KS := $(DATA_DIR)/ka_ks/New_H4_DN_Ks_Kn_Rates.tsv
 UNCLEAN_H4_RR_KA_KS := $(DATA_DIR)/ka_ks/H4_RR_Ks_Kn_Rates.tsv
 
 KA_KS_OUT_DIR := $(RESULTS_DIR)/ka_ks
@@ -431,6 +431,11 @@ $(CLEAN_H4_RR_KA_KS) $(CLEAN_H4_DN_KA_KS): $(UNCLEAN_H4_RR_KA_KS) $(UNCLEAN_H4_D
 
 .PHONY: generate_ka_ks
 generate_ka_ks: $(CLEAN_H4_RR_KA_KS) $(CLEAN_H4_DN_KA_KS)
+
+.PHONY: clean_ka_ks
+clean_ka_ks:
+	rm -f $(CLEAN_H4_RR_KA_KS)
+	rm -f $(CLEAN_H4_DN_KA_KS)
 
 #-------------------------------------------------------------------#
 # Single Copy Ortholog Analaysis
