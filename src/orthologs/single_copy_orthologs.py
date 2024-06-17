@@ -284,7 +284,6 @@ if __name__ == "__main__":
     RR_not_sco = RR_not_sco.loc[~RR_not_sco["Arabidopsis_Gene"].isin(true_AT_scos)]
     RR_not_sco.loc[:, "SCO_Status"] = "N"
     print(RR_not_sco)
-    raise ValueError("STOP")
 
     # Find the RR SCO genes, don't remove duplicates
     RR_sco = strawberry_ortholog_table.copy(deep=True)
@@ -317,8 +316,9 @@ if __name__ == "__main__":
 
     # NOTE well this is good, KA_KS is basically 1 for the SCO genes
     print(merged_RR_sco)
-    print(merged_RR_sco["KA_KS"].mean())
+    print()
+    print(merged_RR_sco["KA_KS"].describe())
 
     # NOTE KA_KS for the non-SCO genes
     print(merged_RR_nonsco)
-    print(merged_RR_nonsco["KA_KS"].mean())
+    print(merged_RR_nonsco["KA_KS"].describe())

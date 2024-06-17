@@ -164,11 +164,14 @@ if __name__ == "__main__":
     h4_dn = read_raw_ka_ks_table(args.h4_dn_raw_ka_ks, other_species="DN")
     h4_dn = filter_h4_dn_more(h4_dn)
 
-    print(h4_dn.loc[h4_dn["DN_Gene"].str.contains("RagTag")])
-    print()
-    print(h4_dn.loc[h4_dn["DN_Gene"].str.contains("pilon")])
-    print()
-    print(h4_dn.loc[h4_dn["DN_Gene"].str.contains("genemark")])
+    print(h4_dn["KA_KS"].describe())
+    print(h4_rr["KA_KS"].describe())
+
+    # print(h4_dn.loc[h4_dn["DN_Gene"].str.contains("RagTag")])
+    # print()
+    # print(h4_dn.loc[h4_dn["DN_Gene"].str.contains("pilon")])
+    # print()
+    # print(h4_dn.loc[h4_dn["DN_Gene"].str.contains("genemark")])
 
     # TODO resolve this issue later
     h4_dn = h4_dn.loc[~h4_dn["DN_Gene"].str.contains("RagTag")]
