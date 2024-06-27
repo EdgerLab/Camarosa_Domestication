@@ -191,7 +191,7 @@ def te_annot_renamer(TE_Data):
     ] = "Helitron"
 
     # If the Order is SINE and the SuperFamily is unknown make the
-    # superfamily 'Helitron'
+    # superfamily 'Unknown_SINE_Superfam'
     TE_Data.loc[
         (TE_Data["Order"] == "SINE") & (TE_Data["SuperFamily"] == "Unknown_Superfam"),
         "SuperFamily",
