@@ -4,3 +4,6 @@
 [submodule "EDTA"]
 	path = EDTA
 	url = https://github.com/oushujun/EDTA
+[submodule "jcvi_strawberry"]
+	path = JCVI_Strawberry
+	url = https://github.com/sjteresi/jcvi_strawberry
