@@ -90,11 +90,6 @@ function_run_topgo = function(master_genes, geneID2GO, my_interesting_genes, ont
 	    	# algorithm="weight01" WILL take GO hierarchy into account
 		# These p-values have not been corrected for multiple testing
 
-	# NB from Pat:
-       		# After discussion with Pat, since I already have a cutoff applied
-       		# to my modules, and the GO hieracrhy is useful information, I don't want
-       		# to penalize the stats further, so I am going with classic and won't do
-       		# an FDR.
 
 	# list the top significant GO terms
 	# This is for the weight option
