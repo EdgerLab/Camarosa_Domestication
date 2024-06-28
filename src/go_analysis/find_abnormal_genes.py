@@ -363,7 +363,9 @@ if __name__ == "__main__":
         args.strawberry_ortholog_table, header="infer", sep="\t", low_memory=False
     )
 
-    # Magic remove the file extension after basename, won't work if multiple
+    # -------------------------------------------------------------------------
+
+    # MAGIC remove the file extension after basename, won't work if multiple
     # '.' in the filename
     filename = os.path.splitext(os.path.basename(args.preprocessed_density_table))[0]
     if "minus" not in filename:
@@ -385,9 +387,11 @@ if __name__ == "__main__":
         te_type, window, direction = decode_te_window_direction_str(
             os.path.basename(args.preprocessed_density_table)
         )
+        flag = False
         # TODO NOTE the AED score stuff doesn't work for the DN minus RR table
         # because I would need two AED score tables
-        flag = False
+        raise ValueError("This script does not work with the DN minus RR table")
+    # -------------------------------------------------------------------------
 
     # Load in the AED scores
     aed_scores = read_aed_output_table(args.aed_score_table)
@@ -395,6 +399,8 @@ if __name__ == "__main__":
     aed_scores.rename(columns={"Gene_Name": f"{genome}_Gene"}, inplace=True)
     # MAGIC MAGIC MAGIC, anything below this is a well-supported gene model
     good_aed_score = 0.75
+
+    # -------------------------------------------------------------------------
 
     # Create a named tuple that is the cutoff function and its percentile in
     # integer format, to avoid needing to retype this all the time
@@ -449,93 +455,65 @@ if __name__ == "__main__":
 
         # Calculate the random distro barplots and histogram
         # NOTE this is big ugly, should put the below into a function
-        if genome != "H4":
+        # NOTE the below does not work for H4
 
-            # TODO parametrize this so we have a choice to not do 1000 random
-            # samples
-            N = 1000  # MAGIC, number of random samples to generate
-            ref_surviving_straw, ref_surviving_AT = generate_random_sample(
-                base_table, ortholog_table, genome, aed_scores, good_aed_score, N
-            )
-            # Define additional reference values
-            reference_strawberry_mean = np.mean(ref_surviving_straw)
-            reference_arabidopsis_mean = np.mean(ref_surviving_AT)
-            reference_arabidopsis_std = np.std(ref_surviving_AT)
+        # TODO parametrize this so we have a choice to not do 1000 random
+        # samples
+        N = 1000  # MAGIC, number of random samples to generate
+        ref_surviving_straw, ref_surviving_AT = generate_random_sample(
+            base_table, ortholog_table, genome, aed_scores, good_aed_score, N
+        )
+        # Define additional reference values
+        reference_strawberry_mean = np.mean(ref_surviving_straw)
+        reference_arabidopsis_mean = np.mean(ref_surviving_AT)
+        reference_arabidopsis_std = np.std(ref_surviving_AT)
 
-            logger.info(f"Working on {te_col}")
-            logger.info(
-                f"My reference standard deviation is {reference_arabidopsis_std}"
-            )
-            logger.info(f"My reference mean is {reference_arabidopsis_mean}")
-            logger.info(
-                f"My observed sample value is {count_of_genes_w_arabidopsis_orthologs}"
-            )
-            std_dev_away = (
-                count_of_genes_w_arabidopsis_orthologs - reference_arabidopsis_mean
-            ) / reference_arabidopsis_std
+        logger.info(f"Working on {te_col}")
+        logger.info(f"My reference standard deviation is {reference_arabidopsis_std}")
+        logger.info(f"My reference mean is {reference_arabidopsis_mean}")
+        logger.info(
+            f"My observed sample value is {count_of_genes_w_arabidopsis_orthologs}"
+        )
+        std_dev_away = (
+            count_of_genes_w_arabidopsis_orthologs - reference_arabidopsis_mean
+        ) / reference_arabidopsis_std
 
-            output_filename = os.path.join(
-                args.output_dir,
-                "ortholog_analysis",
-                f"{te_col}_{upper.upper_or_lower_str}_{str(upper.percentile)}_ortholog_histogram.png",
-            )
-            plot_random_distribution_vs_observed(
-                ref_surviving_AT,
-                count_of_genes_w_arabidopsis_orthologs,
-                std_dev_away,
-                logger,
-                output_filename,
-                te_col,
-            )
-
-            output_filename = os.path.join(
-                args.output_dir,
-                "ortholog_analysis",
-                f"{te_col}_{upper.upper_or_lower_str}_{str(upper.percentile)}_ortholog_barplot.png",
-            )
-            plot_count_of_remaining_genes(
-                count_of_genes_meeting_cutoff,
-                count_of_genes_w_strawberry_orthologs,
-                count_of_genes_w_arabidopsis_orthologs,
-                count_of_genes_meeting_cutoff,
-                reference_strawberry_mean,
-                reference_arabidopsis_mean,
-                logger,
-                output_filename,
-                te_col,
-                aed_scores,
-            )
-
-        out_filename = f"{te_col}_{upper.upper_or_lower_str}_{str(upper.percentile)}_density_percentile.tsv"
-        save_table_to_disk(
-            mod_table,
+        output_filename = os.path.join(
             args.output_dir,
-            out_filename,
+            "ortholog_analysis",
+            f"{te_col}_{upper.upper_or_lower_str}_{str(upper.percentile)}_ortholog_histogram.png",
+        )
+        plot_random_distribution_vs_observed(
+            ref_surviving_AT,
+            count_of_genes_w_arabidopsis_orthologs,
+            std_dev_away,
             logger,
+            output_filename,
+            te_col,
         )
 
-    else:
+        output_filename = os.path.join(
+            args.output_dir,
+            "ortholog_analysis",
+            f"{te_col}_{upper.upper_or_lower_str}_{str(upper.percentile)}_ortholog_barplot.png",
+        )
+        plot_count_of_remaining_genes(
+            count_of_genes_meeting_cutoff,
+            count_of_genes_w_strawberry_orthologs,
+            count_of_genes_w_arabidopsis_orthologs,
+            count_of_genes_meeting_cutoff,
+            reference_strawberry_mean,
+            reference_arabidopsis_mean,
+            logger,
+            output_filename,
+            te_col,
+            aed_scores,
+        )
 
-        # ----------------------------------------
-        # Calculate the 'Difference' column
-        column_name = "Difference"
-        col_to_save = f"{column_name}_{te_type}_{window}_{direction}"
-        for genome, i in [("DN", upper), ("RR", lower)]:
-            # We don't have a 'Difference' column for H4, the difference
-            # column is for DN vs RR.
-            # NOTE MAGIC, if positive it is a DEL NORTE biased gene pair
-            # NOTE MAGIC, if negative it is a Royal Royce biased gene pair, hence
-            # we will apply the lower cutoff function to the RR dataset
-
-            # Perform the cutoffs and subset
-            mod_table = i.cutoff_function(base_table, column_name, i.percentile, logger)
-
-            # Subset the table so that each entry MUST have an Arabidopsis gene
-            mod_table = subset_by_arabidopsis_presence(mod_table)
-            out_filename = f"{col_to_save}_Biased_Towards_{genome}_{str(i.percentile)}_density_percentile.tsv"
-            save_table_to_disk(
-                mod_table,
-                args.output_dir,
-                out_filename,
-                logger,
-            )
+    out_filename = f"{te_col}_{upper.upper_or_lower_str}_{str(upper.percentile)}_density_percentile.tsv"
+    save_table_to_disk(
+        mod_table,
+        args.output_dir,
+        out_filename,
+        logger,
+    )

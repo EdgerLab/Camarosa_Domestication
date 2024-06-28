@@ -7,3 +7,11 @@ doc/LINE/LINE_sanity_check.sb
 doc/LINE/sanity_check_results.txt
 doc/LINE/sanity_check_tpases.sb
 doc/msab024.pdf
+doc/sn-article-template/*
+doc/manuscript/ideas.md
+expression_data.md
+expression_data.pdf
+h4_manifest.tsv
+igv_session.xml
+other/*
+src/orthologs/ortholog_v_nonorth.py

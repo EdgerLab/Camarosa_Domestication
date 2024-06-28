@@ -85,7 +85,6 @@ if __name__ == "__main__":
     )
     parser.add_argument("dn_aed_score_table", type=str)
     parser.add_argument("rr_aed_score_table", type=str)
-    parser.add_argument("strawberry_ortholog_table", type=str)
     parser.add_argument(
         "output_dir",
         type=str,
@@ -97,7 +96,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     args.preprocessed_density_table = os.path.abspath(args.preprocessed_density_table)
-    args.strawberry_ortholog_table = os.path.abspath(args.strawberry_ortholog_table)
     args.dn_aed_score_table = os.path.abspath(args.dn_aed_score_table)
     args.rr_aed_score_table = os.path.abspath(args.rr_aed_score_table)
     args.output_dir = os.path.abspath(args.output_dir)
@@ -110,10 +108,10 @@ if __name__ == "__main__":
     # Load in the pre-filtered TE Density data
     base_table = pd.read_csv(args.preprocessed_density_table, header="infer", sep="\t")
 
-    # Load in the pre-filtered ortholog information
-    ortholog_table = pd.read_csv(
-        args.strawberry_ortholog_table, header="infer", sep="\t", low_memory=False
-    )
+    # MAGIC
+    # Subset the base table so that we only have gene pairs between RR and DN
+    # that are syntenic
+    base_table = base_table.loc[base_table["DN_RR_Point_of_Origin"] == "Synteny"]
 
     te_type, window, direction = decode_te_window_direction_str(
         os.path.basename(args.preprocessed_density_table)
