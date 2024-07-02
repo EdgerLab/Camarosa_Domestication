@@ -6,7 +6,7 @@
 # - At the top of each section is a definition of various paths, to sort input and output files.
 #-------------------------------------------------------------------#
 # Main
-
+#
 setup:
 	mkdir -p requirements doc results src data
 
@@ -16,6 +16,19 @@ DATA_DIR := $(ROOT_DIR)/data
 GENOMES_DIR := $(DATA_DIR)/Genomes
 RESULTS_DIR := $(ROOT_DIR)/results
 CODE_DIR := $(ROOT_DIR)/src
+
+
+# NOTE this will overwrite and delete things on the remote server
+# NOTE try --dry-run to test
+.PHONY: sync_local_to_remote_data
+sync_local_to_remote_data:
+	rsync -avze ssh ${DATA_DIR} --dry-run --delete --chmod=Du=rwx,Dg=rwsx,Do=,Fu=rwx,Fg=rx,Fo= teresisc@rsync.hpcc.msu.edu:/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/
+
+# NOTE this will overwrite and delete things on the remote server
+# NOTE try --dry-run to test
+.PHONY: sync_local_to_remote_results
+sync_local_to_remote_results:
+	rsync -avze ssh ${RESULTS_DIR} --dry-run --delete --chmod=Du=rwx,Dg=rwsx,Do=,Fu=rwx,Fg=rx,Fo= teresisc@rsync.hpcc.msu.edu:/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/
 
 #-------------------------------------------------------------------#
 # Prepare the gene and TE annotation inputs for TE Density
