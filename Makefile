@@ -22,13 +22,13 @@ CODE_DIR := $(ROOT_DIR)/src
 # NOTE try --dry-run to test
 .PHONY: sync_local_to_remote_data
 sync_local_to_remote_data:
-	rsync -avze ssh ${DATA_DIR} --dry-run --delete --chmod=Du=rwx,Dg=rwsx,Do=,Fu=rwx,Fg=rx,Fo= teresisc@rsync.hpcc.msu.edu:/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/
+	rsync -avze ssh ${DATA_DIR} --delete --chmod=Du=rwx,Dg=rwsx,Do=,Fu=rwx,Fg=rx,Fo= teresisc@rsync.hpcc.msu.edu:/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/
 
 # NOTE this will overwrite and delete things on the remote server
 # NOTE try --dry-run to test
 .PHONY: sync_local_to_remote_results
 sync_local_to_remote_results:
-	rsync -avze ssh ${RESULTS_DIR} --dry-run --delete --chmod=Du=rwx,Dg=rwsx,Do=,Fu=rwx,Fg=rx,Fo= teresisc@rsync.hpcc.msu.edu:/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/
+	rsync -avze ssh ${RESULTS_DIR} --delete --chmod=Du=rwx,Dg=rwsx,Do=,Fu=rwx,Fg=rx,Fo= teresisc@rsync.hpcc.msu.edu:/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/
 
 #-------------------------------------------------------------------#
 # Prepare the gene and TE annotation inputs for TE Density
@@ -191,6 +191,8 @@ DN_DENSITY_DIR := $(RESULTS_DIR)/density/DN/output_data
 RR_DENSITY_DIR := $(RESULTS_DIR)/density/RR/output_data
 H4_DENSITY_DIR := $(RESULTS_DIR)/density/H4/output_data
 DENSITY_TABLE_DIR := $(RESULTS_DIR)/density_analysis/tables
+
+# TODO RENAME THIS?
 SYNTELOG_PLOT_DIR := $(RESULTS_DIR)/density_analysis/figures
 
 # Define a target to create the directory if it doesn't exist
@@ -202,6 +204,7 @@ $(SYNTELOG_PLOT_DIR):
 
 # Define a phony target to create the syntelog density table for convenience
 # NOTE this script takes a while....
+# The TE types we get data for are manually coded within the analysis script
 .PHONY: generate_density_tables
 generate_density_tables: $(STRAWBERRY_ORTHOLOG_TABLE) $(DN_CLEAN_GENES) $(RR_CLEAN_GENES) $(H4_CLEAN_GENES) $(DN_DENSITY_DIR) $(RR_DENSITY_DIR) $(H4_DENSITY_DIR) $(DENSITY_TABLE_DIR) | $(DENSITY_TABLE_DIR)
 	python $(CODE_DIR)/syntelog_differences/parse_density_data.py $^
@@ -303,15 +306,25 @@ $(GO_UPSET_PLOT_DIR):
 # uncommon TE superfamilies. For example the TE value to beat for the 95th percentile for the 10B window for 
 # CACTA might be ~0.3 which isn't a lot of TE
 # Total TE category might be most informative and easiest to interpret because of high cutoff value
-# NOTE unused because I don't want all the different TE types
-.PHONY: generate_super_dense_gene_tables_single_genome
-generate_super_dense_gene_tables_single_genome: $(STRAWBERRY_ORTHOLOG_TABLE) $(SUPER_DENSE_CUTOFF_TABLE_DIR)
+# NOTE deprecated because I don't want all the different TE types
+.PHONY: deprecated_generate_super_dense_gene_tables_single_genome
+deprecated_generate_super_dense_gene_tables_single_genome: $(STRAWBERRY_ORTHOLOG_TABLE) $(SUPER_DENSE_CUTOFF_TABLE_DIR)
 	# Lol I made the manifest file with Vim in like 1 minute, I'm not going to automate that
 	mkdir -p $(SUPER_DENSE_CUTOFF_TABLE_DIR)/no_Arabidopsis
 	mkdir -p $(SUPER_DENSE_CUTOFF_TABLE_DIR)/ortholog_analysis
 	cat $(CODE_DIR)/go_analysis/cutoff_single_genome_manifest.tsv | parallel -a - -C '\t' python $(CODE_DIR)/go_analysis/find_abnormal_genes.py $(DENSITY_TABLE_DIR)/{1} $(RESULTS_DIR)/AED/{2} 95 5 $^
 
-prefixes := RR DN H4
+# NOTE unused because I don't want all the different TE types,
+# Use super_dense_two_genome_specific instead
+.PHONY: deprecated_generate_super_dense_gene_tables_differing_syntelogs
+deprecated_generate_super_dense_gene_tables_differing_syntelogs: $(SUPER_DENSE_CUTOFF_TABLE_DIR)
+	# Lol I made the manifest file with Vim in like 1 minute, I'm not going to automate that
+	mkdir -p $(SUPER_DENSE_CUTOFF_TABLE_DIR)/no_Arabidopsis
+	mkdir -p $(SUPER_DENSE_CUTOFF_TABLE_DIR)/ortholog_analysis
+	cat $(CODE_DIR)/go_analysis/cutoff_differing_syntelogs_manifest.tsv | parallel -a - -C '\t' python $(CODE_DIR)/go_analysis/find_differing_syntelogs.py $(DENSITY_TABLE_DIR)/{1} $(DN_AED_SCORE) $(RR_AED_SCORE) $^
+
+# NOTE I added the None_Intra types to calculate those on a one off
+prefixes := RR DN
 types := Total_TE_Density_5000_Upstream TIR_5000_Upstream LTR_5000_Upstream
 # Loop over a specific set
 super_dense_single_genome_specific: $(STRAWBERRY_ORTHOLOG_TABLE) $(SUPER_DENSE_CUTOFF_TABLE_DIR)
@@ -328,16 +341,6 @@ super_dense_single_genome_specific: $(STRAWBERRY_ORTHOLOG_TABLE) $(SUPER_DENSE_C
 		) \
 	)
 
-
-# NOTE unused because I don't want all the different TE types,
-# Use super_dense_two_genome_specific instead
-.PHONY: deprecated_generate_super_dense_gene_tables_differing_syntelogs
-deprecated_generate_super_dense_gene_tables_differing_syntelogs: $(SUPER_DENSE_CUTOFF_TABLE_DIR)
-	# Lol I made the manifest file with Vim in like 1 minute, I'm not going to automate that
-	mkdir -p $(SUPER_DENSE_CUTOFF_TABLE_DIR)/no_Arabidopsis
-	mkdir -p $(SUPER_DENSE_CUTOFF_TABLE_DIR)/ortholog_analysis
-	cat $(CODE_DIR)/go_analysis/cutoff_differing_syntelogs_manifest.tsv | parallel -a - -C '\t' python $(CODE_DIR)/go_analysis/find_differing_syntelogs.py $(DENSITY_TABLE_DIR)/{1} $(DN_AED_SCORE) $(RR_AED_SCORE) $^
-
 double_prefixes := DN_minus_RR
 .PHONY: super_dense_two_genome_specific
 super_dense_two_genome_specific: $(DN_AED_SCORE) $(RR_AED_SCORE) $(SUPER_DENSE_CUTOFF_TABLE_DIR)
@@ -349,6 +352,9 @@ super_dense_two_genome_specific: $(DN_AED_SCORE) $(RR_AED_SCORE) $(SUPER_DENSE_C
 	       			$(DENSITY_TABLE_DIR)/$(prefix)_$(type).tsv $^ ; \
 		) \
 	)
+
+
+
 
 # Define a target to run TopGO on the super dense gene output files
 .PHONY: generate_go_enrichments
@@ -452,7 +458,9 @@ generate_sco_go_enrichments: $(SCO_GO_OUTPUT)
 # these genes are the output of TopGO.
 
 # Define a file path for the domestication sweeps data from the publication
-SWEEP_TABLE := $(DATA_DIR)/domestication_sweeps.csv
+SWEEP_TABLE := $(DATA_DIR)/Fan_2024_Sweeps/domestication_sweeps.csv
+# NOTE this manifest file has the percentile cutoffs hard-coded in, e.g 95th
+# percentile, so if changing percentiles try to make this more flexible
 INTERSECTION_MANIFEST := $(CODE_DIR)/go_analysis/intersect_sweeps_manifest.tsv
 
 
@@ -461,6 +469,8 @@ intersect_sweeps_with_TE_dense_genes:
 	mkdir -p $(GO_ENRICHMENT_DIR)/sweep_intersections
 	cat $(INTERSECTION_MANIFEST) | parallel -a - -C '\t' python $(CODE_DIR)/intersect_sweeps_w_enriched_terms.py $(GO_ENRICHMENT_DIR)/{1} ${GO_ENRICHMENT_DIR}/sweep_intersections/{2} $(SWEEP_TABLE) 
 
+
+# NOTE does not work
 .PHONY: dev_intersect_sweeps_with_TE_dense_genes
 dev_intersect_sweeps_with_TE_dense_genes: 
 	python $(CODE_DIR)/intersect_sweeps_w_enriched_terms.py $(SWEEP_TABLE) $(GO_ENRICHMENT_DIR)/Overrepresented_RR_Total_TE_Density_5000_Upstream_Upper_95_density_percentile.tsv test_intersect.tsv

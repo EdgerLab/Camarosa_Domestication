@@ -44,6 +44,7 @@ class SyntelogDifferences:
 
     def subset_by_te_difference(self, cutoff=0.75):
         """
+        MAGIC default CUTOFF of 0.75 difference
         Subset the table so that we only have syntelogs with extreme TE
         difference
         """
