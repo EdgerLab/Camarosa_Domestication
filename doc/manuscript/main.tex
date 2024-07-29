@@ -85,20 +85,20 @@
 
 \begin{abstract}
 \textbf{Background:}
-The cultivated strawberry (\textit{Fragaria x ananassa}), unlike most crops, is unique because it is a recent domesticate, formed by the interspecific hybridization of wild octoploid species.
-Here, armed with the availability of a wide-array of genomic and phylogentic resources that include wild diploid, wild octploid, and a high-quality reference genome for \textit{Fragaria x ananassa} we examined the genome for signatures of domestication.
-While previous research has shown that the dominant subgenome possesses the least amount of transposable elements (TEs) and that they are important contributors to genotypic and phenotypic variation, the potential influence of TEs on the domestication of strawberry has been relatively understudied.
-%Transposable elements (TEs) are major forces of genetic mutation and phenotypic diversity.
-%A wide-range of traits in a variety of crop species have been shown to be influenced by transposable elements.
-%This is driven by the capacity of TEs to act as alternative promoters, shuffle gene sequences, or influence methylation and chromatin accessibility dynamics near genes.
-\newline
-\textbf{Results:}
-Here we constructed a TE-pangenome for strawberry and show that although the relative TE content between the wild and domesticated strawberry genomes is quite similar, there are large TE differences around genes that suggest their role in the domestication process.
-We show large transposon dynamics around positionally conserved genes suggesting rapid evolution.
-Additionally, we show that a number of defense, biosynthesis, and development genes are enriched for transposon presence and have high expression, suggesting the co-opting or domestication of TEs during the domestication of strawberry. % (TODO verify this!!!)
-\newline
-\textbf{Conclusions:}
-Together, this study describes the TE-gene dynamics of strawberry, showing the potential influence of TEs, and suggests a ...
+% The cultivated strawberry (\textit{Fragaria x ananassa}), unlike most crops, is unique because it is a recent domesticate, formed by the interspecific hybridization of wild octoploid species.
+% Here, armed with the availability of a wide-array of genomic and phylogentic resources that include wild diploid, wild octploid, and a high-quality reference genome for \textit{Fragaria x ananassa} we examined the genome for signatures of domestication.
+% While previous research has shown that the dominant subgenome possesses the least amount of transposable elements (TEs) and that they are important contributors to genotypic and phenotypic variation, the potential influence of TEs on the domestication of strawberry has been relatively understudied.
+% %Transposable elements (TEs) are major forces of genetic mutation and phenotypic diversity.
+% %A wide-range of traits in a variety of crop species have been shown to be influenced by transposable elements.
+% %This is driven by the capacity of TEs to act as alternative promoters, shuffle gene sequences, or influence methylation and chromatin accessibility dynamics near genes.
+% \newline
+% \textbf{Results:}
+% Here we constructed a TE-pangenome for strawberry and show that although the relative TE content between the wild and domesticated strawberry genomes is quite similar, there are large TE differences around genes that suggest their role in the domestication process.
+% We show large transposon dynamics around positionally conserved genes suggesting rapid evolution.
+% Additionally, we show that a number of defense, biosynthesis, and development genes are enriched for transposon presence and have high expression, suggesting the co-opting or domestication of TEs during the domestication of strawberry. % (TODO verify this!!!)
+% \newline
+% \textbf{Conclusions:}
+% Together, this study describes the TE-gene dynamics of strawberry, showing the potential influence of TEs, and suggests a ...
 \end{abstract}
 
 \flushbottom
@@ -112,19 +112,57 @@ Together, this study describes the TE-gene dynamics of strawberry, showing the p
 % TODO talk about TEs being bad and then talk about how they can be good
 % TODO talk about mechanisms or patterns to get rid of TEs and why it is exceptional for a gene to have a ton of TE near it.
 
+
+%Furthermore Hardigan et al. \cite{Hardigan2020} suggests that ``interspecific complementation, a broader pool of potentially adaptive alleles, and the masking of deleterious mutations could be more important than fixed heterosis'' in strawberry.\\
+
 \section{Background:}
-Cultivated, garden strawberry (\textit{Fragaria x ananassa} Duchesne ex Rozier, \textit{2n} $=$ 8X $=$ 56) is an allo-octoploid species.
-It is the hybrid product of two allo-octoploid species \textit{Fragaria virginiana} and \textit{Fragaria chiloensis}.
-The initial hybridization of 
+Cultivated garden strawberry (\textit{Fragaria x ananassa} Duchesne ex Rozier, \textit{2n} $=$ 8X $=$ 56) is an allo-octoploid species formed from the hybridization of two New World strawberry species \textit{Fragaria virginiana} and \textit{Fragaria chiloensis}.
+It is a major fruit crop; 1,211,090 tonnes were produced in the United States in 2021... TODO.
+%(\href{TODO CITE FAOSTAT}{https://data.un.org/Data.aspx?d=FAO&f=itemCode\%3A544}) and the US production value was evaluated as \$3,398,943,000 in 2023 (\href{TODO CITE USDA}{https://www.nass.usda.gov/Statistics_by_Subject/result.php?C6E91360-DC42-3C4A-8D5C-1392239A0EAF&sector=CROPS&group=FRUIT%20%26%20TREE%20NUTS&comm=STRAWBERRIES}.
+Its initial hybridization occurred in the 18th century in France, which makes strawberry one of the most recent domesticated crop species.
+Unlike most domesticated crops, strawberry has not undergone thousands of years of breedings, only about 300 years of breeding.
+
+
+However the genomic changes associated with domestication have largely remained a mystery as a high-quality reference genome for cultivated strawberry was not available until quite recently \cite{Edger2019} (TODO CITE RR).
+These datasets have enabled a wide-array of studies to be performed on the strawberry genome as several research groups have worked on identifying selective-sweep regions, in addition to surveying the genomic diversity, evolutionary history, and structure of the strawberry genome (TODO CITE).
+For some time the genetic variation in \textit{Fragaria x ananassa} was considered to be rather limited (TODO CITE), a notion that has been strongly challenged by recent research (TODO CITE HARDIGAN).
+In fact, Hardigan et al showed that genomic diversity is actually quite high, both in the wild founder and domesticated populations.
+Other hallmarks of domesticated genomes are absent in strawberry such as ... TODO.
+Additionally, the genome shows high degree of karyotypic stability and absence of chromosome restructuring \cite{Hardigan2020, Hardigan2021}.
+
+
+While great strides have been made in such a short time in understanding the genome and genetic diversity of strawberry, the success of strawberry as an agricultural crop is not fully understood.
+Its high nucleotide diversity, and limited quantitative evidence of heterosis \cite{Stegmeir2010, Rho2012, Hardigan2020} leads us to suspect that initial breeding efforts may have had more to do with the purification/silencing of deleterious alleles and transposable elements (TEs) rather than the fixation of heterotic loci.
+This is in contrast to other crops such as maize, where heterosis is widely known as major contributor to yield TODO CITE, and whose genome has had more time to undergo purifying selection despite its high TE content.
+
+
+Given that cultivated strawberry is a highly-diverse recent domesticate with limited evidence of heterosis, we hypothesized that the relatively understudied component of plant genomes, transposable elements (TEs), could be playing an active role in the domestication of strawberry.
+TEs are selfish, mobile, repetitive DNA sequences that constitute a major component of most eukaryotic genomes.
+TEs are great forces of genetic mutation and phenotypic diversity, and are widely known to be predominantly deleterious.
+However, TEs can also be beneficial, acting as alternative promoters, shuffling gene sequences, or influencing methylation and chromatin accessibility dynamics near genes.
+TEs have been shown to influence a wide-range of traits in a variety of crop species, such as color variation in grape, apple, and pepper, disease resistance in pepper, and the domestication of maize TODO CITE.
+They can rapidly amplify in copy number and quickly cause mutations in large portions of the genome.
+We hypothesized that the large-scale removal and/or silencing of TEs (whose proliferation may not have faced such strong purifying selection in wild populations) could be a major force in the domestication of strawberry.
 
 
 
-While the parents are native to North and South America, garden strawberry was first generated in the Royal Gardens of Versailles during the 18th century (TODO check).
-Unlike most domesticated crops, strawberry has not undergone thousands of years of selection and domestication.
-In fact, genomic diversity is actually quite high, both in the wild founder and domesticated populations; the genome also has a high degree of karyotypic stability and absence of chromosome restructuring \cite{Hardigan2020, Hardigan2021}.
 
-However the success of agricultural strawberry as a crop is not fully understood, as there is high similarity to the wild progenitor and little quantitative evidence of heterosis \cite{Stegmeir2010, Rho2012, Hardigan2020}, and \cite{Hardigan2020} suggest that ``interspecific complementation, a broader pool of potentially adaptive alleles, and the masking of deleterious mutations could be more important than fixed heterosis'' in the polyploid crop.
-In this study we examine transposable elements as a potential answer.
+
+
+In this study, utilizing a comparative genomics framework, we examined the role of transposable elements (TEs) in shaping the genome of cultivated strawberry.
+We hypothesized that TEs have played a role in the domestication of strawberry, and that the TE landscape around genes could be contributing to domestication-related phenotypes.
+Furthermore, given that 
+
+
+
+These examples are exceptions to the rule, as TEs are generally considered to be deleterious.
+Although TEs are generally considered to be deleterious, they can also be beneficial, acting as alternative promoters, shuffling gene sequences, or influencing methylation and chromatin accessibility dynamics near genes.
+Although these examples are well-documented, the systematic investigation of TEs interacting with genes in strawberry remains to be performed.
+
+We draw comparisons between the wild diploid strawberry (\textit{Fragaria vesca} `H4', \textit{2n} $=$ 2X $=$ 14), the wild octoploid strawberry (\textit{Fragaria chiloensis} `Del Norte', \textit{2n} $=$ 8X $=$ 56), and the cultivated octoploid strawberry (\textit{Fragaria x ananassa} `Royal Royce', \textit{2n} $=$ 8X $=$ 56).
+
+In this study we examine transposable elements
+
 
 \paragraph{Transposons as Agents of Change:}
 Transposable elements (transposons, TEs) are selfish, mobile, repetitive DNA sequences that constitute a major component of most eukaryotic genomes.
@@ -398,7 +436,7 @@ Supplemental Figure (TODO supplement) shows the general pattern of TE Density of
 
 We also performed a MannWhitneyU test.
 Our null hypothesis ($H_{0}$) was that the two groups are equal in their TE Density, and our alternative hypothesis ($H_{a}$) was that the TE Density of genes with \textit{Arabidopsis} orthologs is less than the TE Density of genes without \textit{Arabidopsis} orthologs.
-Our resulting p-value was 0 (TODO SCOTT rouding error in code?), the 
+Our resulting p-value was 0 (TODO SCOTT rounding error in code?), the 
 
 
 

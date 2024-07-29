@@ -51,6 +51,9 @@ def read_domestication_sweep_table(filename):
         },
     )
 
+    # Remove rows where Breeding Program is UF
+    data = data.loc[data["Breeding_Program"] != "UF", :]
+
     data = add_useful_IDs_to_sweep_table(data)
     return data
 
@@ -84,6 +87,8 @@ def add_useful_IDs_to_sweep_table(sweep_table):
 
 
 def reorder_sweep_table_columns(sweep_table):
+    # TODO add these columns back in
+    # TODO keep working on the tiny window
     columns_in_desired_order = [
         "Selection_Coefficient",
         "Start",
@@ -108,23 +113,31 @@ def intersect_genes_with_sweep_zones(sweep_table, go_enrichment_table):
     genes, and special attention must be paid to make sure the chromosomes
     match
     """
-    go_enrichment_table.set_index(
-        ["RR_Gene", "Arabidopsis_Gene", "GO_ID", "Term"], inplace=True
+    new_columns = sweep_table.index.to_list()
+    table_w_sweep_zone_col = pd.DataFrame(
+        {col: ["N"] * len(go_enrichment_table) for col in new_columns}
     )
-
-    for sweep_id in sweep_table.index:
-        go_enrichment_table[sweep_id] = "N"
-
-    go_enrichment_table = go_enrichment_table.copy(deep=True)
+    go_enrichment_table = pd.concat(
+        [go_enrichment_table, table_w_sweep_zone_col], axis=1
+    )
+    # go_enrichment_table.set_index(
+    #     ["RR_Gene", "Arabidopsis_Gene", "GO_ID", "Term"], inplace=True
+    # )
+    # NOTE change back for the enriched files
+    # ???
+    go_enrichment_table.set_index(["RR_Gene"], inplace=True)
 
     for sweep_id, sweep_row in sweep_table.iterrows():
         sweep_start = sweep_row["Start"]
         sweep_stop = sweep_row["Stop"]
         sweep_chromosome = sweep_row["Chromosome_ID"]
 
+        # TODO POTENTIALLY REMOVE THE MAGIC NUMBERS
+        # We are attempting to give the gene loci some leeway and some extra
+        # space in case the gene doesn't start or stop exactly within the sweep
         go_enrichment_table.loc[
-            (go_enrichment_table["RR_Start"] >= sweep_start)
-            & (go_enrichment_table["RR_Stop"] <= sweep_stop)
+            (go_enrichment_table["RR_Start"] >= sweep_start - 1000)
+            & (go_enrichment_table["RR_Stop"] <= sweep_stop + 1000)
             & (go_enrichment_table["RR_Chromosome"] == sweep_chromosome),
             sweep_id,
         ] = "Y"
@@ -200,10 +213,10 @@ if __name__ == "__main__":
     mod_table = intersect_genes_with_sweep_zones(sweep_table, go_enrichment_table)
 
     # NOTE MAGIC, if the user wants to print their gene of interest
-    gene_of_interest = "Fxa1Cg101834"
-    result = describe_gene_of_interest(
-        mod_table, sweep_table.index.to_list(), gene_of_interest
-    )
+    # gene_of_interest = "Fxa1Cg101834"
+    # result = describe_gene_of_interest(
+    #     mod_table, sweep_table.index.to_list(), gene_of_interest
+    # )
     # print(result)
 
     # Save the master table
