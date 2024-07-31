@@ -78,6 +78,7 @@
 \title{The Phenotypic Consequences of Transposable Elements in Cultivated Strawberry}
 
 \author[1,2]{Scott J. Teresi}
+\author[1]{Jordan R. Brock}
 \author[1]{Ning Jiang}
 \author[1,2]{Patrick P. Edger}
 \affil[1]{Department of Horticulture, Michigan State University, East Lansing, MI}
@@ -114,6 +115,12 @@
 
 
 %Furthermore Hardigan et al. \cite{Hardigan2020} suggests that ``interspecific complementation, a broader pool of potentially adaptive alleles, and the masking of deleterious mutations could be more important than fixed heterosis'' in strawberry.\\
+
+% Strawberry is a recent domesticate.
+% Strawberry is really diverse.
+% Domestication processes in strawberry are not well understood.
+% The role of transposable elements in domestication in general is not well understood either.
+% 
 
 \section{Background:}
 Cultivated garden strawberry (\textit{Fragaria x ananassa} Duchesne ex Rozier, \textit{2n} $=$ 8X $=$ 56) is an allo-octoploid species formed from the hybridization of two New World strawberry species \textit{Fragaria virginiana} and \textit{Fragaria chiloensis}.
@@ -240,7 +247,7 @@ We generated a histogram of the gene distances for both genomes, available in th
 \subsubsection{Dotplots of TE Density Show General Trends of TE Presence:}
 To get a sense of the general trends of gene-centric TE content, we first decided to plot the aggregate of our data: the average TE Density of all genes in Royal Royce and Del Norte as a function of measurement window size and location relative to genes (Figures \ref{fig:RR_order_dotplot} and \ref{fig:DN_order_dotplot}).
 These graphs largely recapitulated the results from the whole-genome annotation, as we did not see TE Density differences greater than $\sim$ 2.0 - 2.5\% between Del Norte and Royal Royce in any one TE category, window, or distance combination.
-Thus, in the aggregate, we do not see large TE differences between the genomes, and our TE Density results are parallel to the trends we see in the whole-genome annotations.
+Thus, in the aggregate, we do not see large TE differences between the genomes, and our TE Density results are parallel to the trends we see in the whole-genome annotations (Table \ref{tab:genomes_combined_reduced}).
 
 
 \begin{figure}[ht]
@@ -268,19 +275,22 @@ Applying this cutoff to our dataset yielded 2507 and 2501 genes (NOTE scott cuto
 After identifying these ``super-dense'' genes, we then subsetted our ortholog table to identify their \textit{Arabidopsis} orthologs and perform a GO enrichment analysis.
 Supplemental Table \ref{tab:upset_numbers} shows how the number of genes changes as the analysis progressed.
 
-To visualize the results from the GO enrichment analysis we generated an UpSet plot, Figure \ref{fig:go_compare_total_5K} (TODO cite the UpSet package), to display the shared and unique GO terms between the two datasets.
-Despite the roughly equal number of genes in both datasets, the majority of the GO terms were unique to Del Norte, 160 unique terms compared to 83, and only 30 were shared with Royal Royce.
-Of the 30 shared terms, GO:0006968 (cellular defense response), GO:0006970 (response to osmotic stress), GO:0009408 (response to heat) and GO:0009686 (gibberellin biosynthetic process) were the most eye-catching, but the majority of the shared terms were broad and general.
-The full list of shared terms is available in the supplement (TODO supplement).
+We generated an UpSet plot to display the shared and unique GO terms associated with TE-dense genes of wild and domesticated strawberry (Figure \ref{fig:go_compare_total_5K}).
+Despite the roughly equal number of genes in both datasets, the majority of the GO terms were unique to Del Norte, which had 160 unique terms compared to 83, and only 30 were shared with Royal Royce.
+Of the 30 shared terms, GO:0006968 (cellular defense response), GO:0006970 (response to osmotic stress), GO:0009408 (response to heat) and GO:0009686 (gibberellin biosynthetic process) were the most notable; the full list of shared terms is available in the supplement (TODO supplement).
 
-Moving on to the unique terms, we found that the Del Norte dataset was enriched for 
+The domesticated strawberry unique terms included GO:00006002 (fructose 6-phosphate metabolic process), GO:0009413 (response to flooding), GO:0009751 (response to salicylic acid), GO:0080141 (regulation of jasmonic acid biosynthetic process), GO:1902265 (abscisic acid homeostasis), and GO:00:10188 (response to microbial phytotoxin).
+The wild strawberry unique terms included GO:0010401 (pectic galactan metabolic process), GO:0009252 (peptidoglycan biosynthetic process, GO:0009835 (fruit ripening), and GO:0000024 (maltose biosynthetic process), 
+among others.
+A complete list of both sets is available in the supplement (TODO supplement).
 
-% Talking about the not necessarily syntenic gene set here, still gotta talk about the syntenic gene set
+
+
 
 
 
 \subsection{Domesticated Strawberry Has Less TEs Near Its Syntelogs With Wild Strawberry:}
-We expected that the syntelog pairs would have similar levels of TE presence, but referencing Figure \ref{fig:syntelog_5000_total} we see rather large differences, and show that the Del Norte syntelog is on average more TE-dense.
+Given the results from our whole genome annotations, we expected that the syntelog pairs would have similar levels of TE presence, but referencing Figure \ref{fig:syntelog_5000_total} we see rather large differences, and show that the Del Norte syntelog is on average more TE-dense.
 % Here we plotted the difference in TE Density values of syntelog pairs, subtracting the Royal Royce value from the Del Norte value.
 % The TE Density values reported in Figure \ref{fig:syntelog_5000_total} were derived from a 5 KB measurement window upstream of genes, and display the total TE Density --- the sum of all TE occupied base-pairs for the window.
 Before we began statistically investigating this relationship, we first plotted the quantile-quantile (QQ) plot to assess the normality of the distribution.
@@ -346,9 +356,20 @@ For example, the leftmost bin reflects an interval of $[-1.0, -0.95)$, rightmost
 % TODO move this section?
 
 \subsection{Domesticated Strawberry Has Less TE Density Around Flowering, Fruit and Sugar Related Syntelogs:}
-Next we decided to look at the TE Density of the syntelogs that had the greatest differences in TE Density --- the tails of Figure \ref{fig:syntelog_5000_total}.
-We found that flowering, fruit, and sugar related GO terms were enriched in the Del Norte syntelogs, and that the Royal Royce syntelogs had terms associated with development and defense.
+Next we looked at the TE Density of the syntelogs that had the greatest differences in TE Density --- the tails of Figure \ref{fig:syntelog_5000_total}.
+Here we examined only the genes that had a TE Density difference greater than or equal to $\lvert 0.75 \rvert$.
+We then further subsetted our genes so that they had Arabidopsis orthologs and were in selective sweeps identified in Whitaker et al 2024 (TODO CITE https://academic.oup.com/plcell/article/36/5/1622/7479895).
+Figure (TODO) shows the gene ``Fxa6Bg03714'', annotated as GO:0006002 (fructose 6-phosphate metabolic process), and its syntenic neighbors as well as a variety of TE insertions in the area.
+It has a TE Density difference of $\lvert 0.960 \rvert$ (4800 BP of TE present in domesticated) and is located within a selective sweep (UCD Chr 6B 141) (TODO CITE).
+The TE Density difference is not due to a multitude of TEs but rather a single large TE insertion.
+There is an intact LTR/Gypsy element immediately upstream of Fxa6Bg03714.
+This specific element is 12,810 BP in length and has an LTR identity of 1.00 indicating that it is a relatively young element and/or there is selection pressure to maintain the sequence.
+The TE family of this element, TE\_00003582 is unique to the domesticated genome, and is not present in the wild genome.
+There are 9 other instances of this family within the domesticated genome, further indicating that this is a relatively new TE in the genome.
 
+
+Finally, we also observed that there is a gene, Fxa6Bg03713, overlapping and contained within the bounds of the Gypsy element.
+This ``gene'' is not syntenic or homologous to anything within the wild genome, and a BLASTX search of its sequence against the NCBI database returned an unknown protein, suggesting that this other ``gene'' is a misannotation of an expressed TE rather than a gene sequence embedded within a TE (TODO check, CITE).
 
 % \usepackage{multirow}
 % TODO add cutoff value for 95th percentile to this?
@@ -445,21 +466,33 @@ Our resulting p-value was 0 (TODO SCOTT rounding error in code?), the
 
 
 \section{Discussion:}
-\paragraph{Limitations of our TE Annotations:}
-Without extensive manual annotation, TE annotations generated from software alone are ultimately a hypothesis of the identification and classification of TEs in a genome.
-The structural diversity of TEs, the quality of input genomes, the availability of reference data sets such as TE models and consensus sequences, the performance of \textit{de novo} annotation software, and the difficulty in manually verifying individual TE models comes together to limit the interpretation and tractability of TE annotations. 
-For example, Helitron elements are notoriously difficult to analyze due to their structural assymetry, a lack of TSD upon integration and high sequence heterogeneity (TODO cite Helitron book chapter), for this reason they were left unanalyzed.
+\paragraph{Interpretations of Functional Enrichment Analyses:}
+The functional enrichments of the TE-dense genes of wild and domesticated strawberry presented in Figure \ref{fig:go_compare_total_5K} can be interpreted in a number of ways.
+For example, TEs are broadly known to be negative fitness factors, and their presence near genes can lead to gene silencing and/or misregulation.
+If the results are interpreted only in this light, then each functional enrichment would appear to be an instance of a TE negatively impacting the gene.
+However TE insertions can be neutral or positive from the standpoint of expression.
+TODO...
+Additionally, the GO terms themselves are not always indicative of a gene's function as they are largely inferred from \textit{Arabidopsis} data.
+Finally, the GO terms themselves may overlap in meaning given their hierarchical nature.
+For example the GO term GO:0080141 (regulation of jasmonic acid biosynthetic process) was unique to the domesticated strawberry, while the GO term GO:0009695 (jasmonic acid biosynthetic process) was unique to the wild strawberry.
+
+
+\paragraph{Limitations of our TE and Gene Annotations:}
+Without extensive manual annotation, TE annotations generated from software are ultimately a hypothesis of the identification and classification of TEs in a genome.
+The structural diversity of TEs, the quality of input genomes, the availability of reference data sets such as TE models and consensus sequences, the performance of \textit{de novo} annotation software, and the difficulty in manually verifying individual TE models comes together to limit the interpretation and tractability of TE annotations.
+Additionally, not all TEs are created equal and some are more difficult to analyze than others.
+For example, Helitron elements are notoriously difficult to analyze due to their structural assymetry, a lack of TSD upon integration and high sequence heterogeneity (TODO cite Helitron book chapter).
+
+Similarly, gene annotations are also a hypothesis of the presence and structure of genes in a genome.
+Both issues come together when we consider the TE Density of genes, as the TE Density of a gene is a function of the quality of the gene annotation and the TE annotation.
 
 \paragraph{Shared GO Terms:}
 In Section \ref{sec:shared_unshared_go} we showed that the TE-dense genes of the two genomes were enriched for very different GO terms, and had little in common.
 We did not find the set of shared terms particularly interesting save for a few terms.
-However, GO:000940 (response to heat), was of particular interest due to previous research by Lisch et al (SCOTT CITE, go to twitter DM with Pat) in \textit{Zea mays}, and previous research that shows the activation of TEs under stress conditions (TODO).
-They showed that heat stress can reverse transcriptional silencing of TEs in DNA methylation deficient (RdDM specifically) mutants, as heat stress would reduce the amount of repressive histone modifications to the terminal inverted repeats of \textit{MuDr} elements.
-If there are genes with nearby TEs possessing aberrant or weakly imposed DNA methylation patterns, then it would make sense that this GO term showed up in both datasets.
+% However, GO:000940 (response to heat), was of particular interest due to previous research by Lisch et al (SCOTT CITE, go to twitter DM with Pat) in \textit{Zea mays}, and previous research that shows the activation of TEs under stress conditions (TODO).
+% They showed that heat stress can reverse transcriptional silencing of TEs in DNA methylation deficient (RdDM specifically) mutants, as heat stress would reduce the amount of repressive histone modifications to the terminal inverted repeats of \textit{MuDr} elements.
+% If there are genes with nearby TEs possessing aberrant or weakly imposed DNA methylation patterns, then it would make sense that this GO term showed up in both datasets.
 
-
-\paragraph{Limitations of TE Density:}
-TODO?
 
 \paragraph{Limitations of GO:}
 The ability to infer gene function in strawberry is ultimately limited by our ability to infer orthology to \textit{Arabidopsis thaliana}.
@@ -562,6 +595,7 @@ The authors declare that they have no competing interests
 \subsection{Authors' Contributions:}
 S.J.T. and P.P.E. conceived and designed the project.
 S.J.T wrote the code and performed analyses.
+J.R.B provided guidance and helped generate figures.
 Ning Jiang provided TE guidance and feedback.
 S.J.T. wrote the manuscript draft, and all authors reviewed and revised the manuscripts.
 
