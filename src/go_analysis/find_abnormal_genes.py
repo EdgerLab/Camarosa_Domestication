@@ -68,7 +68,6 @@ def plot_count_of_remaining_genes(
     te_col,
     aed_scores,
 ):
-    x = 0
     group_labels = ["Randomly Sampled Genes", "TE-Dense Genes"]
 
     bar_labels_and_vals = {
@@ -115,6 +114,8 @@ def plot_count_of_remaining_genes(
             ],
             padding=3,
         )
+
+        # NOTE this is key
         multiplier += 1
 
     ax.set_xticks(x + width, group_labels)

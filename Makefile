@@ -476,14 +476,21 @@ dev_intersect_sweeps_with_TE_dense_genes:
 	python $(CODE_DIR)/intersect_sweeps_w_enriched_terms.py $(SWEEP_TABLE) $(GO_ENRICHMENT_DIR)/Overrepresented_RR_Total_TE_Density_5000_Upstream_Upper_95_density_percentile.tsv test_intersect.tsv
 	#python $(CODE_DIR)/intersect_sweeps_w_enriched_terms.py $(SWEEP_TABLE) $(GO_ENRICHMENT_DIR)/Overrepresented_Difference_Total_TE_Density_5000_Upstream_Syntelogs_Biased_Towards_RR.tsv
 
-
 #-------------------------------------------------------------------#
-# TODO unfishied
-# TODO this may need to be changed when I start looking at the other genomes
+.ONESHELL: filter_RR_expression
 .PHONY: filter_RR_expression
 filter_RR_expression:
 	@echo Filtering RoyalRoyce expression data
-	python $(CODE_DIR)/expression_data.py $(DATA_DIR)/Genomes/Royal_Royce/RoyalRoyce_Cold_Warm_count_matrix.csv $(RESULTS_DIR)
+	python $(CODE_DIR)/concatenate_leaf_expression_data.py \
+		$(DATA_DIR)/Expression/RR_Leaf_Match_ATACnMNseq/RoyalRoyce_Leaf_R1.tsv \
+		$(DATA_DIR)/Expression/RR_Leaf_Match_ATACnMNseq/RoyalRoyce_Leaf_R2.tsv \
+		$(DATA_DIR)/Expression/RR_Leaf_Match_ATACnMNseq/RoyalRoyce_Leaf_R3.tsv \
+		$(RESULTS_DIR)/Cleaned_Expression_Data_RR.tsv
+
+
+#-------------------------------------------------------------------#
+# TODO unfinished
+# TODO this may need to be changed when I start looking at the other genomes
 
 # NOTE DEPRECATED 1/23/2024
 # NOTE this translates the Royal Royce CDS FASTA
