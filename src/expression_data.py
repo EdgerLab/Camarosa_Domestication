@@ -227,6 +227,7 @@ if __name__ == "__main__":
     # Lets keep the syntelogs only in quartet groups, and remove that column so
     # that things aren't complicated.
     # NOTE NOTE NOTE this is a toggle I am using
+    # TODO TOGGLE THIS BACK for the bargraphs
     syntelog_data = syntelog_data.loc[syntelog_data["Set"] == "ABCD"]
     syntelog_data.drop(columns=["Set"], inplace=True)
 
@@ -252,18 +253,31 @@ if __name__ == "__main__":
     # genes, and incorporate a variance to the expression. This figure is aimed
     # at emulating the green diamon figure from the Mimulus paper
     # Generate a bin plot of the density and expression data
+
+    # Remove chloroplast genes
+    density_and_expression = density_and_expression.loc[
+        ~density_and_expression["Gene_Name"].str.contains("FxaCT")
+    ]
+
     density_and_expression.set_index("Gene_Name", inplace=True)
 
-    # Remove non-expressed genes
-    # density_and_expression = density_and_expression.loc[
-    #     density_and_expression["Avg_Expression"] > 0.0
-    # ]
-
     bins = np.arange(0, 1.05, 0.05)
-    print(bins)
     density_and_expression["Density_Bin"] = pd.cut(
         density_and_expression["Density"], bins=bins, include_lowest=True
     )
+
+    # NOTE Jordan outlier rough estimates
+    density_and_expression = density_and_expression.loc[
+        (density_and_expression["Avg_Expression"] > 0.1)
+        & (density_and_expression["Avg_Expression"] < 1000.0)
+    ]
+
+    print(density_and_expression)
+    density_and_expression["Avg_Expression"] = np.log10(
+        density_and_expression["Avg_Expression"] + 1
+    )
+    print(density_and_expression)
+
     grouped = (
         density_and_expression.groupby("Density_Bin")
         .agg(
@@ -292,7 +306,7 @@ if __name__ == "__main__":
         yerr="Exp_Std_Dev",
         capsize=4,
         rot=0,
-        logy=True,
+        logy=False,
     )
     # ax2.plot(grouped["Density_Bin"].astype(str), grouped["Avg_Expression"], color="red")
     # ax2.set_yscale("log")
