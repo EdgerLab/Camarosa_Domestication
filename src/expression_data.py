@@ -48,6 +48,58 @@ def import_unclean_syntelog_data(syntelog_input_file):
     return data
 
 
+# NOTE hardcoded to only work with B genes at the moment
+def plot_gene_of_interest_density_and_expression(dataframe, gene_of_interest):
+    subsetted_data = dataframe.loc[dataframe["Gene_B_Name"] == gene_of_interest]
+    groups = ["Homeolog_A", "Homeolog_B", "Homeolog_C", "Homeolog_D"]
+
+    # BIG UGLY
+    all_densities = [
+        subsetted_data["Gene_A_Name_Density"].squeeze(),
+        subsetted_data["Gene_B_Name_Density"].squeeze(),
+        subsetted_data["Gene_C_Name_Density"].squeeze(),
+        subsetted_data["Gene_D_Name_Density"].squeeze(),
+    ]
+    # BIG UGLY
+    all_expression = [
+        subsetted_data["Gene_A_Name_Avg_Expression"].squeeze(),
+        subsetted_data["Gene_B_Name_Avg_Expression"].squeeze(),
+        subsetted_data["Gene_C_Name_Avg_Expression"].squeeze(),
+        subsetted_data["Gene_D_Name_Avg_Expression"].squeeze(),
+    ]
+    densities_and_expression = {"Density": all_densities, "Expression": all_expression}
+
+    fig, ax1 = plt.subplots()
+    x = np.arange(len(groups))  # the label locations
+    width = 0.2  # MAGIC, to make the graph look nice, width of bars
+    multiplier = 0  # MAGIC, to make the graph look nice
+    for attribute_name, measurement in densities_and_expression.items():
+        offset = width * multiplier
+        if attribute_name == "Density":
+            color = "tab:blue"
+            rects = ax1.bar(
+                x + offset, measurement, width, label=attribute_name, color=color
+            )
+            # ax1.bar_label(rects, padding=3)
+            ax1.set_ylabel("Density", color=color)
+            ax1.set_xticks(x + width, groups)
+            ax1.set_ylim(0, 1.0)
+        if attribute_name == "Expression":
+            color = "tab:red"
+            ax2 = ax1.twinx()  # share the x axis
+            rects = ax2.bar(
+                x + offset, measurement, width, label=attribute_name, color=color
+            )
+            # ax2.set_yscale("log")
+            # ax2.bar_label(rects, padding=3)
+            ax2.set_ylabel("Expression", color=color)
+        multiplier += 1
+        # ax1.tick_params(axis="y", labelcolor=color)
+        # ax2.tick_params(axis="y", labelcolor=color)
+    plt.title(gene_of_interest)
+    plt.show()
+
+
 def merge_expression_data(df, density_and_expression, gene_column):
     return (
         df.merge(
@@ -66,8 +118,40 @@ def merge_expression_data(df, density_and_expression, gene_column):
     )
 
 
-# Find the gene with the highest expression and density in each row
-def find_highest_expression_and_density(row):
+def find_highest_expression_and_lowest_density(row):
+    """
+    Find the gene with the highest expression and lowest density in each row
+    NOTE, semi duplicate code with find_highest_expression_and_highest_density
+    """
+    genes = ["Gene_A_Name", "Gene_B_Name", "Gene_C_Name", "Gene_D_Name"]
+    highest_expression_gene = max(
+        genes,
+        key=lambda x: row[f"{x}_Avg_Expression"]
+        if pd.notna(row[f"{x}_Avg_Expression"])
+        else -float("inf"),
+    )
+    lowest_density_gene = min(
+        genes,
+        key=lambda x: row[f"{x}_Density"]
+        if pd.notna(row[f"{x}_Density"])
+        else -float("inf"),
+    )
+    return pd.Series(
+        {
+            "Highest_Expression_Gene": highest_expression_gene,
+            "Highest_Expression_Value": row[
+                f"{highest_expression_gene}_Avg_Expression"
+            ],
+            "Lowest_Density_Gene": lowest_density_gene,
+            "Lowest_Density_Value": row[f"{lowest_density_gene}_Density"],
+        }
+    )
+
+
+def find_highest_expression_and_highest_density(row):
+    """
+    Find the gene with the highest expression and highest density in each row
+    """
     genes = ["Gene_A_Name", "Gene_B_Name", "Gene_C_Name", "Gene_D_Name"]
     highest_expression_gene = max(
         genes,
@@ -142,7 +226,8 @@ if __name__ == "__main__":
 
     # Lets keep the syntelogs only in quartet groups, and remove that column so
     # that things aren't complicated.
-    # syntelog_data = syntelog_data.loc[syntelog_data["Set"] == "ABCD"]
+    # NOTE NOTE NOTE this is a toggle I am using
+    syntelog_data = syntelog_data.loc[syntelog_data["Set"] == "ABCD"]
     syntelog_data.drop(columns=["Set"], inplace=True)
 
     # Let's rename the density value to density
@@ -162,15 +247,30 @@ if __name__ == "__main__":
         density_data, on="Gene_Name", how="left"
     )
 
+    # ---------------------------------------------------
+    # Now I need to make a bar plot of binned TE density vs expression for all
+    # genes, and incorporate a variance to the expression. This figure is aimed
+    # at emulating the green diamon figure from the Mimulus paper
     # Generate a bin plot of the density and expression data
     density_and_expression.set_index("Gene_Name", inplace=True)
-    bins = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+
+    # Remove non-expressed genes
+    # density_and_expression = density_and_expression.loc[
+    #     density_and_expression["Avg_Expression"] > 0.0
+    # ]
+
+    bins = np.arange(0, 1.05, 0.05)
+    print(bins)
     density_and_expression["Density_Bin"] = pd.cut(
         density_and_expression["Density"], bins=bins, include_lowest=True
     )
     grouped = (
         density_and_expression.groupby("Density_Bin")
-        .agg(Gene_Count=("Density", "size"), Avg_Expression=("Avg_Expression", "mean"))
+        .agg(
+            Gene_Count=("Density", "size"),
+            Avg_Expression=("Avg_Expression", "mean"),
+            Exp_Std_Dev=("Avg_Expression", "std"),
+        )
         .reset_index()
     )
 
@@ -181,16 +281,31 @@ if __name__ == "__main__":
         color="lightblue",
         label="Gene Count",
     )
+    ax1.tick_params(axis="x", labelrotation=-45)
     ax2 = ax1.twinx()
-    ax2.plot(grouped["Density_Bin"].astype(str), grouped["Avg_Expression"], color="red")
-    ax2.set_yscale("log")
+    # ax2.plot(grouped["Density_Bin"].astype(str), grouped["Avg_Expression"], color="red")
+    grouped.plot(
+        x="Density_Bin",
+        y="Avg_Expression",
+        ax=ax2,
+        color="black",
+        yerr="Exp_Std_Dev",
+        capsize=4,
+        rot=0,
+        logy=True,
+    )
+    # ax2.plot(grouped["Density_Bin"].astype(str), grouped["Avg_Expression"], color="red")
+    # ax2.set_yscale("log")
     plt.show()
+    raise ValueError("STOP")
+    # ---------------------------------------------------
 
     # Check out the homeologs for each quartet, and checkout which genes have
     # high expression and high TE density
 
     # NOTE, may be worth forcing it so that I am only considering A, B, C, D
     # retained homeologs
+
     merged_A = merge_expression_data(
         syntelog_data, density_and_expression, "Gene_A_Name"
     )
@@ -198,111 +313,59 @@ if __name__ == "__main__":
     merged_C = merge_expression_data(merged_B, density_and_expression, "Gene_C_Name")
     merged_D = merge_expression_data(merged_C, density_and_expression, "Gene_D_Name")
 
-    result = merged_D.apply(find_highest_expression_and_density, axis=1)
-
+    # NOTE toggle
+    result = merged_D.apply(find_highest_expression_and_lowest_density, axis=1)
     final_result = pd.concat([merged_D, result], axis=1)
 
+    # subset the data so that I can find a good example manually, easily
     desired_output = final_result.loc[
         (final_result["Highest_Expression_Gene"] == "Gene_B_Name")
-        & (final_result["Highest_Density_Gene"] == "Gene_B_Name")
-        & (final_result["Highest_Density_Value"] > 0.50)
+        & (final_result["Lowest_Density_Gene"] == "Gene_B_Name")
+        & (final_result["Lowest_Density_Value"] < 0.20)
+        & (final_result["Gene_A_Name_Density"] > 0.40)
+        & (final_result["Gene_C_Name_Density"] > 0.40)
+        & (final_result["Gene_D_Name_Density"] > 0.40)
     ]
 
-    # Pat also wants an example of 3 genes with high TE load, low expression,
-    # and one gene has no TE and high expression.
+    # NOTE toggle
+    # gene_of_interest = "Fxa4Bg103345"
+    # plot_gene_of_interest_density_and_expression(desired_output, gene_of_interest)
+    # for gene_of_interest in desired_output["Gene_B_Name"].to_list():
+    # plot_gene_of_interest_density_and_expression(desired_output, gene_of_interest)
 
-    # NOTE, the correlation between expression and TE density is very close to
-    # 0 which is odd.
-    # print(
-    #     final_result["Gene_A_Name_Avg_Expression"].corr(
-    #         final_result["Gene_A_Name_Density"]
-    #     )
-    # )
-    # print(
-    #     final_result["Gene_D_Name_Avg_Expression"].corr(
-    #         final_result["Gene_D_Name_Density"]
-    #     )
-    # )
-    # raise ValueError
+    # NOTE toggle
+    # result = merged_D.apply(find_highest_expression_and_highest_density, axis=1)
+    # final_result = pd.concat([merged_D, result], axis=1)
+    # desired_output = final_result.loc[
+    #     (final_result["Highest_Expression_Gene"] == "Gene_B_Name")
+    #     & (final_result["Highest_Density_Gene"] == "Gene_B_Name")
+    #     & (final_result["Highest_Density_Value"] > 0.50)
+    # ]
 
-    desired_output.to_csv("test.tsv", header=True, sep="\t", index=False)
-
-    # This one is probably the best because the other homeologs have (similar)
-    # very low levels of TE presence, and similar expression
-    # NOTE Fxa4Bg103345 has much higher expression than all other homeologs, and
+    # -----------------------------------------------------
+    # NOTE
+    # Example A: A gene that has the highest expression, and the highest TE
+    # density
+    # Fxa4Bg103345 is probably the best example
+    # It has much higher expression than all other homeologs, and
     # has a CACTA with high identity right in front of it. This is a good example.
+    # Other potential candidates:
 
-    # NOTe Fxa5Bg100284 is a good example as it has crazy expression and has a big
+    # Fxa5Bg100284 is a good example as it has crazy expression and has a big
     # piece of LTR, LINE, and some other upstream. Other homeologs have good
     # expression, 2 of the homeologs have 0 TE, and one has 60\% TE but has lowest
     # expression.
 
-    # NOTE Fxa5Bg103293 has crazy expression and has a SINE, Mutator and LTR in
+    # Fxa5Bg103293 has crazy expression and has a SINE, Mutator and LTR in
     # front of it. Only one other homelog has 1/4th of the expression and 0.25 TE
     # Density in front, the other 2 basically have 0 expression and no TE.
 
     # Fxa6Bg101326 has high expression and compares well to its homeologs
 
-    # NOTE now working on generating a simple bar plot of the expression and TE
-    # density, each gene will have a bar for expression and a bar for TE density,
-    # 4 pairs of bars will be plotted, one pair for each gene.
-    # I will make a general bar plot of all the genes, and then a plot for my
-    # biased set, and then maybe a single plot for a few genes of interest,
-    # such as the ones described above.
-
-    # Could do a groupby on this and make a general graph for everything
-    # I want it all in one plot
-
-    print(desired_output)
-
-    # NOTE generate a bar graph for a single gene of interest, previously
-    # manually identified.
-    # Ok so I got a sample bar graph for ONE gene, how can I make this for all?
-    gene_of_interest = "Fxa4Bg103345"
-    Fxa5Bg103293 = desired_output.loc[desired_output["Gene_B_Name"] == gene_of_interest]
-    groups = ["Homeolog_A", "Homeolog_B", "Homeolog_C", "Homeolog_D"]
-    # BIG UGLY
-    all_densities = [
-        Fxa5Bg103293["Gene_A_Name_Density"].squeeze(),
-        Fxa5Bg103293["Gene_B_Name_Density"].squeeze(),
-        Fxa5Bg103293["Gene_C_Name_Density"].squeeze(),
-        Fxa5Bg103293["Gene_D_Name_Density"].squeeze(),
-    ]
-    # BIG UGLY
-    all_expression = [
-        Fxa5Bg103293["Gene_A_Name_Avg_Expression"].squeeze(),
-        Fxa5Bg103293["Gene_B_Name_Avg_Expression"].squeeze(),
-        Fxa5Bg103293["Gene_C_Name_Avg_Expression"].squeeze(),
-        Fxa5Bg103293["Gene_D_Name_Avg_Expression"].squeeze(),
-    ]
-    densities_and_expression = {"Density": all_densities, "Expression": all_expression}
-
-    fig, ax1 = plt.subplots()
-    x = np.arange(len(groups))  # the label locations
-    width = 0.2  # MAGIC, to make the graph look nice, width of bars
-    multiplier = 0  # MAGIC, to make the graph look nice
-    for attribute_name, measurement in densities_and_expression.items():
-        offset = width * multiplier
-        if attribute_name == "Density":
-            color = "tab:blue"
-            rects = ax1.bar(
-                x + offset, measurement, width, label=attribute_name, color=color
-            )
-            # ax1.bar_label(rects, padding=3)
-            ax1.set_ylabel("Density", color=color)
-            ax1.set_xticks(x + width, groups)
-            ax1.set_ylim(0, 1.0)
-        if attribute_name == "Expression":
-            color = "tab:red"
-            ax2 = ax1.twinx()  # share the x axis
-            rects = ax2.bar(
-                x + offset, measurement, width, label=attribute_name, color=color
-            )
-            # ax2.set_yscale("log")
-            # ax2.bar_label(rects, padding=3)
-            ax2.set_ylabel("Expression", color=color)
-        multiplier += 1
-        # ax1.tick_params(axis="y", labelcolor=color)
-        # ax2.tick_params(axis="y", labelcolor=color)
-    plt.title(gene_of_interest)
-    plt.show()
+    # NOTE
+    # Example B: A gene that has the highest expression, and the lowest TE density
+    # Fxa5Bg101314 is the best example
+    # OR Fxa3Bg203434
+    # OR Fxa7Bg201270
+    # OR Fxa7Bg201800
+    # -----------------------------------------------------
