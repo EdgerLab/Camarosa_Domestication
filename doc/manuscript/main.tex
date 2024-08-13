@@ -53,6 +53,8 @@
 
 % NOTE on bibliography, when working offline, need to manually copy the Mendeley bibfile at 
 % ~/Documents/BibFiles/StrawberryDomestication_Manuscript.bib to this folder as references.bib 
+% \usepackage{biblatex}
+% \addbibresource{references.bib}
 % if you want to update the bibliography.
 % Online Mendeley syncs to the correct folder and file on Overleaf
 
@@ -106,17 +108,18 @@
 
 %Furthermore Hardigan et al. \cite{Hardigan2020} suggests that ``interspecific complementation, a broader pool of potentially adaptive alleles, and the masking of deleterious mutations could be more important than fixed heterosis'' in strawberry.\\
 
-\section{Introduction:}
-%(\href{TODO CITE FAOSTAT}{https://data.un.org/Data.aspx?d=FAO&f=itemCode\%3A544}) and the US production value was evaluated as \$3,398,943,000 in 2023 (\href{TODO CITE USDA}{https://www.nass.usda.gov/Statistics_by_Subject/result.php?C6E91360-DC42-3C4A-8D5C-1392239A0EAF&sector=CROPS&group=FRUIT%20%26%20TREE%20NUTS&comm=STRAWBERRIES}.
-Cultivated garden strawberry (\textit{Fragaria x ananassa}, \textit{2n} $=$ 8X $=$ 56) is an allo-octoploid species formed from the hybridization of two New World strawberry species \textit{Fragaria virginiana} and \textit{Fragaria chiloensis}.
-It is a major fruit crop; 1,211,090 tonnes were produced in the United States in 2021... TODO CITE.
-Its initial hybridization occurred in the 18th century in France, making strawberry one of the most recently domesticated crop species.
+\section*{Introduction:}
+
+
+Cultivated garden strawberry (\textit{Fragaria x ananassa}, \textit{2n} $=$ 8X $=$ 56) is an allo-octoploid species formed from the hybridization of two New World strawberry species \textit{Fragaria virginiana} and \textit{Fragaria chiloensis} \cite{Duschese,Darrow}.
+It is a major fruit crop; 9.57 million tonnes were produced worldwide in 2022 (https://www.fao.org/faostat/).
+Its initial hybridization occurred in the 18th century in France, making strawberry one of the most recently domesticated crop species \cite{Duschese,Darrow}.
 Unlike most crops with a history of thousands of years of selection, strawberry has only undergone about 300 years of breeding.
 In addition to its short history of breeding, the construction of a chromosome-scale genome assembly was not available until 2019 by Edger et al \cite{Edger2019}. \\
 
-For many years the octoploid nature of the genome presented a large barrier to its study, as the unambiguous assignment of homeologs to each subgenome was difficult and complicated by a lack of long-read data and frequent homeologous exchanges among the subgenomes (TODO CITE).
+For many years the allo-octoploid nature of the genome presented a significant barrier to its study, as the unambiguous assignment of homeologs to each subgenome is difficult; it was particularly complicated by a lack of long-read data, large-scale chromosomal rearrangements, and homeologous exchanges amongst the subgenomes \cite{Edger2019}.
 Once the technical hurdle of generating a high-quality reference genome was overcome, researchers made great strides in understanding the genome and genetic diversity of strawberry.
-Long thought to be a genetically depauperate genome (TODO CITE), research has shown that cultivated strawberry is actually a highly-diverse genome, as over 70\% of alleles from wild populations have been maintained \cite{Hardigan2020,Hardigan2021}.
+Long thought to be a genetically depauperate genome \cite{Hancock1993,Horvath2011}, research has shown that cultivated strawberry is actually a highly-diverse genome, as over 70\% of alleles from wild populations have been maintained \cite{Hardigan2020,Hardigan2021}.
 However additional work shown by Feldman et al showed that genetic diversity and heterozygosity in elite cultivars have been declining since the 1950s due to modern breeding programs (TODO CITE FELDMAN nature).
 While amazing progress has been made investigating the evolutionary origins of the octoploid genome and the genetic diversity of wild and cultivated strawberry, the role of transposable elements (TEs) in shaping genotypic and phenotypic diversity in strawberry remains to be adequately addressed. \\
 
@@ -126,11 +129,12 @@ Class I elements transpose via an RNA intermediate and can be further divided in
 LTR elements are generally the most common TE in plants.
 Class II elements do not utilize an RNA intermediate and transpose via a ``cut-and-paste'' strategy.
 Class II elements are known for their TIRs (terminal inverted repeats) which are one of their primary distinguishing features.
-TEs are rich sources of genotypic and phenotypic diversity and are near-ubiquitous throughout the plant and animal kingdoms. \\
+TEs are rich sources of genotypic and phenotypic diversity and are near-ubiquitous throughout the plant and animal kingdoms.
+Both Class I and Class II elements can further be classified into autonomous or non-autonomous forms.
+Autonomous elements encode the proteins necessary for their own transposition, while non-autonomous elements rely on the proteins encoded by their autonomous relatives. \\
 
 TEs are also known as ``junk DNA'' or parasitic elements, because their primary reason for being is to create more copies of themselves and are major sources of deleterious mutations.
-They can influence the expression of genes in a multitude of ways, including but not limited to, insertional mutagenesis altering the normal sequence of a gene, acting as cis-regulatory elements, shuffling gene sequences, producing aberrant transcripts via read-through transcription of the TE into a neighboring gene, and influencing methylation and chromatin accessibility dynamics near genes \cite{Lisch2013,Choi2018a}.\\
-
+They can influence the expression of genes in a multitude of ways, including but not limited to, insertional mutagenesis altering the normal sequence of a gene, acting as cis-regulatory elements, shuffling gene sequences, producing aberrant transcripts via read-through transcription of the TE into a neighboring gene, and influencing methylation and chromatin accessibility dynamics near genes \cite{Lisch2013,Choi2018a}.
 In plants TEs are frequently targeted by their host genome with repressive chromatin/methylation marks via RNA-directed DNA methylation (RdDM) in order to prevent their transcription and any genotypic mayhem they may cause. 
 The spread of these repressive marks via the self-reinforcing nature of RdDM is thought to cause methylation ``spill-over'' into sequences adjacent to the TE, potentially downregulating nearby genes as gene expression has been found to be negatively correlated with the density of methylated TEs (TODO CITE).
 Thus the silencing of TEs creates a trade-off between TE repression and maintenance of normal gene expression. \\
@@ -142,25 +146,23 @@ There is a growing body of evidence that suggests a potential role for TEs in sh
 For example, Castijello et. al 2020 found that fruit color variation in several wild and octoploid strawberry cultivars was impacted by multiple, independent TE insertions in or around a MYB10 transcription factor gene \cite{Castillejo2020}.
 Fan et al 2024 found a number of eQTL associated with fruit-expressed genes, and observed that a large proportion of TEs overlapped with structural variants in those eQTL-identified regions \cite{Fan2022}.\\
 
-Here we constructed a TE-pangenome for wild and domesticated strawberry and used that to analyze TE and gene differences.
+Here, we constructed a TE-pangenome and calculated TE Density (\cite{Teresi2022}) for wild and domesticated strawberry and used that to contextualize and analyze TE and gene differences between the genomes.
 We hypothesized that TEs may have played a role in the domestication of strawberry, and that the TE landscape around genes could be contributing to domestication-related phenotypes.
 Here we show that while the relative TE content between the wild and domesticated strawberry genomes is similar, there are large TE differences around genes that suggest a potential role for TEs in the domestication process.
 We show that cultivated (domesticated) strawberry has overall less TEs, a more compact genome, with less space between genes, and less TE content around genes.
 We hypothesized that in the absence of differential selection on TE-gene relationships, the set of TE-dense genomes from both genomes would share a large proportion of functional enrichments, and to our surprise we found little overlap in the functional enrichments of the TE-dense genes.
-We also show that the syntelog pairs between the wild and domesticated strawberry genomes have striking differences in TE Density, with the domesticated strawberry syntelogs having less TE Density for all TE types and measurement categories.
+We also show that syntelog pairs between the wild and domesticated strawberry genomes have striking differences in TE Density, and the domesticated strawberry syntelogs have less TE Density around them for all TE types and measurement categories.
 Furthermore, we found that TE-dense genes exhibit reduced rates of ortholog identification and found that deeply conserved genes are less likely to be enriched for nearby TEs, which has major implications for the study of novel genes and gene families in strawberry.
 Finally, we identified a number of fruit, defense, transcription factor, and development genes that are enriched for novel TE presence in domesticated strawberry, demonstrating the potential for TEs to influence domestication phenotypes of strawberry, and laying the groundwork for future functional validation studies. \\ 
 
-\section{Results:}
-\subsection{TE Pangenomes Create Comparable Annotations and Show Differences in Whole-Genome TE Content:}
-Our first objective was to create a consistent TE annotation for each genome, reducing false positives and negatives, by creating a TE pangenome.
-The genomes for Fragaria x ananassa `Royal Royce', Fragaria chiloensis `Del Norte', and Fragaria vesca `H4' were used to generate a TE pangenome with EDTA (CITE).
-This resulted in a genome repeat content of 38.28\% for Del Norte, 35.88\% for Royal Royce, and 28.62\% for H4.
-Overall, the annotations for the octploid genomes are not all that different, differing by a total of only 2.2\%.
-Table \ref{tab:genomes_combined_reduced} shows a summary table of the TE content for the three genomes, with the full version in the supplement (TODO).
+\section*{Results:}
+\subsection*{TE Pangenomes Create Comparable Annotations and Show Differences in Whole-Genome TE Content:}
+Our first objective was to create a consistent TE annotation for each genome by means of a TE-pangenome, in an effort to reduce false positives and negatives and reduce any biases that may be present in the individual annotations.
+The genomes for \textit{Fragaria x ananassa} (`Royal Royce'), \textit{Fragaria chiloensis} (`Del Norte'), and \textit{Fragaria vesca} (`H4') were used to generate a TE-pangenome with EDTA (CITE).
+This resulted in an whole-genome repeat content annotation of 38.28\% for Del Norte, 35.88\% for Royal Royce, and 28.62\% for H4 (Table \ref{tab:EDTA_Summary}).
+Overall the octoploid genomes are not all that different, differing by a total of only 2.4\%.
+Table \ref{tab:EDTA_Summary} shows a summary table of the TE content for the three genomes.
 
-
-% TODO THIS MUST BE CHECKED BECAUSE I fed my raw data into Chat jippity to format the LaTeX table. Numbers might be off
 \begin{table}[ht]
 \centering
 \begin{tabularx}{\textwidth}{l|X|r|r|r}
@@ -171,22 +173,27 @@ Table \ref{tab:genomes_combined_reduced} shows a summary table of the TE content
 \textbf{LTR} & Copia & 3.46\% & 3.67\% & 3.51\% \\
 & Gypsy & 5.05\% & 7.75\% & 7.90\% \\
 & unknown & 7.62\% & 13.72\% & 12.57\% \\
-\textbf{TIR} & CACTA & 3.71\% & 4.88\% & 3.86\% \\
+\textbf{SINE} & tRNA & 0.00\% & 0.00\% & 0.00\% \\
+& unknown & 0.37\% & 0.48\% & 0.56\% \\
+	\textbf{TIR} & CACTA (En/Spm) & 3.71\% & 4.88\% & 3.86\% \\
 & Mutator & 2.43\% & 2.35\% & 2.16\% \\
 & PIF\_Harbinger & 0.97\% & 0.91\% & 0.91\% \\
 & Tc1\_Mariner & 0.04\% & 0.02\% & 0.03\% \\
 & hAT & 1.85\% & 2.16\% & 1.93\% \\
+\textbf{Low Complexity} & None & 0.01\% & 0.07\% & 0.02\% \\
+\textbf{nonLTR} & pararetrovirus & 0.13\% & 0.17\% & 0.16\% \\
 \textbf{nonTIR} & helitron & 1.87\% & 1.17\% & 1.24\% \\
+\textbf{rDNA} & 45S & 0.01\% & 0.01\% & 0.01\% \\
+\textbf{Repeat Fragment} & None & 0.54\% & 0.45\% & 0.56\% \\
 \toprule
 \textbf{Total Interspersed} & & \textbf{28.62\%} & \textbf{38.28\%} & \textbf{35.88\%} \\
 \bottomrule
 \end{tabularx}
-\caption{Repeat elements in genomes H4, DN, and RR (\% masked) for LINE, LTR, and TIR and nonTIR categories. Other categories such as SINEs and `repeat fragment' are not shown for brevity.}
-\label{tab:genomes_combined_reduced}
+\caption{Genome summary table produced by the TE annotation software EDTA. Repeat elements in genomes H4, DN, and RR (\% of genome masked as that particular TE) for various TE categories.}
+\label{tab:EDTA_Summary}
 \end{table}
-% The Del Norte genome is slightly larger... (TODO)
 
-\subsection{Domesticated Strawberry is More Gene-Dense and Less TE-Dense}
+\subsection*{Domesticated Strawberry is More Gene-Dense and Less TE-Dense}
 We hypothesized that the TE content variation around genes could be contributing to domestication-related phenotypes.
 In order to investigate the relationship between TE content and phenotypic variation in strawberry, we calculated the TE Density of genes in both genomes.
 However, prior to calculating TE Density we determined the average distance between each in order to better inform the choice of window parameters.
@@ -194,11 +201,11 @@ We found that Royal Royce has a mean distance ($\mu$) and standard deviation ($\
 Thus, we decided to utilize 5KB as the primary reference window for the following TE Density analyses.
 We generated a histogram of the gene distances for both genomes, available in the supplement (TODO).
 
-% TODO give this a better title or no title at all?
-\subsubsection{Dotplots of TE Density Show General Trends of TE Presence:}
+\subsection*{Dotplots of TE Density Show General Trends of TE Presence:}
+A TE's potential to create genetic variation is largely dependent on its location relative to genes.
 To get a sense of the general trends of gene-centric TE content, we first decided to plot the aggregate of our data: the average TE Density of all genes in Royal Royce and Del Norte as a function of measurement window size and location relative to genes (Figures \ref{fig:RR_order_dotplot} and \ref{fig:DN_order_dotplot}).
 These graphs largely recapitulated the results from the whole-genome annotation, as we did not see TE Density differences greater than $\sim$ 2.0 - 2.5\% between Del Norte and Royal Royce in any one TE category, window, or distance combination.
-Thus, in the aggregate, we do not see large TE differences between the genomes, and our TE Density results are parallel to the trends we see in the whole-genome annotations (Table \ref{tab:genomes_combined_reduced}).
+Thus, in the aggregate, we do not see large TE differences between the genomes, and our TE Density results are parallel to the trends we see in the whole-genome annotations (Table \ref{tab:EDTA_Summary}).
 
 
 \begin{figure}[ht]
@@ -213,6 +220,69 @@ Thus, in the aggregate, we do not see large TE differences between the genomes, 
 \includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{../../results/dotplot/DN_Dotplot_Strawberry_AllGenes_Order.png}
 \caption{Dotplot of average TE Density, delineated by TE Order classification, of all Del Norte genes as a function of measurement window size and location relative to genes.}
 \label{fig:DN_order_dotplot}
+\end{figure}
+
+\subsection*{Domesticated Strawberry Has Less TEs Near Its Syntelogs With Wild Strawberry:}
+Next we sought to explore gene-centric TE differences amongst the genomes using the set of syntenic (positionally-conserved) genes between cultivated and wild strawberry.
+Given the results from our whole genome annotations, we expected that the syntelog pairs would have similar levels of TE presence, a difference very close to 0, but referencing Figure \ref{fig:syntelog_5000_total} we see rather large differences, and show that the Del Norte syntelog is overall more TE-dense.
+Figure \ref{fig:syntelog_5000_total} is a histogram of the binned TE Density differences of each pair of syntelogs, subtracting the Royal Royce value from the Del Norte value.
+Here, the TE Density values were derived from a 5 KB measurement window upstream of genes, and display the total TE Density --- the sum of all TE occupied base-pairs for the window.
+The mean TE Density difference was calculated as 0.032, which translates to a 161.6 BP bias in total TE content towards Del Norte.
+Before we began statistically investigating this relationship, we first plotted the quantile-quantile (QQ) plot to assess the normality of the distribution.
+The QQ plot showed that the data likely does not come from a normal distribution, and suggests that the data contains more extreme values than a normal distribution (TODO supplement).\\
+
+Thus, we decided to move forward with a nonparametric test.
+% TODO CHECK THIS STATEMENT ON WHAT EXACTLY A WILCOXIN IS IN CASE A STATS PERSON TRIES TO GRILL ME
+We performed a Wilcoxon signed-rank test to test the null hypothesis ($H_{0}$) that TE Density values of the syntelog pairs come from the same distribution, and set a one-sided alternative hypothesis ($H_{a}$) positing that the Del Norte values are consistently greater than Royal Royce.
+Our resulting p-value of 2.730e-164 allows us to reject the null hypothesis in favor of the alternative.
+
+We repeated this analysis for all TE types, over all windows, for both upstream and downstream, and found that there is no combination in which the Royal Royce syntelogs are more TE-dense (TODO supplement).
+% TODO remove this sentence?
+We also observed that the mean is always positive and that the absolute value of the 95th percentile cutoffs are consistently greater for the Del Norte-biased portion of the graphs.
+Table \ref{tab:syntelog_summary} shows a summary of the syntelog TE Density differences for additional TE categories and measurement windows.
+Of particular interest were CACTA (En/Spm) elements, a superfamily of TIR elements, as they had some of the largest syntelog TE Density differences and this category of TEs had the second largest percentage difference in whole genome annotation between Del Norte and Royal Royce (Table \ref{tab:EDTA_Summary}).
+
+\begin{table}[ht]
+\centering
+\begin{tabularx}{\textwidth}{l|X|r|r}
+\toprule
+\textbf{TE Category} & \textbf{Window} & \textbf{BP Bias} & \textbf{P-Value} \\
+\toprule
+\textbf{Total TE} & 2500 & 113.7 & 1.603e-228 \\
+& 5000 & 161.6 & 2.730e-164 \\
+& 7500 & 202.3 & 4.871e-137 \\
+\hline
+\textbf{LTR} & 2500 & 125.6 & 5.776e-141 \\
+& 5000 & 153.9 & 2.973e-99 \\
+& 7500 & 171.9 & 7.172e-79 \\
+\hline
+\textbf{TIR} & 2500 & 73.2 & 4.140e-51 \\
+& 5000 & 99.7 & 1.153e-41 \\
+& 7500 & 126.7 & 5.753e-49 \\
+\hline
+\textbf{TIR/CACTA} & 2500 & 148.7 & 3.844e-33 \\
+& 5000 & 218.0 & 1.813e-41 \\
+& 7500 & 250.0 & 1.368e-48 \\
+\bottomrule
+\end{tabularx}
+\caption{Summary Table of the TE Density differences between Del Norte and Royal Royce syntelogs. The BP Bias column reflects the average base-pair bias towards Del Norte, and the P-Value column reflects the significance of the Wilcoxon signed-rank test.}
+\label{tab:syntelog_summary}
+\end{table}
+
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{../../results/density_analysis/figures/Total_TE_Density_5000_Upstream_DensityDifferences.png}
+\caption{
+Histogram of non-zero differences in TE Density values of syntelogs between Del Norte and Royal Royce.
+Royal Royce TE Density values were subtracted from Del Norte values; negative values reflect a higher TE value for the Royal Royce syntelog, and positive values reflect a higher TE value for the Del Norte syntelog.
+Values were binned into groupings reflecting 5\% increases or decreases in TE Density.
+All bins except for most positive bin are half-open.
+For example, the leftmost bin reflects an interval of $[-1.0, -0.95)$, rightmost is $[0.95, 1.0]$.
+% TODO REWORD THE FOLLOWING:
+%The cutoff values for the 95th percentile of positive values, and the 5th percentile of negative values were calculated from the array of non-zero differences.
+}
+\label{fig:syntelog_5000_total}
 \end{figure}
 
 %!!!!!
@@ -239,70 +309,6 @@ A complete list of both sets is available in the supplement (TODO supplement).
 
 
 
-
-\subsection{Domesticated Strawberry Has Less TEs Near Its Syntelogs With Wild Strawberry:}
-Given the results from our whole genome annotations, we expected that the syntelog pairs would have similar levels of TE presence, but referencing Figure \ref{fig:syntelog_5000_total} we see rather large differences, and show that the Del Norte syntelog is on average more TE-dense.
-% Here we plotted the difference in TE Density values of syntelog pairs, subtracting the Royal Royce value from the Del Norte value.
-% The TE Density values reported in Figure \ref{fig:syntelog_5000_total} were derived from a 5 KB measurement window upstream of genes, and display the total TE Density --- the sum of all TE occupied base-pairs for the window.
-Before we began statistically investigating this relationship, we first plotted the quantile-quantile (QQ) plot to assess the normality of the distribution.
-The QQ plot showed that the data likely does not come from a normal distribution, and suggests that the data contains more extreme values than a normal distribution (TODO supplement).
-
-Thus, we decided to move forward with a nonparametric test.
-% TODO CHECK THIS STATEMENT ON WHAT EXACTLY A WILCOXIN IS IN CASE A STATS PERSON TRIES TO GRILL ME
-We performed a Wilcoxon signed-rank test to test the null hypothesis ($H_{0}$) that TE Density values of the syntelog pairs come from the same distribution, and set a one-sided alternative hypothesis ($H_{a}$) positing that the Del Norte values are consistently greater than Royal Royce.
-This test was performed on the 5KB upstream window, considering all TEs.
-The mean TE Density difference was calculated as 0.032, which translates to a 161.6 BP bias in total TE content towards Del Norte.
-Our resulting p-value of 2.730e-164 allows us to reject the null hypothesis in favor of the alternative.
-
-We repeated this analysis for all TE types, over all windows, for both upstream and downstream, and found that there is no combination in which the Royal Royce syntelogs are more TE-dense (TODO supplement).
-% TODO remove this sentence?
-We also observed that the mean is always positive and that the absolute value of the 95th percentile cutoffs are consistently greater for the Del Norte-biased portion of the graphs.
-Table \ref{tab:syntelog_summary} shows a summary of the syntelog TE Density differences for additional TE categories and measurement windows.
-Of particular interest were CACTA elements, a superfamily of TIR elements, as they had some of the largest syntelog TE Density differences.
-This category also displayed one of the largest differences in whole genome annotation between Del Norte and Royal Royce, 1.02\%, second only to unknown LTR elements (Table \ref{tab:genomes_combined_reduced}).
-% It is worth noting that the generally large size of CACTA elements, which could impact their identification rate, proclivity to be near genes and or silenced and degraded, or other factors.
-
-\begin{table}[ht]
-\centering
-\begin{tabularx}{\textwidth}{l|X|r|r}
-\toprule
-\textbf{TE Category} & \textbf{Window} & \textbf{BP Bias} & \textbf{P-Value} \\
-\toprule
-\textbf{Total TE} & 2500 & 113.7 & 1.603e-228 \\
-& 5000 & 161.6 & 2.730e-164 \\
-& 7500 & 202.3 & 4.871e-137 \\
-\hline
-\textbf{LTR} & 2500 & 125.6 & 5.776e-141 \\
-& 5000 & 153.9 & 2.973e-99 \\
-& 7500 & 171.9 & 7.172e-79 \\
-\hline
-\textbf{TIR} & 2500 & 73.2 & 4.140e-51 \\
-& 5000 & 99.7 & 1.153e-41 \\
-& 7500 & 126.7 & 5.753e-49 \\
-\textbf{TIR/CACTA} & 2500 & 148.7 & 3.844e-33 \\
-& 5000 & 218.0 & 1.813e-41 \\
-& 7500 & 250.0 & 1.368e-48 \\
-\bottomrule
-\end{tabularx}
-\caption{Summary Table of the TE Density differences between Del Norte and Royal Royce syntelogs. The BP Bias column reflects the average base-pair bias towards Del Norte, and the P-Value column reflects the significance of the Wilcoxon signed-rank test.}
-\label{tab:syntelog_summary}
-\end{table}
-
-
-\begin{figure}[ht]
-\centering
-\includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{../../results/density_analysis/figures/Total_TE_Density_5000_Upstream_DensityDifferences.png}
-\caption{
-Histogram of non-zero differences in TE Density values of syntelogs between Del Norte and Royal Royce.
-Royal Royce TE Density values were subtracted from Del Norte values; negative values reflect a higher TE value for the Royal Royce syntelog, and positive values reflect a higher TE value for the Del Norte syntelog.
-Values were binned into groupings reflecting 5\% increases or decreases in TE Density.
-All bins except for most positive bin are half-open.
-For example, the leftmost bin reflects an interval of $[-1.0, -0.95)$, rightmost is $[0.95, 1.0]$.
-% TODO REWORD THE FOLLOWING:
-%The cutoff values for the 95th percentile of positive values, and the 5th percentile of negative values were calculated from the array of non-zero differences.
-}
-\label{fig:syntelog_5000_total}
-\end{figure}
 
 % TODO move this section?
 
@@ -561,7 +567,7 @@ We thank Michael Teresi for software optimization advice, Jordan Brock for feedb
 
 \newpage
 % TODO toggle this when moving to overleaf and get rid of the bibliography stuff at the beginning of the document
-%\printbibliography
+% \printbibliography
 \bibliography{references}
 
 \end{document}
