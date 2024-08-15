@@ -14,6 +14,7 @@ import numpy as np
 from collections import defaultdict, namedtuple
 from configparser import ConfigParser
 import ast
+import pandas as pd
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
@@ -32,6 +33,11 @@ from transposon.density_utils import (
 
 from src.syntelog_differences.parse_density_data import get_gene_data_as_list
 from src.orthologs.pan_orthology_table import read_pan_orthology_table
+
+
+def read_dotplot_table(filepath):
+    data = pd.read_csv(filepath, sep="\t", header="infer", index_col=0)
+    return data
 
 
 def parse_dotplot_config(config_file):
@@ -312,6 +318,15 @@ if __name__ == "__main__":
         )
         plot_name = f"{args.genome}_Dotplot_Strawberry_AllGenes_{tes.te_type}.png"
 
+        # Save the dict to disk so we can use it for other analyses
+        data = pd.DataFrame.from_dict(plotting_dict)
+        data.index = windows
+        table_out = os.path.join(
+            args.output_dir,
+            f"{args.genome}_Dotplot_DataFrame_Strawberry_{tes.te_type}.tsv",
+        )
+        data.to_csv(table_out, sep="\t", header=True, index=True)
+
         # Print the last entry in the values of the plotting dict
         logger.info("All genes plotting dict:")
         for key, val in plotting_dict.items():
@@ -335,6 +350,7 @@ if __name__ == "__main__":
             orthologs_to_plot, tes.te_list, windows, directions
         )
         logger.info("Ortholog plotting dict:")
+
         for key, val in plotting_dict.items():
             logger.info(f"\tLast value of {key}: {val[-1]}")
         plot_name = f"{args.genome}_Dotplot_Strawberry_Orthologs_{tes.te_type}.png"
