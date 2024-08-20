@@ -138,18 +138,11 @@ def graph_barplot_density_differences(
     )
     # -----------------------------------------
     # Wilcoxon signed-rank test
-    # TODO possibly add this to the legend or print out
-    # Wilxocon signed rank test is supposed be to carried out after the zero
-    # difference values are filtered away
-    # Because the data does not come from a normal distribution, I will use the
-    # Wilcoxon signed rank test to test if the median of the differences is
-    # significantly different than zero.
-    # wilcoxon = stats.wilcoxon(values, alternative="two-sided")
-
-    # I could also edit the alernative hypothesis to be one-sided, and specify
-    # that DN is always higher than RR. This would help me get at whether or
-    # not DN is more dense.
-    wilcoxon = stats.wilcoxon(values, alternative="greater")
+    # We can do this within the function, with the zero difference values
+    # already removed, because the default option for 'zero_method' is
+    # 'wilcox', which discards all zero-differences, so the behvaior doesn't
+    # change if we do it before or after we remove the zero-differences
+    wilcoxon = stats.wilcoxon(values, alternative="greater", zero_method="wilcox")
 
     significance = wilcoxon[1]
     significance = plt.Line2D(
