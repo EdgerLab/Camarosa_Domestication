@@ -477,6 +477,21 @@ dev_intersect_sweeps_with_TE_dense_genes:
 	#python $(CODE_DIR)/intersect_sweeps_w_enriched_terms.py $(SWEEP_TABLE) $(GO_ENRICHMENT_DIR)/Overrepresented_Difference_Total_TE_Density_5000_Upstream_Syntelogs_Biased_Towards_RR.tsv
 
 #-------------------------------------------------------------------#
+# Generate histograms of TE Identity given a list of TE family names
+# Script saves histograms to disk and logs the mean age of the TE family to the
+# console
+# NOTE, bad form, but I'm hardcoding the list of TE families for now
+# NOTE, this is hard-coded for RR since that is where most of my family level
+# analyses are focused.
+
+.PHONY: generate_TE_family_histograms
+generate_TE_family_histograms:
+	string_list=("chr_1B:16529894..16534792" "TE_00004293" "TE_00003582")
+	for family in $${string_list[@]}; do \
+		python $(CODE_DIR)/transposon_age_histogram.py $(RR_UNCLEAN_TEs) $$family $(RESULTS_DIR); \
+	done
+
+#-------------------------------------------------------------------#
 .ONESHELL: filter_RR_expression
 .PHONY: filter_RR_expression
 filter_RR_expression:
