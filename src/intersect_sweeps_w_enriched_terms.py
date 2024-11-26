@@ -213,11 +213,12 @@ if __name__ == "__main__":
     mod_table = intersect_genes_with_sweep_zones(sweep_table, go_enrichment_table)
 
     # NOTE MAGIC, if the user wants to print their gene of interest
-    # gene_of_interest = "Fxa1Cg101834"
+    # gene_of_interest = "Fxa6Bg103714"
     # result = describe_gene_of_interest(
     #     mod_table, sweep_table.index.to_list(), gene_of_interest
     # )
     # print(result)
+    # raise ValueError
 
     # Save the master table
     logger.info(f"Saving the modified sweep table to {args.intersected_output}")

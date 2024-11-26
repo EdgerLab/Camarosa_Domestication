@@ -2,6 +2,18 @@
 
 __author__ = "Scott Teresi"
 
+"""
+NOTE:
+- Unfinished script to analyze the some simple expression data and examine
+differences between the homeologs.
+- I did not have a full set of expression data, and was merely trying to create
+bar plots of TE Density vs 1 expression context and look at the different
+homeologs.
+- Future work may do well to use this code, but could also consider starting
+fresh as there isn't much here that is highly useful or original.
+
+"""
+
 import pandas as pd
 import numpy as np
 
@@ -259,59 +271,59 @@ if __name__ == "__main__":
         ~density_and_expression["Gene_Name"].str.contains("FxaCT")
     ]
 
-    density_and_expression.set_index("Gene_Name", inplace=True)
+    # --------------------------------------
+    # density_and_expression.set_index("Gene_Name", inplace=True)
+    # bins = np.arange(0, 1.05, 0.05)
+    # density_and_expression["Density_Bin"] = pd.cut(
+    #     density_and_expression["Density"], bins=bins, include_lowest=True
+    # )
 
-    bins = np.arange(0, 1.05, 0.05)
-    density_and_expression["Density_Bin"] = pd.cut(
-        density_and_expression["Density"], bins=bins, include_lowest=True
-    )
+    # # NOTE Jordan outlier rough estimates
+    # density_and_expression = density_and_expression.loc[
+    #     (density_and_expression["Avg_Expression"] > 0.1)
+    #     & (density_and_expression["Avg_Expression"] < 1000.0)
+    # ]
 
-    # NOTE Jordan outlier rough estimates
-    density_and_expression = density_and_expression.loc[
-        (density_and_expression["Avg_Expression"] > 0.1)
-        & (density_and_expression["Avg_Expression"] < 1000.0)
-    ]
+    # print(density_and_expression)
+    # density_and_expression["Avg_Expression"] = np.log10(
+    #     density_and_expression["Avg_Expression"] + 1
+    # )
+    # print(density_and_expression)
 
-    print(density_and_expression)
-    density_and_expression["Avg_Expression"] = np.log10(
-        density_and_expression["Avg_Expression"] + 1
-    )
-    print(density_and_expression)
+    # grouped = (
+    #     density_and_expression.groupby("Density_Bin")
+    #     .agg(
+    #         Gene_Count=("Density", "size"),
+    #         Avg_Expression=("Avg_Expression", "mean"),
+    #         Exp_Std_Dev=("Avg_Expression", "std"),
+    #     )
+    #     .reset_index()
+    # )
 
-    grouped = (
-        density_and_expression.groupby("Density_Bin")
-        .agg(
-            Gene_Count=("Density", "size"),
-            Avg_Expression=("Avg_Expression", "mean"),
-            Exp_Std_Dev=("Avg_Expression", "std"),
-        )
-        .reset_index()
-    )
-
-    fig, ax1 = plt.subplots(figsize=(10, 6))
-    ax1.bar(
-        grouped["Density_Bin"].astype(str),
-        grouped["Gene_Count"],
-        color="lightblue",
-        label="Gene Count",
-    )
-    ax1.tick_params(axis="x", labelrotation=-45)
-    ax2 = ax1.twinx()
-    # ax2.plot(grouped["Density_Bin"].astype(str), grouped["Avg_Expression"], color="red")
-    grouped.plot(
-        x="Density_Bin",
-        y="Avg_Expression",
-        ax=ax2,
-        color="black",
-        yerr="Exp_Std_Dev",
-        capsize=4,
-        rot=0,
-        logy=False,
-    )
+    # fig, ax1 = plt.subplots(figsize=(10, 6))
+    # ax1.bar(
+    #     grouped["Density_Bin"].astype(str),
+    #     grouped["Gene_Count"],
+    #     color="lightblue",
+    #     label="Gene Count",
+    # )
+    # ax1.tick_params(axis="x", labelrotation=-45)
+    # ax2 = ax1.twinx()
+    # # ax2.plot(grouped["Density_Bin"].astype(str), grouped["Avg_Expression"], color="red")
+    # grouped.plot(
+    #     x="Density_Bin",
+    #     y="Avg_Expression",
+    #     ax=ax2,
+    #     color="black",
+    #     yerr="Exp_Std_Dev",
+    #     capsize=4,
+    #     rot=0,
+    #     logy=False,
+    # )
     # ax2.plot(grouped["Density_Bin"].astype(str), grouped["Avg_Expression"], color="red")
     # ax2.set_yscale("log")
-    plt.show()
-    raise ValueError("STOP")
+    # plt.show()
+    # raise ValueError("STOP")
     # ---------------------------------------------------
 
     # Check out the homeologs for each quartet, and checkout which genes have
@@ -320,6 +332,7 @@ if __name__ == "__main__":
     # NOTE, may be worth forcing it so that I am only considering A, B, C, D
     # retained homeologs
 
+    print(density_and_expression)
     merged_A = merge_expression_data(
         syntelog_data, density_and_expression, "Gene_A_Name"
     )
@@ -330,6 +343,12 @@ if __name__ == "__main__":
     # NOTE toggle
     result = merged_D.apply(find_highest_expression_and_lowest_density, axis=1)
     final_result = pd.concat([merged_D, result], axis=1)
+
+    print(final_result)
+    gene_of_interest = "Fxa6Bg103714"
+    print(final_result.loc[final_result["Gene_B_Name"] == gene_of_interest])
+    plot_gene_of_interest_density_and_expression(final_result, gene_of_interest)
+    raise ValueError
 
     # subset the data so that I can find a good example manually, easily
     desired_output = final_result.loc[

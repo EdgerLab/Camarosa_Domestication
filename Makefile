@@ -325,7 +325,8 @@ deprecated_generate_super_dense_gene_tables_differing_syntelogs: $(SUPER_DENSE_C
 
 # NOTE I added the None_Intra types to calculate those on a one off
 prefixes := RR DN
-types := Total_TE_Density_5000_Upstream TIR_5000_Upstream LTR_5000_Upstream
+types := Total_TE_Density_5000_Upstream
+#types := Total_TE_Density_5000_Upstream TIR_5000_Upstream LTR_5000_Upstream
 # Loop over a specific set
 super_dense_single_genome_specific: $(STRAWBERRY_ORTHOLOG_TABLE) $(SUPER_DENSE_CUTOFF_TABLE_DIR)
 	mkdir -p $(SUPER_DENSE_CUTOFF_TABLE_DIR)/no_Arabidopsis
