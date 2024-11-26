@@ -15,3 +15,6 @@ h4_manifest.tsv
 igv_session.xml
 other/*
 src/orthologs/ortholog_v_nonorth.py
+doc/manuscript/supplement/*
+misc/*
+
