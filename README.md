@@ -14,9 +14,9 @@ Together, these findings point to a dynamic and important role for TEs in shapin
 
 # Table of Contents:
 - Overview
+- Repository Structure
 - Installation
 - Usage
-- Repository Structure
 - Acknowledgements
 - Data Availability
 - Future Directions
@@ -29,6 +29,20 @@ The strawberry domestication projects explores the relationship between TEs and 
 - Identification of genes with unusual or high levels of TE Density
 	- Identification of syntelogs with TE differences between cultivated and wild strawberry
 - Functional enrichments of these TE-dense genes
+
+# Repository Structure:
+Strawberry_Domestication/
+├── data/             # Raw and processed genomic data
+├── doc/              # Miscellaneous documentation
+├── EDTA/             # EDTA Git Submodule
+├── JCVI_Strawberry/  # JCVI Git Submodule
+├── logs/             # Miscellaneous logs from HPC jobs
+├── requirements/     # Contains pip freeze output for Python package
+├── results/          # Output files and figures
+├── src/              # Analysis and visualization scripts
+├── TE_Density/       # TE Density Git Submodule
+├── README.md         # Project overview (this file)
+└── Makefile          # Organized commands to recreate analyses
 
 # Installation:
 This project primarily uses Python 3.10.4, with other softwares such as EDTA described further below.
@@ -47,10 +61,27 @@ git submodule update
 pip install -r requirements/python_requirements.txt
 ```
 
-# Other Installation Requirements:
+## Other Installation Requirements:
 I used [TE Density](https://github.com/sjteresi/TE_Density), [EDTA](https://github.com/oushujun/EDTA), and [JCVI](https://github.com/tanghaibao/jcvi).
 I listed all 3 as Git Submodules to keep track of the commit I used for my project.
 Please take the time to read more about [submodules](https://git-scm.com/book/en/v2/Git-Tools-Submodules) if you are unfamiliar.
+Install EDTA according to its instructions, do not use the same environment to hold this software **or** TE Density.
+
+## A Note on Conda:
+Please do not use Conda.
+I have spent a large amount of time resolving installation conflicts with conda, either with EDTA or TE Density.
+It is slow and has bad dependency management, and can lead to unexpected issues when people install things with conda **and** pip.
+Just use pip.
+If you must conda, please use miniconda to minimize unforeseen issues.
+
+# Usage:
+The `Makefile` is the best authority for recreating the analyses.
+If all you do is create a Python environment, install the correct packages, read this README, and read the Makefile, you should be in a good spot.
+I tried to organize the Makefile chronologically in the order that I performed analyses, but that wasn't always possible.
+
+I am not the best at creating Makefiles, and it is likely that a large amount of the rules do not resemble traditional C programming language rules.
+Most of the Makefile rules involve transforming some data input via a Python script, and outputting a large number of output text files or figures.
+Most of the time this could be confusing as I am running the script on two parallel systems, cultivated and wild strawberry.
 
 
 # TODO
