@@ -30,9 +30,9 @@ The strawberry domestication projects explores the relationship between TEs and 
 - Identification of genes with unusual or high levels of TE Density
 	- Identification of syntelogs with TE differences between cultivated and wild strawberry
 - Functional enrichments of these TE-dense genes
+- Overlap the TE-dense and/or interesting gene ontology genes with selective sweep regions from previous research.
 
 # Repository Structure:
-
 ```
 Strawberry_Domestication/
 ├── data/             # Raw and processed genomic data
@@ -73,19 +73,36 @@ Install EDTA according to its instructions, do not use the same environment to h
 
 ## A Note on Conda:
 Please do not use Conda.
-I have spent a large amount of time resolving installation conflicts with conda, either with EDTA or TE Density.
-It is slow and has bad dependency management, and can lead to unexpected issues when people install things with conda **and** pip.
 Just use pip.
 If you must conda, please use miniconda to minimize unforeseen issues.
 
 # Usage:
 The `Makefile` is the best authority for recreating the analyses.
 If all you do is create a Python environment, install the correct packages, read this README, and read the Makefile, you should be in a good spot.
-I tried to organize the Makefile chronologically in the order that I performed analyses, but that wasn't always possible.
+I tried to organize the Makefile chronologically in the order that I performed analyses, but that wasn't always feasible due to the circular nature of some analyses.
 
 I am not the best at creating Makefiles, and it is likely that a large amount of the rules do not resemble traditional C programming language rules.
 Most of the Makefile rules involve transforming some data input via a Python script, and outputting a large number of output text files or figures.
-Most of the time this could be confusing as I am running the script on two parallel systems, cultivated and wild strawberry.
+Most of the time this could be confusing as I am running the script on two parallel datasets, cultivated and wild strawberry.
 
 
-# TODO
+# Acknowledgements:
+- Pat Edger
+- Adrian Platts
+- Nick Panchy
+- Ning Jiang
+- Jordan Brock
+
+# Data Availability:
+- Royal Royce genome: [bioRxiv](https://www.biorxiv.org/content/10.1101/2021.11.03.467115v1.full.pdf)
+- Del Norte genome: Sourced from Pat, unpublished
+- H4 genome: [Giga Science](https://academic.oup.com/gigascience/article/7/2/gix124/4739363?login=true#supplementary-data)
+
+# Future Directions:
+Currently, generating a list of potential TE-impacted genes can be quite manual towards the end of the pipeline.
+As described in the [Overview section](#overview), there is a lot of merging and subsetting.
+
+Basically, genes with high levels of TE presence are identified (this cutoff should be explored more, and I purposefully used a high TE presence cutoff).
+Then, these genes with high TE presence are subsetted against a GO table, so that only genes with Arabidopsis orthologs with functional annotations remain (this cuts down the data by a lot!)
+Next, some analyses proceed such as the UpSet plot and tables are of the GO terms that are unique to each genome or are interesting from a biological perspective.
+Finally, this table is further subsetted by a list of selective sweep regions (this dataset was obtained from [The Plant Cell](https://academic.oup.com/plcell/article/36/5/1622/7479895)
