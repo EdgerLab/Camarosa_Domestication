@@ -13,6 +13,7 @@ import os
 import argparse
 import logging
 import coloredlogs
+from collections import defaultdict
 
 
 from src.orthologs.pan_orthology_table import read_pan_orthology_table
@@ -31,6 +32,42 @@ from transposon.density_utils import (
     add_hdf5_indices_to_gene_data,
     info_of_gene,
 )
+
+
+def read_syntelog_diff_table(syntelog_diff_table_2D):
+    # Create a defaultdict to set a default column dtype, but manually specify
+    # a few
+    # Use the nullable integer type unique to pandas
+    # One of column NAMES is variable but always float, so
+    # default dict of float will handle that
+    specifics = {
+        "DN_Gene": "string",
+        "RR_Gene": "string",
+        "H4_Gene": "string",
+        "DN_RR_Point_of_Origin": "string",
+        "H4_RR_Point_of_Origin": "string",
+        "Arabidopsis_Gene": "string",
+        "GO_ID": "string",
+        "GO_Term_Description": "string",
+        "RR_Chromosome": "string",
+        "RR_Start": "Int64",
+        "RR_Stop": "Int64",
+        "RR_Strand": "string",
+        "RR_Length": "Int64",
+        "DN_Chromosome": "string",
+        "DN_Start": "Int64",
+        "DN_Stop": "Int64",
+        "DN_Strand": "string",
+        "H4_Start": "Int64",
+        "H4_Stop": "Int64",
+        "DN_Length": "Int64",
+        "H4_Length": "Int64",
+        "H4_Strand": "string",
+        "H4_Chromosome": "string",
+    }
+    default = "float64"
+    dtypes = defaultdict(lambda: default, specifics)
+    return pd.read_csv(syntelog_diff_table_2D, sep="\t", dtype=dtypes)
 
 
 def get_gene_data_as_list(cleaned_genes):

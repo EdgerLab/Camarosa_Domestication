@@ -1,12 +1,15 @@
-# __file__ Makefile
-# __author__ Scott Teresi
 # Purpose: Makefile for the strawberry domestication project.
-# - This Makefile is organized into several sections, each of which is responsible for a different part of the analysis.
 # - Sections are denoted by `--------------`
-# - At the top of each section is a definition of various paths, to sort input and output files.
+# - At the top of each section is a definition of various paths for input and output files
+# - Most targets are defined as phony targets, so they will always run.
+# - I tried to minimize making the targets dependent on one another, but I did try to define rules to make inputs.
+# - Notes are delineated by `# NOTE` or `# NB` (note well, nota bene) for readability
+# - Most of the front matter of each section can be ignored as it is merely defining file paths
+# - Commands prefixed with the 'DEV' string are for testing and development purposes and can largely be ignored.
+# - I frequently used these when I needed to test something that was going to be put into a big `parallel` command
 #-------------------------------------------------------------------#
-# Main
-#
+# Set up the project directory
+
 setup:
 	mkdir -p requirements doc results src data
 
@@ -31,32 +34,39 @@ sync_local_to_remote_results:
 	rsync -avze ssh ${RESULTS_DIR} --delete --chmod=Du=rwx,Dg=rwsx,Do=,Fu=rwx,Fg=rx,Fo= teresisc@rsync.hpcc.msu.edu:/mnt/research/edgerpat_lab/Scotty/Strawberry_Domestication/
 
 #-------------------------------------------------------------------#
-# Prepare the gene and TE annotation inputs for TE Density
+# EDTA TE Annotation
+# This portion of the project is not managed by the Makefile, as I needed to submit jobs to the cluster.
+# I have placed a README in the `src/annotation_scripts` directory to explain how to run the scripts.
+
+#-------------------------------------------------------------------#
+# Next, with the TE annotations finished, we need to prepare them for TE Density
 
 CLEANED_ANNOTATION_DIR := $(RESULTS_DIR)/cleaned_annotations
 $(CLEANED_ANNOTATION_DIR):
 	mkdir -p $@
 
-# Define the file paths for the uncleaned gene annotations
+# NB Define the file paths for the uncleaned gene annotations
 H4_UNCLEAN_GENES := $(DATA_DIR)/Genomes/H4/H4_GeneAnnotation.gff
 DN_UNCLEAN_GENES := $(DATA_DIR)/Genomes/Del_Norte/DN_GeneAnnotation.gff
 RR_UNCLEAN_GENES := $(DATA_DIR)/Genomes/Royal_Royce/RR_GeneAnnotation.gff
 
-# Define the file paths for the cleaned gene annotations
+# NB Define the file paths for the cleaned gene annotations
 H4_CLEAN_GENES := $(CLEANED_ANNOTATION_DIR)/Cleaned_H4_GeneAnnotation.tsv
 DN_CLEAN_GENES := $(CLEANED_ANNOTATION_DIR)/Cleaned_DN_GeneAnnotation.tsv
 RR_CLEAN_GENES := $(CLEANED_ANNOTATION_DIR)/Cleaned_RR_GeneAnnotation.tsv
 
-# Define the file paths for the uncleaned TE annotations
+# NB Define the file paths for the uncleaned TE annotations
 H4_UNCLEAN_TEs := $(RESULTS_DIR)/Pan_Annotation/H4_NewNames.fa.mod.EDTA.TEanno.gff3
 DN_UNCLEAN_TEs := $(RESULTS_DIR)/Pan_Annotation/DN_NewNames.fa.mod.EDTA.TEanno.gff3
 RR_UNCLEAN_TEs := $(RESULTS_DIR)/Pan_Annotation/RR_NewNames.fa.mod.EDTA.TEanno.gff3
 
-# Define the file paths for the cleaned TE annotations
+# NB Define the file paths for the cleaned TE annotations
 H4_CLEAN_TEs := $(CLEANED_ANNOTATION_DIR)/Cleaned_H4_NewNames.fa.mod.EDTA.TEanno.gff3
 DN_CLEAN_TEs := $(CLEANED_ANNOTATION_DIR)/Cleaned_DN_NewNames.fa.mod.EDTA.TEanno.gff3
 RR_CLEAN_TEs := $(CLEANED_ANNOTATION_DIR)/Cleaned_RR_NewNames.fa.mod.EDTA.TEanno.gff3
 
+
+# NB Define the targets for the cleaned gene and TE annotations
 $(H4_CLEAN_GENES): $(H4_UNCLEAN_GENES) | $(CLEANED_ANNOTATION_DIR)
 	@echo Filtering H4 strawberry genes into appropriate format for TE Density
 	python $(CODE_DIR)/import_strawberry_gene_anno.py $< H4 $@
@@ -81,32 +91,38 @@ $(RR_CLEAN_TEs): $(RR_UNCLEAN_TEs) | $(CLEANED_ANNOTATION_DIR)
 	@echo Filtering RR strawberry TEs into appropriate format for TE Density
 	python $(CODE_DIR)/import_strawberry_EDTA.py $< RR $@
 
-# Define a phony target to filter all gene annotations for convenience
+# NB Define a phony target to filter ALL gene annotations for convenience
 .PHONY: filter_all_genes
 filter_all_genes: $(H4_CLEAN_GENES) $(DN_CLEAN_GENES) $(RR_CLEAN_GENES)
 
-# Define a phony target to filter all TE annotations for convenience
+# NB Define a phony target to filter ALL TE annotations for convenience
 .PHONY: filter_all_transposons
 filter_all_transposons: $(H4_CLEAN_TEs) $(DN_CLEAN_TEs) $(RR_CLEAN_TEs)
 
 #-------------------------------------------------------------------#
-# Prepare the syntelog and BLAST results to generate the ortholog table
+# The next step is to generate the ortholog tables for the strawberry genomes
+# This step does not need to wait until TE Density is done
+# We first run SynMap on the genomes (not managed by Makefile) and use BLAST on the cluster.
+# The GO table file is downloaded from TAIR
+# So the data generation part of this section is not directly managed by the Makefile.
 
-# Define the file paths for the unclean syntelog files
+# NB Define the file paths for the unclean syntelog files
 RR_DN_SYNTELOG_REGULAR := $(DATA_DIR)/orthologs/RR_DN_SynMap.txt
 RR_H4_SYNTELOG_REGULAR := $(DATA_DIR)/orthologs/RR_H4_SynMap.txt
-# Define the file paths for the unclean BLAST results
+
+# NB Define the file paths for the unclean BLAST results
 RR_H4_BLAST_REGULAR := $(DATA_DIR)/orthologs/RR_H4.blast
 RR_DN_BLAST_REGULAR := $(DATA_DIR)/orthologs/RR_DN.blast
 
-# Define the file paths for the clean syntelog files
+# NB Define the file paths for the clean syntelog files
 CLEANED_RR_DN_SYNTELOGS := $(DATA_DIR)/orthologs/filtered/Cleaned_RR_DN_Syntelogs.tsv
 CLEANED_RR_H4_SYNTELOGS := $(DATA_DIR)/orthologs/filtered/Cleaned_RR_H4_Syntelogs.tsv
-# Define the file paths for the cleaned BLAST results
+
+# NB Define the file paths for the cleaned BLAST results
 RR_H4_BLAST_RENAMED := $(DATA_DIR)/orthologs/filtered/RR_H4_BLAST_renamed.tsv
 RR_DN_BLAST_RENAMED := $(DATA_DIR)/orthologs/filtered/RR_DN_BLAST_renamed.tsv
 
-# Define the file paths for processing the GO terms
+# NB Define the file paths for processing the GO terms
 UNCLEAN_GO_FILE := $(DATA_DIR)/GO/ATH_GOSLIM.txt
 CLEANED_GO_FILE := $(RESULTS_DIR)/go_analysis/GO_ID_w_Term.tsv
 TOP_GO_REFERENCE_FILE := $(RESULTS_DIR)/go_analysis/ArabidopsisGene_w_GO.tsv
@@ -122,7 +138,6 @@ $(DATA_DIR)/orthologs/filtered $(RESULTS_DIR)/orthologs:
 $(GO_OUT_DIR):
 	mkdir -p $@
 
-
 .PHONY: filter_RR_DN_syntelogs
 filter_RR_DN_syntelogs: $(CLEANED_RR_DN_SYNTELOGS)
 
@@ -135,7 +150,6 @@ filter_RR_H4_syntelogs: $(CLEANED_RR_H4_SYNTELOGS)
 $(CLEANED_RR_H4_SYNTELOGS): $(RR_H4_SYNTELOG_REGULAR) | $(DATA_DIR)/orthologs/filtered
 	python $(CODE_DIR)/orthologs/syntelogs.py $< H4 $@
 
-
 $(RR_H4_BLAST_REGULAR):
 	@echo  BLASTING RR and H4, must be run on the cluster
 	sbatch $(CODE_DIR)/orthologs/rr_h4_blastall.sb
@@ -144,10 +158,9 @@ $(RR_DN_BLAST_REGULAR):
 	@echo  BLASTING RR and DN, must be run on the cluster
 	sbatch $(CODE_DIR)/orthologs/rr_dn_blastall.sb
 
-# Define a target to generate the vanilla BLAST results, must be run on cluster.
+# NB Define a target to generate the vanilla BLAST results, must be run on cluster.
 .PHONY: generate_BLAST
 generate_BLAST: $(RR_H4_BLAST_REGULAR) $(RR_DN_BLAST_REGULAR)
-
 
 $(RR_H4_BLAST_RENAMED): $(RR_H4_BLAST_REGULAR) $(RR_CLEAN_GENES) $(H4_CLEAN_GENES) | $(DATA_DIR)/orthologs/filtered
 	python $(CODE_DIR)/orthologs/reformat_RR_H4_BLAST_results.py $^ $@
@@ -156,14 +169,14 @@ $(RR_H4_BLAST_RENAMED): $(RR_H4_BLAST_REGULAR) $(RR_CLEAN_GENES) $(H4_CLEAN_GENE
 $(RR_DN_BLAST_RENAMED): $(RR_DN_BLAST_REGULAR) $(DATA_DIR)/orthologs/DN_salt.translation $(RR_CLEAN_GENES) $(DN_CLEAN_GENES) | $(DATA_DIR)/orthologs/filtered
 	python $(CODE_DIR)/orthologs/replace_and_reformat_DN_RR_BLAST_results.py $^ $@
 
-# Define a target to rename the BLAST results
+# NB Define a target to rename the BLAST results
 .PHONY: rename_RR_H4_BLAST
 rename_RR_H4_BLAST: $(RR_H4_BLAST_RENAMED)
 
 .PHONY: rename_RR_DN_BLAST
 rename_RR_DN_BLAST: $(RR_DN_BLAST_RENAMED)
 
-# Define a target to clean the GO file
+# NB Define a target to clean the GO file
 .PHONY: filter_go_slim
 filter_go_slim: $(CLEANED_GO_FILE) $(TOP_GO_REFERENCE_FILE)
 
@@ -175,7 +188,7 @@ clear_go_output:
 	rm -f $(CLEANED_GO_FILE)
 	rm -f $(TOP_GO_REFERENCE_FILE)
 
-# Define a target to generate the ortholog table from the BLAST and SynMap results
+# NB Define a target to generate the merged ortholog table from the BLAST and SynMap results
 .PHONY: generate_ortholog_table
 generate_ortholog_table: $(STRAWBERRY_ORTHOLOG_TABLE)
 
@@ -185,14 +198,17 @@ $(STRAWBERRY_ORTHOLOG_TABLE): $(CLEANED_RR_H4_SYNTELOGS) $(RR_H4_BLAST_RENAMED) 
 	python $(CODE_DIR)/orthologs/pan_orthology_table.py $^ $@
 
 #-------------------------------------------------------------------#
-# TE Density analysis of Syntelogs
-# Define the file paths for the density data
+# TE Density analysis of syntelogs and generation of 2D density tables for other analyses
+# Dissecting the HDF5 TE Density files is a pain, so the script `parse_density_data.py` does this for us.
+# I was mostly interested in the differences in TE Density of SYNTELOGS between the two octoploid genomes (DN, RR)
+ 
+# Define the file paths for the HDF5 (3D) density data
 DN_DENSITY_DIR := $(RESULTS_DIR)/density/DN/output_data
 RR_DENSITY_DIR := $(RESULTS_DIR)/density/RR/output_data
 H4_DENSITY_DIR := $(RESULTS_DIR)/density/H4/output_data
-DENSITY_TABLE_DIR := $(RESULTS_DIR)/density_analysis/tables
 
-# TODO RENAME THIS?
+# Define the file paths for the 2D density tables
+DENSITY_TABLE_DIR := $(RESULTS_DIR)/density_analysis/tables
 SYNTELOG_PLOT_DIR := $(RESULTS_DIR)/density_analysis/figures
 
 # Define a target to create the directory if it doesn't exist
@@ -202,8 +218,8 @@ $(DENSITY_TABLE_DIR):
 $(SYNTELOG_PLOT_DIR):
 	mkdir -p $@
 
-# Define a phony target to create the syntelog density table for convenience
 # NOTE this script takes a while....
+# Define a phony target to create the syntelog density table for convenience
 # The TE types we get data for are manually coded within the analysis script
 .PHONY: generate_density_tables
 generate_density_tables: $(STRAWBERRY_ORTHOLOG_TABLE) $(DN_CLEAN_GENES) $(RR_CLEAN_GENES) $(H4_CLEAN_GENES) $(DN_DENSITY_DIR) $(RR_DENSITY_DIR) $(H4_DENSITY_DIR) $(DENSITY_TABLE_DIR) | $(DENSITY_TABLE_DIR)
@@ -211,11 +227,10 @@ generate_density_tables: $(STRAWBERRY_ORTHOLOG_TABLE) $(DN_CLEAN_GENES) $(RR_CLE
 
 .PHONY: generate_syntelog_plots
 generate_syntelog_plots: | $(SYNTELOG_PLOT_DIR)
-	find $(DENSITY_TABLE_DIR) -type f -name '*minus*' | parallel python $(CODE_DIR)/syntelog_differences/bargraphs.py {} $(SYNTELOG_PLOT_DIR)
+	find $(DENSITY_TABLE_DIR) -type f -name '*minus*' -not -name '*Intra*' | parallel python $(CODE_DIR)/syntelog_differences/bargraphs.py {} $(SYNTELOG_PLOT_DIR)
 
-# TODO remove in future, DEV testing
-.PHONY: test_syntelog_plots
-test_syntelog_plots:
+.PHONY: DEV_test_syntelog_plots
+DEV_test_syntelog_plots:
 	python $(CODE_DIR)/syntelog_differences/bargraphs.py $(DENSITY_TABLE_DIR)/DN_minus_RR_Copia_1000_Downstream.tsv $(SYNTELOG_PLOT_DIR)
 
 

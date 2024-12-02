@@ -8,9 +8,10 @@ import coloredlogs
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import os
-
 import scipy.stats as stats
 import statsmodels.api as sm
+
+from src.syntelog_differences.parse_density_data import read_syntelog_diff_table
 
 """
 Generate barplots of syntelog TE density differences
@@ -260,7 +261,7 @@ if __name__ == "__main__":
     logger = logging.getLogger(__name__)
     coloredlogs.install(level=log_level)
 
-    table = pd.read_csv(args.preprocessed_density_table, header="infer", sep="\t")
+    table = read_syntelog_diff_table(args.preprocessed_density_table)
 
     # Ensure that the table is not missing any DN or RR genes
     table.dropna(axis="rows", how="any", subset=["DN_Gene", "RR_Gene"], inplace=True)
