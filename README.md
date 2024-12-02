@@ -102,7 +102,10 @@ Most of the time this could be confusing as I am running the script on two paral
 Currently, generating a list of potential TE-impacted genes can be quite manual towards the end of the pipeline.
 As described in the [Overview section](#overview), there is a lot of merging and subsetting.
 
-Basically, genes with high levels of TE presence are identified (this cutoff should be explored more, and I purposefully used a high TE presence cutoff).
-Then, these genes with high TE presence are subsetted against a GO table, so that only genes with Arabidopsis orthologs with functional annotations remain (this cuts down the data by a lot!)
-Next, some analyses proceed such as the UpSet plot and tables are of the GO terms that are unique to each genome or are interesting from a biological perspective.
-Finally, this table is further subsetted by a list of selective sweep regions (this dataset was obtained from [The Plant Cell](https://academic.oup.com/plcell/article/36/5/1622/7479895)
+- Basically, genes with high levels of TE presence are identified (this cutoff should be explored more, and I purposefully used a high TE presence cutoff).
+- Then, these genes with high TE presence are subsetted against a GO table, so that only genes with Arabidopsis orthologs with functional annotations remain (this cuts down the data by a lot!)
+- Next, some analyses proceed, the UpSet plot and tables of the GO terms that are unique to each genome or are interesting from a biological perspective are generated.
+- Finally, this table is further subsetted by a list of selective sweep regions (this dataset was obtained from [The Plant Cell](https://academic.oup.com/plcell/article/36/5/1622/7479895)
+- Then, I manually inspected this list of genes for a final visual check of interesting GO terms and manually BLAST'ed the genes on NCBI to see if my strawberry gene was at least found in other Rosaceae and to "spot-check" any functional information I was getting from my GO enrichment. Oftentimes I would find that the GO enrichment did not encompass the whole body of knowledge around a gene, and that NCBI BLAST was useful here for giving me some of the informal names for genes such as COP1.
+
+Future work could consider using 
